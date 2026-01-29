@@ -1,0 +1,20 @@
+:root {
+  --card-width-grid: 120px;
+  --card-width-row: 110px;
+}
+
+/* Tablet */
+@media (min-width: 600px) {
+  :root {
+    --card-width-grid: 150px;
+    --card-width-row: 140px;
+  }
+}
+
+/* Desktop */
+@media (min-width: 1025px) {
+  :root {
+    --card-width-grid: 180px;
+    --card-width-row: 160px;
+  }
+}

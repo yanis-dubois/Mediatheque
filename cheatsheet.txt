@@ -1,0 +1,9 @@
+- Some important commands -
+
+Run dev mod:
+desktop 
+> pnpm tauri dev
+ios
+> pnpm tauri ios dev "iPhone 16e"
+android
+> pnpm tauri android dev
