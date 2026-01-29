@@ -1,7 +1,7 @@
 # See http://help.github.com/ignore-files/ for more about ignoring files.
 
 # Debug images
-/src/app/assets/images/*
+/src/assets/images
 
 # Compiled output
 /dist
