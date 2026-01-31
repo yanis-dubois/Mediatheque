@@ -1,0 +1,64 @@
+.header {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 2rem;
+
+  padding: 2rem;
+  min-height: 60vh;
+}
+
+/* Poster */
+.image {
+  width: 300px;
+  max-width: 35vw;
+  border-radius: 16px;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.6);
+}
+
+/* Infos */
+.info {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  align-items: flex-start;
+  max-width: 800px;
+}
+
+.title {
+  font-size: clamp(2rem, 4vw, 3rem);
+  margin-bottom: 1rem;
+}
+
+/* Tags */
+.tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0 0.25rem;
+}
+
+.tag {
+  padding: 0.35rem 0.75rem;
+  margin-top: 0;
+  font-size: 0.85rem;
+  border-radius: 15px;
+  background: rgba(100, 100, 100, 0.5);
+  backdrop-filter: blur(6px);
+}
+
+/* Description */
+.description {
+  margin-top: 0;
+  font-size: 1rem;
+  line-height: 1.6;
+  opacity: 0.9;
+  max-width: 70ch;
+  text-align: justify;
+}
+
+/* Phone */
+@media (max-width: 600px) {
+  .header {
+    padding: 0rem;
+    gap: 1rem;
+  }
+}

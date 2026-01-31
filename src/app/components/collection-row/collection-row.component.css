@@ -3,10 +3,11 @@
 }
 
 .row {
-  display: flex;
-  overflow-x: auto;
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: var(--card-width-row);
   gap: 3px 6px;
-  padding-bottom: 4px;
+  overflow-x: auto;
   scroll-behavior: smooth;
   scroll-snap-type: x mandatory;
 }

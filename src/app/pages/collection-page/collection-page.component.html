@@ -1,0 +1,7 @@
+<app-action-bar></app-action-bar>
+
+<div *ngIf="error">{{ error }}</div>
+
+<section *ngIf="query">
+  <app-collection [query]="query"></app-collection>
+</section>

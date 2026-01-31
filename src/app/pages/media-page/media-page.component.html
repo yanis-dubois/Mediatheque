@@ -1,0 +1,16 @@
+<app-action-bar></app-action-bar>
+
+<section class="header" *ngIf="media; else notFound">
+  <img class="image" [src]="media.imageUrl" [alt]="media.title" />
+  <div class="info">
+    <h1 class="title">{{ media.title }}</h1>
+    <div class="tags">
+      <!-- <p class="tag" *ngFor="let tag of media.tags">{{ tag }}</p> -->
+    </div>
+    <p class="description">{{ media.description }}</p>
+  </div>
+</section>
+
+<ng-template #notFound>
+  <p>Média introuvable 😢</p>
+</ng-template>
