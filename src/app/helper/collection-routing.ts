@@ -8,8 +8,8 @@ export function collectionLink(query: CollectionQuery): any[] {
     case CollectionQueryType.SIMPLE:
       return ['/collection', 'simple', query.id];
 
-    case CollectionQueryType.FAVORITES:
-      return ['/collection', 'favorites'];
+    case CollectionQueryType.FAVORITE:
+      return ['/collection', 'favorite'];
 
     case CollectionQueryType.STATUS:
       return ['/collection', 'status', query.status];

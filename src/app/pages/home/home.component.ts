@@ -19,7 +19,7 @@ export class HomeComponent {
   greetingMessage = "";
 
   queries: CollectionQuery[] = [
-    {type: CollectionQueryType.FAVORITES},
+    {type: CollectionQueryType.FAVORITE},
     {type: CollectionQueryType.ALL},
   ]
 

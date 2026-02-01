@@ -19,8 +19,8 @@ export class CollectionService {
         return this.getById(query.id);
       case CollectionQueryType.ALL:
         return this.getAll();
-      case CollectionQueryType.FAVORITES:
-        throw new Error('FAVORITES not implemented');
+      case CollectionQueryType.FAVORITE:
+        return this.getFavorite();
       case CollectionQueryType.STATUS:
         throw new Error('STATUS not implemented');
       case CollectionQueryType.RECENT:
@@ -33,6 +33,15 @@ export class CollectionService {
 
     return {
       name: 'All',
+      mediaList
+    };
+  }
+
+  async getFavorite(): Promise<Collection> {
+    const mediaList = await this.mediaService.getFavorite();
+
+    return {
+      name: 'Favorite',
       mediaList
     };
   }

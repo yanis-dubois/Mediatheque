@@ -22,7 +22,8 @@ pub fn run() {
         .invoke_handler(tauri::generate_handler![
             greet,
             commands::media::get_media_by_id,
-            commands::media::get_all_media
+            commands::media::get_all_media,
+            commands::media::get_favorite_media
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

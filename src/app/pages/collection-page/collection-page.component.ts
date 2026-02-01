@@ -40,6 +40,11 @@ export class CollectionPageComponent {
           type: CollectionQueryType.SIMPLE,
           id: Number(value)
         };
+      
+      case 'favorite':
+        return {
+          type: CollectionQueryType.FAVORITE
+        };
 
       default:
         this.error = true;

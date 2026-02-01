@@ -1,5 +1,7 @@
 <div *ngIf="loading">Loading ...</div>
 
+<div *ngIf="error">Error : {{ error }}</div>
+
 <section *ngIf="collection">
   <ng-container [ngSwitch]="view">
     <app-collection-grid

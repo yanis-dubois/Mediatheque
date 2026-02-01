@@ -4,10 +4,16 @@
   <img class="image" [src]="media.imageUrl" [alt]="media.title" />
   <div class="info">
     <h1 class="title">{{ media.title }}</h1>
+    <p class="type">{{ media.mediaType }}</p>
+    <p class="releaseDate">{{ media.releaseDate }}</p>
+    <p class="addedDate">{{ media.addedDate }}</p>
+    <p class="status">{{ media.status }}</p>
+    <p class="favorite">favorite : {{ media.favorite }}</p>
     <div class="tags">
       <!-- <p class="tag" *ngFor="let tag of media.tags">{{ tag }}</p> -->
     </div>
     <p class="description">{{ media.description }}</p>
+    <p class="notes">{{ media.notes }}</p>
   </div>
 </section>
 
