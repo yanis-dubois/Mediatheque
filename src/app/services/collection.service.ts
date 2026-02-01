@@ -3,7 +3,9 @@ import { Injectable } from '@angular/core';
 import { invoke } from '@tauri-apps/api/core';
 
 import { Collection } from '@models/collection';
-import { CollectionQuery, CollectionQueryType } from '@app/models/collectionQuery';
+import { CollectionQuery, CollectionQueryType } from '@models/collectionQuery';
+import { MediaStatus, enumToName } from '@models/media';
+
 import { MediaService } from './media.service';
 
 @Injectable({ providedIn: 'root' })
@@ -22,7 +24,7 @@ export class CollectionService {
       case CollectionQueryType.FAVORITE:
         return this.getFavorite();
       case CollectionQueryType.STATUS:
-        throw new Error('STATUS not implemented');
+        return this.getByStatus(query.status);
       case CollectionQueryType.RECENT:
         throw new Error('RECENT not implemented');
     }
@@ -46,14 +48,14 @@ export class CollectionService {
     };
   }
 
-  // async getByTag(tag: string): Promise<Collection> {
-  //   const mediaList = await this.mediaService.getByTag(tag);
+  async getByStatus(status: MediaStatus): Promise<Collection> {
+    const mediaList = await this.mediaService.getByStatus(status);
 
-  //   return {
-  //     name: `${tag}`,
-  //     mediaList
-  //   };
-  // }
+    return {
+      name: `${enumToName(status)}`,
+      mediaList
+    };
+  }
 
   getById(id: number): Promise<Collection> {
     return invoke('get_collection_by_id', { id }); // TODO

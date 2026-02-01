@@ -114,6 +114,34 @@ pub fn get_favorite_media(state: tauri::State<'_, DbState>) -> Result<Vec<Media>
   Ok(media_list)
 }
 
+#[tauri::command]
+pub fn get_media_by_status(state: tauri::State<'_, DbState>, status: MediaStatus) -> Result<Vec<Media>, String> {
+  // convert enum -> String
+  let status_str = status.to_string();
+  
+  println!("get_media_by_status: {}", status_str);
+
+  let connection = state.connection.lock().map_err(|_| "Failed to lock database")?;
+
+  let mut stmt = connection
+    .prepare(
+      "SELECT id, type, title, image_url, description, 
+              release_date, added_date, status, favorite, notes 
+       FROM media 
+       WHERE status = ?1"
+    )
+    .map_err(|e| e.to_string())?;
+
+  let media_list = stmt
+    .query_map([status_str], map_row_to_media)
+    .map_err(|e| e.to_string())?
+    .collect::<rusqlite::Result<Vec<_>>>()
+    .map_err(|e| e.to_string())?;
+
+  println!("retrieved {} elements for status: {}", media_list.len(), status);
+  Ok(media_list)
+}
+
 // #[tauri::command]
 // pub fn get_media_by_tag(app: AppHandle, tag: String) -> Result<Vec<Media>, String> {
 //   let connection = db::get_connection(&app).map_err(|e| e.to_string())?;

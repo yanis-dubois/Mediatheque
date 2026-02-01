@@ -2,9 +2,11 @@ import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute } from '@angular/router';
 
-import { ActionBarComponent } from '@app/components/action-bar/action-bar.component';
-import { CollectionComponent } from '@app/components/collection/collection.component';
+import { ActionBarComponent } from '@components/action-bar/action-bar.component';
+import { CollectionComponent } from '@components/collection/collection.component';
+
 import { CollectionQuery, CollectionQueryType } from '@models/collectionQuery';
+import { MediaStatus, pathToStatus, pathToType } from '@models/media';
 
 @Component({
   selector: 'app-collection-page',
@@ -44,6 +46,17 @@ export class CollectionPageComponent {
       case 'favorite':
         return {
           type: CollectionQueryType.FAVORITE
+        };
+      
+      case 'status':
+        if (!value) {
+          this.error = true;
+          throw new Error(`Invalid status value: ${value}`);
+        }
+
+        return {
+          type: CollectionQueryType.STATUS,
+          status: pathToStatus(value)
         };
 
       default:

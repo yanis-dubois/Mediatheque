@@ -452,7 +452,7 @@ fn seed_data() -> Vec<SeedMedia<'static>> {
       image_url: "assets/images/la-la-land.jpg",
       release_date: "2016-12-09",
       added_date: "2026-01-01",
-      status: MediaStatus::Finished,
+      status: MediaStatus::Dropped,
       favorite: 1,
       notes: "La scène d'ouverture est magistrale.",
       movie_details: Some(SeedMovie {

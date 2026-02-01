@@ -23,7 +23,8 @@ pub fn run() {
             greet,
             commands::media::get_media_by_id,
             commands::media::get_all_media,
-            commands::media::get_favorite_media
+            commands::media::get_favorite_media,
+            commands::media::get_media_by_status
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

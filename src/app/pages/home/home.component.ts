@@ -5,6 +5,7 @@ import { RouterModule } from '@angular/router';
 import { invoke } from "@tauri-apps/api/core";
 
 import { CollectionQuery, CollectionQueryType } from '@models/collectionQuery';
+import { MediaStatus } from "@models/media";
 
 import { CollectionComponent } from '@components/collection/collection.component';
 
@@ -20,6 +21,7 @@ export class HomeComponent {
 
   queries: CollectionQuery[] = [
     {type: CollectionQueryType.FAVORITE},
+    {type: CollectionQueryType.STATUS, status: MediaStatus.TO_DISCOVER},
     {type: CollectionQueryType.ALL},
   ]
 
