@@ -21,9 +21,6 @@ export class HomeComponent {
   queries: CollectionQuery[] = [
     {type: CollectionQueryType.FAVORITES},
     {type: CollectionQueryType.ALL},
-    {type: CollectionQueryType.TAG, tag: "Sci-Fi"},
-    {type: CollectionQueryType.TAG, tag: "Animation"},
-    {type: CollectionQueryType.TAG, tag: "Horror"}
   ]
 
   greet(event: SubmitEvent, name: string): void {

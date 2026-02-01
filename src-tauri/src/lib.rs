@@ -1,8 +1,7 @@
 mod db;
 mod models;
-
 mod commands {
-    pub mod media;
+  pub mod media;
 }
 
 // Learn more about Tauri commands at https://tauri.app/develop/calling-rust/
@@ -16,15 +15,14 @@ pub fn run() {
     tauri::Builder::default()
         .plugin(tauri_plugin_opener::init())
         .setup(|app| {
-            db::init_db(&app.handle())
+            db::setup_db(&app.handle())
                 .expect("failed to initialize database");
             Ok(())
         })
         .invoke_handler(tauri::generate_handler![
             greet,
             commands::media::get_media_by_id,
-            commands::media::get_all_media,
-            commands::media::get_media_by_tag
+            commands::media::get_all_media
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

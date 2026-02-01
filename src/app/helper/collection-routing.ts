@@ -8,14 +8,14 @@ export function collectionLink(query: CollectionQuery): any[] {
     case CollectionQueryType.SIMPLE:
       return ['/collection', 'simple', query.id];
 
-    case CollectionQueryType.TAG:
-      return ['/collection', 'tag', query.tag];
-
     case CollectionQueryType.FAVORITES:
       return ['/collection', 'favorites'];
 
     case CollectionQueryType.STATUS:
       return ['/collection', 'status', query.status];
+
+    case CollectionQueryType.RECENT:
+      return ['/collection', 'recent'];
 
     default:
       throw new Error('Unknown CollectionQuery');

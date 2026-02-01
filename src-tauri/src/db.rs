@@ -1,6 +1,23 @@
-use rusqlite::{Connection, Result};
+use std::sync::Mutex;
+use rusqlite::{params, Connection, Result};
 use tauri::AppHandle;
 use tauri::Manager;
+
+use crate::models::enums::{MediaType, MediaStatus};
+
+pub struct DbState {
+  pub connection: Mutex<Connection>,
+}
+
+pub fn reset_db(app: &AppHandle) -> Result<()> {
+  let app_dir = app.path().app_data_dir().expect("failed to get app data dir");
+  let db_path = app_dir.join("mediatheque.db");
+
+  if db_path.exists() {
+      std::fs::remove_file(db_path).expect("Failed to delete old database");
+  }
+  Ok(())
+}
 
 pub fn get_connection(app: &AppHandle) -> Result<Connection> {
   let app_dir = app
@@ -11,37 +28,107 @@ pub fn get_connection(app: &AppHandle) -> Result<Connection> {
   std::fs::create_dir_all(&app_dir).ok();
 
   let db_path = app_dir.join("mediatheque.db");
-  Connection::open(db_path)
+  let connection = Connection::open(db_path)?;
+
+  // Activate foreign key for ON DELETE CASCADE directive
+  connection.execute("PRAGMA foreign_keys = ON;", [])?;
+
+  Ok(connection)
 }
 
-pub fn init_db(app: &AppHandle) -> Result<()> {
-  let connection = get_connection(app)?;
+pub fn setup_db(app: &AppHandle) -> Result<()> {
+
+  // delete data base
+  reset_db(app).map_err(|e| e)?; // TMP 
+
+  // open connection with DB
+  let connection = get_connection(&app)?;
+
+  // DB init + seed
+  let mut connection_wrapper = connection; 
+  init_db(&mut connection_wrapper)?;
+
+  // add test data in DB
+  seed_media(&mut connection_wrapper).map_err(|e| e)?;
+
+  // give connection to Tauri using Mutex
+  app.manage(DbState {
+    connection: Mutex::new(connection_wrapper),
+  });
+
+  Ok(())
+}
+
+pub fn init_db(connection: &mut Connection) -> Result<()> {
 
   connection.execute_batch(
     "
+    -- Abstract Media
+
     CREATE TABLE IF NOT EXISTS media (
-      id INTEGER PRIMARY KEY,
-      name TEXT NOT NULL,
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      type TEXT NOT NULL CHECK(
+          type IN ('BOOK', 'MOVIE', 'TV_SHOW', 'VIDEO_GAME', 'TABLETOP_GAME')
+      ),
+
+      title TEXT NOT NULL,
+      image_url TEXT NOT NULL,
       description TEXT NOT NULL,
-      image_url TEXT NOT NULL
+
+      release_date TEXT NOT NULL,
+      added_date TEXT NOT NULL,
+
+      status TEXT NOT NULL CHECK(
+          status IN ('TO_DISCOVER', 'IN_PROGRESS', 'FINISHED', 'DROPPED')
+      ),
+      favorite INTEGER NOT NULL DEFAULT 0 CHECK(favorite IN (0, 1)),
+      notes TEXT NOT NULL DEFAULT ''
     );
 
-    CREATE TABLE IF NOT EXISTS tag (
+
+
+    -- Detailed Media
+
+    CREATE TABLE IF NOT EXISTS movie (
+      media_id INTEGER PRIMARY KEY,
+
+      duration INTEGER NOT NULL,
+      serie TEXT,
+
+      FOREIGN KEY (media_id) REFERENCES media(id) ON DELETE CASCADE
+    );
+
+
+
+    -- Movie Relations
+
+    CREATE TABLE IF NOT EXISTS director (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       name TEXT NOT NULL UNIQUE
     );
 
-    CREATE TABLE IF NOT EXISTS media_tag (
-      media_id INTEGER NOT NULL,
-      tag_id INTEGER NOT NULL,
-      PRIMARY KEY (media_id, tag_id),
-      FOREIGN KEY (media_id) REFERENCES media(id) ON DELETE CASCADE,
-      FOREIGN KEY (tag_id) REFERENCES tag(id) ON DELETE CASCADE
+    CREATE TABLE IF NOT EXISTS movie_director (
+      movie_id INTEGER NOT NULL,
+      director_id INTEGER NOT NULL,
+      PRIMARY KEY (movie_id, director_id),
+      FOREIGN KEY (movie_id) REFERENCES movie(media_id) ON DELETE CASCADE,
+      FOREIGN KEY (director_id) REFERENCES director(id) ON DELETE CASCADE
+    );
+
+    CREATE TABLE IF NOT EXISTS genre (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      name TEXT NOT NULL UNIQUE
+    );
+
+    CREATE TABLE IF NOT EXISTS movie_genre (
+      movie_id INTEGER NOT NULL,
+      genre_id INTEGER NOT NULL,
+      PRIMARY KEY (movie_id, genre_id),
+      FOREIGN KEY (movie_id) REFERENCES movie(media_id) ON DELETE CASCADE,
+      FOREIGN KEY (genre_id) REFERENCES genre(id) ON DELETE CASCADE
     );
     "
   )?;
-
-  seed_media(&connection)?;
 
   Ok(())
 }
@@ -56,59 +143,150 @@ pub fn init_db(app: &AppHandle) -> Result<()> {
 
 struct SeedMedia<'a> {
   id: i32,
-  name: &'a str,
+  media_type: MediaType,
+  title: &'a str,
   description: &'a str,
   image_url: &'a str,
-  tags: Vec<&'a str>,
+  release_date: &'a str,
+  added_date: &'a str,
+  status: MediaStatus,
+  favorite: i32,
+  notes: &'a str,
+
+  // details
+  movie_details: Option<SeedMovie<'a>>,
 }
 
-fn seed_media(conn: &Connection) -> Result<()> {
-  let count: i64 = conn.query_row(
-    "SELECT COUNT(*) FROM media",
-    [],
-    |row| row.get(0),
-  )?;
+struct SeedMovie<'a> {
+  directors: Vec<&'a str>,
+  genres: Vec<&'a str>,
+  serie: Option<&'a str>,
+  duration: i32,
+}
 
+pub fn seed_media(connection: &mut Connection) -> Result<()> {
+  // don't seed if not needed
+  let count: i64 = connection.query_row("SELECT COUNT(*) FROM media", [], |row| row.get(0))?;
   if count > 0 {
     return Ok(());
   }
 
+  // setup transaction for security and performance
+  let tx = connection.transaction()?;
+
   let media_list = seed_data();
 
-  for media in media_list {
-    conn.execute(
-    "INSERT INTO media (id, name, description, image_url)
-      VALUES (?1, ?2, ?3, ?4)",
-      (
-        media.id,
-        media.name,
-        media.description,
-        media.image_url,
-      ),
+  for m in media_list {
+    // conversion Enums -> String (format SCREAMING_SNAKE_CASE)
+    let media_type_str = format!("{:?}", m.media_type).to_uppercase();
+    let status_str = format!("{:?}", m.status).to_uppercase();
+
+    // insert in parent table Media
+    tx.execute(
+      "INSERT INTO media (id, type, title, image_url, description, release_date, added_date, status, favorite, notes)
+        VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10)",
+      params![
+        m.id,
+        media_type_str,
+        m.title,
+        m.image_url,
+        m.description,
+        m.release_date,
+        m.added_date,
+        status_str,
+        m.favorite,
+        m.notes
+      ],
     )?;
 
-    for tag in media.tags {
-      conn.execute(
-        "INSERT OR IGNORE INTO tag (name) VALUES (?1)",
-        [tag],
+    // -- add detail informations
+
+    // for movies
+    if let Some(details) = m.movie_details {
+
+      // add movie
+      tx.execute(
+        "INSERT INTO movie (media_id, duration, serie) VALUES (?1, ?2, ?3)",
+        params![m.id, details.duration, details.serie],
       )?;
 
-      conn.execute(
-        "
-        INSERT INTO media_tag (media_id, tag_id)
-        SELECT ?1, id FROM tag WHERE name = ?2
-        ",
-        (media.id, tag),
-      )?;
+      // add genre and movie_genre relation
+      for genre_name in details.genres {
+        tx.execute(
+          "INSERT OR IGNORE INTO genre (name) VALUES (?1)",
+          [genre_name],
+        )?;
+        tx.execute(
+          "INSERT INTO movie_genre (movie_id, genre_id)
+            SELECT ?1, id FROM genre WHERE name = ?2",
+          params![m.id, genre_name],
+        )?;
+      }
+
+      // add director and movie_director relation
+      for director_name in details.directors {
+        tx.execute(
+          "INSERT OR IGNORE INTO director (name) VALUES (?1)",
+          [director_name],
+        )?;
+        tx.execute(
+          "INSERT INTO movie_director (movie_id, director_id)
+            SELECT ?1, id FROM director WHERE name = ?2",
+          params![m.id, director_name],
+        )?;
+      }
     }
   }
 
+  // validate all operations
+  tx.commit()?;
+  println!("Database initialized with success !");
   Ok(())
 }
 
 fn seed_data() -> Vec<SeedMedia<'static>> {
   vec![
     SeedMedia {
+      id: 1,
+      media_type: MediaType::Movie,
+      title: "Dune",
+      description: "L'histoire de Paul Atreides...",
+      image_url: "assets/images/dune.jpg",
+      release_date: "2021-09-15",
+      added_date: "2026-01-01",
+      status: MediaStatus::Finished,
+      favorite: 1,
+      notes: "Ce film est incroyable !",
+      movie_details: Some(SeedMovie {
+        directors: vec!["Denis Villeneuve"],
+        genres: vec!["Sci-Fi", "Adventure"],
+        serie: Some("Dune Saga"),
+        duration: 155,
+      }),
+    },
+    SeedMedia {
+        id: 2,
+        media_type: MediaType::Movie,
+        title: "Fight Club",
+        description: "Un employé de bureau insomniaque...",
+        image_url: "assets/images/fight-club.jpg",
+        release_date: "1999-10-15",
+        added_date: "2026-01-05",
+        status: MediaStatus::Finished,
+        favorite: 1,
+        notes: "Ce film est fou !",
+        movie_details: Some(SeedMovie {
+          directors: vec!["David Fincher"],
+          genres: vec!["Drama"],
+          serie: None,
+          duration: 139,
+        }),
+    },
+  ]
+}
+
+/*
+SeedMedia {
       id: 1,
       name: "Dune",
       description: "A noble family becomes embroiled in a war for control over the desert planet Arrakis and its valuable spice.",
@@ -220,5 +398,4 @@ fn seed_data() -> Vec<SeedMedia<'static>> {
       image_url: "assets/images/nausicaa.jpg",
       tags: vec!["Animation", "Adventure", "Fantasy"],
     },
-  ]
-}
+*/

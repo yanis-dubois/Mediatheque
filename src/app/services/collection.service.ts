@@ -23,8 +23,8 @@ export class CollectionService {
         throw new Error('FAVORITES not implemented');
       case CollectionQueryType.STATUS:
         throw new Error('STATUS not implemented');
-      case CollectionQueryType.TAG:
-        return this.getByTag(query.tag);
+      case CollectionQueryType.RECENT:
+        throw new Error('RECENT not implemented');
     }
   }
 
@@ -37,14 +37,14 @@ export class CollectionService {
     };
   }
 
-  async getByTag(tag: string): Promise<Collection> {
-    const mediaList = await this.mediaService.getByTag(tag);
+  // async getByTag(tag: string): Promise<Collection> {
+  //   const mediaList = await this.mediaService.getByTag(tag);
 
-    return {
-      name: `${tag}`,
-      mediaList
-    };
-  }
+  //   return {
+  //     name: `${tag}`,
+  //     mediaList
+  //   };
+  // }
 
   getById(id: number): Promise<Collection> {
     return invoke('get_collection_by_id', { id }); // TODO

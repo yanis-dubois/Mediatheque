@@ -41,12 +41,6 @@ export class CollectionPageComponent {
           id: Number(value)
         };
 
-      case 'tag':
-        return {
-          type: CollectionQueryType.TAG,
-          tag: value!
-        };
-
       default:
         this.error = true;
         throw new Error(`Unknown collection route: ${type}`);

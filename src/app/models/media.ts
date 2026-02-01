@@ -1,7 +1,8 @@
 export enum MediaType {
-  MOVIE, 
-  BOOK, 
-  VIDEO_GAME, 
+  BOOK,
+  MOVIE,
+  TV_SHOW,
+  VIDEO_GAME,
   TABLETOP_GAME
 }
 
@@ -14,17 +15,25 @@ export enum MediaStatus {
 
 export interface Media {
   id: number;
-  type: MediaType;
+  mediaType: MediaType;
   title: string;
   imageUrl: string;
   description: string;
-  date: string;
+  releaseDate: string;
+  addedDate: string;
   status: MediaStatus;
   favorite: boolean;
   notes: string;
 }
 
 export type MediaDetails =
+  | { 
+    type: MediaType.BOOK; 
+    author: string[];
+    genre: string[];
+    serie: string;
+    pages: number; 
+  }
   | { 
     type: MediaType.MOVIE; 
     directors: string[]; 
@@ -33,11 +42,11 @@ export type MediaDetails =
     duration: number;
   }
   | { 
-    type: MediaType.BOOK; 
-    author: string;
+    type: MediaType.TV_SHOW; 
+    directors: string[]; 
     genre: string[];
-    serie: string;
-    pages: number; 
+    seasons: number;
+    episodes: number;
   }
   | { 
     type: MediaType.VIDEO_GAME; 
