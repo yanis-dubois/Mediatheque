@@ -1,20 +1,23 @@
-<div *ngIf="loading">Loading ...</div>
-
-<div *ngIf="error">Error : {{ error }}</div>
-
-<section *ngIf="collection">
-  <ng-container [ngSwitch]="view">
-    <app-collection-grid
-      *ngSwitchCase="'grid'"
-      [collection]="collection"
-      [loading]="loading"
-    />
+@if (error) {
+    <p>Error : {{ error }}</p>
+} 
+@else if (collection) {
+  <section>
+    <ng-container [ngSwitch]="view">
+      <app-collection-grid
+        *ngSwitchCase="'grid'"
+        [collection]="collection"
+        [loading]="loading"
+      />
+    
+      <app-collection-row
+        *ngSwitchCase="'row'"
+        [collection]="collection"
+        [query]="query"
+        [loading]="loading"
+      />
   
-    <app-collection-row
-      *ngSwitchCase="'row'"
-      [collection]="collection"
-      [query]="query"
-      [loading]="loading"
-    />
-  </ng-container>
-</section>
+      <p *ngSwitchDefault>invalid collection view : {{ view }}</p>
+    </ng-container>
+  </section>
+}

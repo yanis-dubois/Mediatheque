@@ -6,7 +6,7 @@ import { ActionBarComponent } from '@components/action-bar/action-bar.component'
 import { CollectionComponent } from '@components/collection/collection.component';
 
 import { CollectionQuery, CollectionQueryType } from '@models/collectionQuery';
-import { MediaStatus, pathToStatus, pathToType } from '@models/media';
+import { pathToStatus } from '@models/media';
 
 @Component({
   selector: 'app-collection-page',

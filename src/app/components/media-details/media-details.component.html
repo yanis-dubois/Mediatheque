@@ -1,0 +1,73 @@
+@if (loading) {
+  <p>Loading ...</p>
+} 
+@else if (error) {
+  <p>Error : {{ error }}</p>
+} 
+@else if (media) {
+  <section class="header" >
+    <img class="image" [src]="media.imageUrl" [alt]="media.title" />
+    <div class="info">
+      <h1 class="title">{{ media.title }}</h1>
+      <p class="type">{{ media.mediaType }}</p>
+      <p class="releaseDate">release date : {{ media.releaseDate }}</p>
+      <p class="addedDate">added date : {{ media.addedDate }}</p>
+
+      <div class="fieldset-container status-box">
+        <select 
+          [value]="status()" 
+          (change)="onStatusChange($any($event.target).value)"
+        >
+          @for (opt of statusOptions; track opt) {
+            <option [value]="opt" [selected]="opt === status()">{{ opt }}</option>
+          }
+        </select>
+      </div>
+
+      <p class="favorite">favorite : {{ media.favorite }}</p>
+      <button (click)="onToggleFavorite()" [class.is-favorite]="favorite()">
+        @if (favorite()) {
+          ❤️
+        } @else {
+          🩶
+        }
+      </button>
+
+      <!-- Media details -->
+      @switch (media.mediaType) {
+        @case (MediaType.MOVIE) {
+          <app-movie-details [movie]="asMovie(media)"></app-movie-details>
+        }
+        @case (MediaType.SERIES) {
+          <app-serie-details [serie]="asSerie(media)"></app-serie-details>
+        }
+        @default {
+          <p>Media type {{ media.mediaType }} not implemented yet !</p>
+          <p>No more infos</p>
+        }
+      }
+
+      <p class="description">{{ media.description }}</p>
+
+      <div class="notes-container">
+        <div class="fieldset-container">
+          <label class="fieldset-label">Notes</label>
+          <textarea 
+            #notesArea
+            [value]="notes()"
+            (focus)="isEditingNotes.set(true)"
+            (blur)="onNotesBlur(notesArea.value)"
+            (keydown.escape)="notesArea.value = notes(); notesArea.blur()"
+            placeholder="Cliquez ici pour ajouter une note..."
+            [class.editing]="isEditingNotes()"
+          ></textarea>
+        </div>
+
+        @if (isSavingNotes()) {
+          <span class="save-indicator">Sauvegarde...</span>
+        }
+      </div>
+
+    </div>
+  </section>
+}

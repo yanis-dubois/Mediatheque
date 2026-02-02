@@ -1,0 +1,126 @@
+.header {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 2rem;
+
+  padding: 2rem;
+  min-height: 60vh;
+}
+
+/* Poster */
+.image {
+  width: 300px;
+  max-width: 35vw;
+  border-radius: 16px;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.6);
+}
+
+/* Infos */
+.info {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  align-items: flex-start;
+  max-width: 800px;
+}
+
+.title {
+  font-size: clamp(2rem, 4vw, 3rem);
+  margin-bottom: 1rem;
+}
+
+/* Status */
+.status-box {
+  width: fit-content;
+  min-width: 200px;
+  margin-bottom: 20px;
+}
+select {
+  width: 100%;
+  background: transparent;
+  border: none;
+  padding: 10px 12px;
+  font-family: inherit;
+  cursor: pointer;
+  outline: none;
+  appearance: none; /* Supprime le style par défaut du navigateur */
+}
+/* Style des options (dépend du navigateur, mais aide un peu) */
+option {
+  background-color: #1a1c23;
+}
+.status-box:focus-within {
+  border-color: #101010;
+}
+
+/* Description */
+.description {
+  margin-top: 0;
+  font-size: 1rem;
+  line-height: 1.6;
+  opacity: 0.9;
+  max-width: 70ch;
+  text-align: justify;
+}
+
+/* Phone */
+@media (max-width: 600px) {
+  .header {
+    padding: 0rem;
+    gap: 1rem;
+  }
+}
+
+/* Notes */
+.notes-container {
+  position: relative;
+  margin-top: 20px;
+}
+textarea {
+  width: 100%;
+  min-height: 120px;
+  border: 1px solid transparent;
+  color: #444444;
+  border-color: #888888;
+  padding: 12px;
+  border-radius: 8px;
+  font-family: inherit;
+  font-size: 1rem;
+  line-height: 1.5;
+  resize: vertical;
+  transition: all 0.2s ease;
+  cursor: pointer;
+}
+/* while editing */
+textarea:hover {
+  color: #101010;
+  border-color: #101010;
+}
+textarea.editing {
+  color: #101010;
+  outline: none;
+  cursor: text;
+  border-color: #101010;
+}
+.save-indicator {
+  position: absolute;
+  bottom: -20px;
+  right: 10px;
+  font-size: 0.8rem;
+  color: #444;
+  font-style: italic;
+}
+/**/
+.fieldset-label {
+  position: absolute;
+  top: -8px; /* Remonte le label sur la bordure */
+  left: 12px;
+  padding: 0 4px;
+  
+  background-color: #FFFFFF; 
+  
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: #777777;
+  pointer-events: none; /* Pour que le clic passe à travers vers le textarea */
+}

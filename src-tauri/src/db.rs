@@ -68,7 +68,7 @@ pub fn init_db(connection: &mut Connection) -> Result<()> {
     CREATE TABLE IF NOT EXISTS media (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       type TEXT NOT NULL CHECK(
-          type IN ('BOOK', 'MOVIE', 'TV_SHOW', 'VIDEO_GAME', 'TABLETOP_GAME')
+          type IN ('BOOK', 'MOVIE', 'SERIES', 'VIDEO_GAME', 'TABLETOP_GAME')
       ),
 
       title TEXT NOT NULL,
@@ -98,21 +98,22 @@ pub fn init_db(connection: &mut Connection) -> Result<()> {
       FOREIGN KEY (media_id) REFERENCES media(id) ON DELETE CASCADE
     );
 
+    CREATE TABLE IF NOT EXISTS series (
+      media_id INTEGER PRIMARY KEY,
 
+      seasons INTEGER NOT NULL,
+      episodes INTEGER NOT NULL,
 
-    -- Movie Relations
-
-    CREATE TABLE IF NOT EXISTS director (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      name TEXT NOT NULL UNIQUE
+      FOREIGN KEY (media_id) REFERENCES media(id) ON DELETE CASCADE
     );
 
-    CREATE TABLE IF NOT EXISTS movie_director (
-      movie_id INTEGER NOT NULL,
-      director_id INTEGER NOT NULL,
-      PRIMARY KEY (movie_id, director_id),
-      FOREIGN KEY (movie_id) REFERENCES movie(media_id) ON DELETE CASCADE,
-      FOREIGN KEY (director_id) REFERENCES director(id) ON DELETE CASCADE
+
+
+    -- Other Table
+
+    CREATE TABLE IF NOT EXISTS person (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      name TEXT NOT NULL UNIQUE
     );
 
     CREATE TABLE IF NOT EXISTS genre (
@@ -120,11 +121,43 @@ pub fn init_db(connection: &mut Connection) -> Result<()> {
       name TEXT NOT NULL UNIQUE
     );
 
+
+
+    -- Movie Relations
+
+    CREATE TABLE IF NOT EXISTS movie_director (
+      movie_id INTEGER NOT NULL,
+      director_id INTEGER NOT NULL,
+      PRIMARY KEY (movie_id, director_id),
+      FOREIGN KEY (movie_id) REFERENCES movie(media_id) ON DELETE CASCADE,
+      FOREIGN KEY (director_id) REFERENCES person(id) ON DELETE CASCADE
+    );
+
     CREATE TABLE IF NOT EXISTS movie_genre (
       movie_id INTEGER NOT NULL,
       genre_id INTEGER NOT NULL,
       PRIMARY KEY (movie_id, genre_id),
       FOREIGN KEY (movie_id) REFERENCES movie(media_id) ON DELETE CASCADE,
+      FOREIGN KEY (genre_id) REFERENCES genre(id) ON DELETE CASCADE
+    );
+
+
+
+    -- Series Relations
+
+    CREATE TABLE IF NOT EXISTS series_creator (
+      series_id INTEGER NOT NULL,
+      creator_id INTEGER NOT NULL,
+      PRIMARY KEY (series_id, creator_id),
+      FOREIGN KEY (series_id) REFERENCES series(media_id) ON DELETE CASCADE,
+      FOREIGN KEY (creator_id) REFERENCES person(id) ON DELETE CASCADE
+    );
+
+    CREATE TABLE IF NOT EXISTS series_genre (
+      series_id INTEGER NOT NULL,
+      genre_id INTEGER NOT NULL,
+      PRIMARY KEY (series_id, genre_id),
+      FOREIGN KEY (series_id) REFERENCES series(media_id) ON DELETE CASCADE,
       FOREIGN KEY (genre_id) REFERENCES genre(id) ON DELETE CASCADE
     );
     "
@@ -155,13 +188,42 @@ struct SeedMedia<'a> {
 
   // details
   movie_details: Option<SeedMovie<'a>>,
+  series_details: Option<SeedSeries<'a>>,
 }
 
+impl<'a> Default for SeedMedia<'a> {
+  fn default() -> Self {
+    Self {
+      id: 0,
+      media_type: MediaType::Series,
+      title: "Sans titre",
+      description: "",
+      image_url: "assets/images/placeholder.jpg",
+      release_date: "2024-01-01",
+      added_date: "2026-01-01",
+      status: MediaStatus::ToDiscover,
+      favorite: 0,
+      notes: "",
+      movie_details: None,
+      series_details: None,
+    }
+  }
+}
+
+#[derive(Default)]
 struct SeedMovie<'a> {
   directors: Vec<&'a str>,
   genres: Vec<&'a str>,
   serie: Option<&'a str>,
   duration: i32,
+}
+
+#[derive(Default)]
+struct SeedSeries<'a> {
+  creators: Vec<&'a str>,
+  genres: Vec<&'a str>,
+  seasons: i32,
+  episodes: i32,
 }
 
 pub fn seed_media(connection: &mut Connection) -> Result<()> {
@@ -201,7 +263,7 @@ pub fn seed_media(connection: &mut Connection) -> Result<()> {
 
     // -- add detail informations
 
-    // for movies
+    // movies
     if let Some(details) = m.movie_details {
 
       // add movie
@@ -226,13 +288,48 @@ pub fn seed_media(connection: &mut Connection) -> Result<()> {
       // add director and movie_director relation
       for director_name in details.directors {
         tx.execute(
-          "INSERT OR IGNORE INTO director (name) VALUES (?1)",
+          "INSERT OR IGNORE INTO person (name) VALUES (?1)",
           [director_name],
         )?;
         tx.execute(
           "INSERT INTO movie_director (movie_id, director_id)
-            SELECT ?1, id FROM director WHERE name = ?2",
+            SELECT ?1, id FROM person WHERE name = ?2",
           params![m.id, director_name],
+        )?;
+      }
+    }
+    // series
+    else if let Some(details) = m.series_details {
+
+      // add series
+      tx.execute(
+        "INSERT INTO series (media_id, seasons, episodes) VALUES (?1, ?2, ?3)",
+        params![m.id, details.seasons, details.episodes],
+      )?;
+
+      // add genre and series_genre relation
+      for genre_name in details.genres {
+        tx.execute(
+          "INSERT OR IGNORE INTO genre (name) VALUES (?1)",
+          [genre_name],
+        )?;
+        tx.execute(
+          "INSERT INTO series_genre (series_id, genre_id)
+            SELECT ?1, id FROM genre WHERE name = ?2",
+          params![m.id, genre_name],
+        )?;
+      }
+
+      // add director and series_creator relation
+      for creator_name in details.creators {
+        tx.execute(
+          "INSERT OR IGNORE INTO person (name) VALUES (?1)",
+          [creator_name],
+        )?;
+        tx.execute(
+          "INSERT INTO series_creator (series_id, creator_id)
+            SELECT ?1, id FROM person WHERE name = ?2",
+          params![m.id, creator_name],
         )?;
       }
     }
@@ -263,6 +360,7 @@ fn seed_data() -> Vec<SeedMedia<'static>> {
         serie: Some("Dune Saga"),
         duration: 155,
       }),
+      ..Default::default()
     },
     SeedMedia {
       id: 2,
@@ -281,6 +379,7 @@ fn seed_data() -> Vec<SeedMedia<'static>> {
         serie: None,
         duration: 113,
       }),
+      ..Default::default()
     },
     SeedMedia {
       id: 3,
@@ -299,6 +398,7 @@ fn seed_data() -> Vec<SeedMedia<'static>> {
         serie: None,
         duration: 139,
       }),
+      ..Default::default()
     },
     SeedMedia {
       id: 4,
@@ -317,6 +417,7 @@ fn seed_data() -> Vec<SeedMedia<'static>> {
         serie: Some("Alien Saga"),
         duration: 117,
       }),
+      ..Default::default()
     },
     SeedMedia {
       id: 5,
@@ -335,6 +436,7 @@ fn seed_data() -> Vec<SeedMedia<'static>> {
         serie: None,
         duration: 169,
       }),
+      ..Default::default()
     },
     SeedMedia {
       id: 6,
@@ -353,6 +455,7 @@ fn seed_data() -> Vec<SeedMedia<'static>> {
         serie: None,
         duration: 139,
       }),
+      ..Default::default()
     },
     SeedMedia {
       id: 7,
@@ -371,6 +474,7 @@ fn seed_data() -> Vec<SeedMedia<'static>> {
         serie: Some("28 Days Saga"),
         duration: 113,
       }),
+      ..Default::default()
     },
     SeedMedia {
       id: 8,
@@ -389,6 +493,7 @@ fn seed_data() -> Vec<SeedMedia<'static>> {
         serie: Some("Blade Runner Saga"),
         duration: 117,
       }),
+      ..Default::default()
     },
     SeedMedia {
       id: 9,
@@ -407,6 +512,7 @@ fn seed_data() -> Vec<SeedMedia<'static>> {
         serie: None,
         duration: 112,
       }),
+      ..Default::default()
     },
     SeedMedia {
       id: 10,
@@ -425,6 +531,7 @@ fn seed_data() -> Vec<SeedMedia<'static>> {
         serie: None,
         duration: 150,
       }),
+      ..Default::default()
     },
     SeedMedia {
       id: 11,
@@ -443,6 +550,7 @@ fn seed_data() -> Vec<SeedMedia<'static>> {
         serie: None,
         duration: 126,
       }),
+      ..Default::default()
     },
     SeedMedia {
       id: 12,
@@ -461,6 +569,7 @@ fn seed_data() -> Vec<SeedMedia<'static>> {
         serie: None,
         duration: 128,
       }),
+      ..Default::default()
     },
     SeedMedia {
       id: 13,
@@ -479,6 +588,7 @@ fn seed_data() -> Vec<SeedMedia<'static>> {
         serie: Some("Studio Ghibli"),
         duration: 86,
       }),
+      ..Default::default()
     },
     SeedMedia {
       id: 14,
@@ -497,6 +607,7 @@ fn seed_data() -> Vec<SeedMedia<'static>> {
         serie: None,
         duration: 85,
       }),
+      ..Default::default()
     },
     SeedMedia {
       id: 15,
@@ -515,6 +626,7 @@ fn seed_data() -> Vec<SeedMedia<'static>> {
         serie: None,
         duration: 124,
       }),
+      ..Default::default()
     },
     SeedMedia {
       id: 16,
@@ -533,6 +645,153 @@ fn seed_data() -> Vec<SeedMedia<'static>> {
         serie: Some("Studio Ghibli"),
         duration: 117,
       }),
+      ..Default::default()
+    },
+
+
+
+
+
+    SeedMedia {
+      id: 102,
+      media_type: MediaType::Series,
+      title: "Lost",
+      description: "Les survivants d'un crash d'avion sur une île mystérieuse.",
+      image_url: "assets/images/lost.jpg",
+      status: MediaStatus::Finished,
+      series_details: Some(SeedSeries {
+        creators: vec!["J.J. Abrams", "Damon Lindelof"],
+        genres: vec!["Aventure", "Drame", "Mystère"],
+        seasons: 6,
+        episodes: 121,
+      }),
+      ..Default::default()
+    },
+    SeedMedia {
+      id: 103,
+      media_type: MediaType::Series,
+      title: "Silo",
+      description: "Dans un futur toxique, une communauté vit dans un silo géant souterrain.",
+      image_url: "assets/images/silo.jpg",
+      series_details: Some(SeedSeries {
+        creators: vec!["Graham Yost"],
+        genres: vec!["Sci-Fi", "Dystopie"],
+        seasons: 1,
+        episodes: 10,
+      }),
+      ..Default::default()
+    },
+    SeedMedia {
+      id: 104,
+      media_type: MediaType::Series,
+      title: "The OA",
+      description: "Une jeune femme aveugle réapparaît après 7 ans avec la vue retrouvée.",
+      image_url: "assets/images/oa.jpg",
+      series_details: Some(SeedSeries {
+        creators: vec!["Brit Marling", "Zal Batmanglij"],
+        genres: vec!["Fantastique", "Mystère"],
+        seasons: 2,
+        episodes: 16,
+      }),
+      ..Default::default()
+    },
+    SeedMedia {
+      id: 105,
+      media_type: MediaType::Series,
+      title: "Love, Death + Robots",
+      description: "Anthologie de courts-métrages d'animation de genres variés.",
+      image_url: "assets/images/love-death-robots.jpg",
+      series_details: Some(SeedSeries {
+        creators: vec!["Tim Miller", "David Fincher"],
+        genres: vec!["Animation", "Sci-Fi", "Horreur"],
+        seasons: 3,
+        episodes: 35,
+      }),
+      ..Default::default()
+    },
+    SeedMedia {
+      id: 106,
+      media_type: MediaType::Series,
+      title: "Scavengers Reign",
+      description: "L'équipage d'un cargo spatial tente de survivre sur une planète alien magnifique mais mortelle.",
+      image_url: "assets/images/scavengers.jpg",
+      series_details: Some(SeedSeries {
+        creators: vec!["Joseph Bennett", "Charles Huettner"],
+        genres: vec!["Animation", "Sci-Fi", "Survie"],
+        seasons: 1,
+        episodes: 12,
+      }),
+      ..Default::default()
+    },
+    SeedMedia {
+      id: 107,
+      media_type: MediaType::Series,
+      title: "Bee and PuppyCat",
+      description: "Une jeune femme au chômage rencontre une créature mystérieuse tombée du ciel.",
+      image_url: "assets/images/puppycat.jpg",
+      series_details: Some(SeedSeries {
+        creators: vec!["Natasha Allegri"],
+        genres: vec!["Animation", "Fantasy", "Tranche de vie"],
+        seasons: 2,
+        episodes: 26,
+      }),
+      ..Default::default()
+    },
+    SeedMedia {
+      id: 108,
+      media_type: MediaType::Series,
+      title: "Cowboy Bebop",
+      description: "Les aventures d'un groupe de chasseurs de primes dans l'espace en 2071.",
+      image_url: "assets/images/bebop.jpg",
+      series_details: Some(SeedSeries {
+        creators: vec!["Shin'ichirō Watanabe"],
+        genres: vec!["Animation", "Space Western", "Neo-noir"],
+        seasons: 1,
+        episodes: 26,
+      }),
+      ..Default::default()
+    },
+    SeedMedia {
+      id: 109,
+      media_type: MediaType::Series,
+      title: "Neon Genesis Evangelion",
+      description: "Des adolescents pilotent des géants organiques pour protéger l'humanité contre les Anges.",
+      image_url: "assets/images/evangelion.jpg",
+      series_details: Some(SeedSeries {
+        creators: vec!["Hideaki Anno"],
+        genres: vec!["Animation", "Mecha", "Psychologique"],
+        seasons: 1,
+        episodes: 26,
+      }),
+      ..Default::default()
+    },
+    SeedMedia {
+      id: 110,
+      media_type: MediaType::Series,
+      title: "Death Note",
+      description: "Un lycéen trouve un carnet capable de tuer toute personne dont on y écrit le nom.",
+      image_url: "assets/images/death-note.jpg",
+      series_details: Some(SeedSeries {
+        creators: vec!["Tsugumi Ōba"],
+        genres: vec!["Animation", "Thriller", "Surnaturel"],
+        seasons: 1,
+        episodes: 37,
+      }),
+      ..Default::default()
+    },
+    SeedMedia {
+      id: 111,
+      media_type: MediaType::Series,
+      title: "The Promised Neverland",
+      description: "Des orphelins découvrent le terrible secret caché derrière leur existence paisible.",
+      image_url: "assets/images/neverland.jpg",
+      series_details: Some(SeedSeries {
+        creators: vec!["Kaiu Shirai"],
+        genres: vec!["Animation", "Mystère", "Horreur"],
+        seasons: 2,
+        episodes: 23,
+      }),
+      ..Default::default()
     },
   ]
 }

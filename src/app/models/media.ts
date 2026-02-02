@@ -1,7 +1,7 @@
 export enum MediaType {
   BOOK = 'BOOK',
   MOVIE = 'MOVIE',
-  TV_SHOW = 'TV_SHOW',
+  SERIES = 'SERIES',
   VIDEO_GAME = 'VIDEO_GAME',
   TABLETOP_GAME = 'TABLETOP_GAME'
 }
@@ -50,44 +50,3 @@ export interface Media {
   favorite: boolean;
   notes: string;
 }
-
-export type MediaDetails =
-  | { 
-    type: MediaType.BOOK; 
-    author: string[];
-    genre: string[];
-    serie: string;
-    pages: number; 
-  }
-  | { 
-    type: MediaType.MOVIE; 
-    directors: string[]; 
-    genre: string[];
-    serie: string;
-    duration: number;
-  }
-  | { 
-    type: MediaType.TV_SHOW; 
-    directors: string[]; 
-    genre: string[];
-    seasons: number;
-    episodes: number;
-  }
-  | { 
-    type: MediaType.VIDEO_GAME; 
-    developers: string[];
-    publishers: string[];
-    genre: string[];
-    theme: string[];
-    gamemodes: string[];
-    serie: string;
-    platforms: string[];
-  }
-  | { 
-    type: MediaType.TABLETOP_GAME;
-    designers: string[];
-    artists: string[];
-    publishers: string[];
-    gamemodes: string[];
-    mechanics: string[];
-  };

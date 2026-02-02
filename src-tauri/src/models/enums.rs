@@ -4,10 +4,12 @@ use serde::{Serialize, Deserialize};
 #[serde(rename_all = "SCREAMING_SNAKE_CASE")]
 #[derive(strum::Display, strum::EnumString)]
 #[strum(serialize_all = "SCREAMING_SNAKE_CASE")]
+#[derive(Default)]
 pub enum MediaType {
   Book,
+  #[default]
   Movie,
-  TvShow,
+  Series,
   VideoGame,
   TabletopGame,
 }
@@ -16,7 +18,9 @@ pub enum MediaType {
 #[serde(rename_all = "SCREAMING_SNAKE_CASE")]
 #[derive(strum::Display, strum::EnumString)]
 #[strum(serialize_all = "SCREAMING_SNAKE_CASE")]
+#[derive(Default)]
 pub enum MediaStatus {
+  #[default]
   ToDiscover,
   InProgress,
   Finished,

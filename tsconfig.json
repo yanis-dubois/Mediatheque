@@ -9,7 +9,8 @@
       "@components/*": ["app/components/*"],
       "@pages/*": ["app/pages/*"],
       "@services/*": ["app/services/*"],
-      "@helper/*": ["app/helper/*"]
+      "@helper/*": ["app/helper/*"],
+      "@pipe/*": ["app/pipe/*"]
     },
     "outDir": "./dist/out-tsc",
     "forceConsistentCasingInFileNames": true,

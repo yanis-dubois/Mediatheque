@@ -1,0 +1,6 @@
+<div class="info">
+  <p class="directors" *ngFor="let director of movie.directors">{{ director }}</p>
+  <p class="genre" *ngFor="let g of movie.genre">{{ g }}</p>
+  <p class="duration">{{ movie.duration | duration }}</p>
+  <p class="status" *ngIf="movie.serie">{{ movie.serie}}</p>
+</div>

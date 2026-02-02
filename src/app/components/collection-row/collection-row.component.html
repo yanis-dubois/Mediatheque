@@ -1,23 +1,26 @@
-<div *ngIf="loading">Loading ...</div>
+@if (loading) {
+  <p>Loading ...</p>
+}
+@else if (collection) {
+  <section>
 
-<section *ngIf="collection">
-
-  <a [routerLink]="collectionLink(query)">
-    <h2 class="title">
-      {{collection.name}} 
-      <img src="assets/icons/chevron.svg"/>
-    </h2>
-  </a>
-
-  <div class="row">
-    <div class="card" *ngFor="let media of collection.mediaList">
-      <a [routerLink]="['/media', media.id]" [title]="media.title">
-        <img class="image"
-          [src]="media.imageUrl"
-          [alt]="media.title"
-        />
-      </a>
+    <a [routerLink]="collectionLink(query)">
+      <h2 class="title">
+        {{collection.name}} 
+        <img src="assets/icons/chevron.svg"/>
+      </h2>
+    </a>
+  
+    <div class="row">
+      <div class="card" *ngFor="let media of collection.mediaList">
+        <a [routerLink]="['/media', media.id]" [title]="media.title">
+          <img class="image"
+            [src]="media.imageUrl"
+            [alt]="media.title"
+          />
+        </a>
+      </div>
     </div>
-  </div>
-
-</section>
+  
+  </section>
+}
