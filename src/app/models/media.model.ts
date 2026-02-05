@@ -34,19 +34,26 @@ const pathToString = (path: string): string => {
 export const pathToStatus = (path: string): MediaStatus => {
   return pathToString(path) as MediaStatus;
 };
-export const pathToType = (path: string): MediaType => {
+export const pathToMediaType = (path: string): MediaType => {
   return pathToString(path) as MediaType;
 };
 
 export interface Media {
-  id: number;
+  id: string;
   mediaType: MediaType;
   title: string;
-  imageUrl: string;
   description: string;
   releaseDate: string;
   addedDate: string;
   status: MediaStatus;
   favorite: boolean;
   notes: string;
+}
+
+export interface ExternalMedia {
+  mediaType: MediaType;
+  title: string;
+  imageUrl: string;
+  description: string;
+  releaseDate: string;
 }

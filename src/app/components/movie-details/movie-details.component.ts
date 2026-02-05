@@ -1,8 +1,9 @@
 import { Component, Input } from '@angular/core';
 import { CommonModule } from '@angular/common';
 
+import { Movie } from '@models/media-details.model';
+
 import { DurationPipe } from '@pipe/duration.pipe';
-import { Movie } from '@models/mediaDetails';
 
 @Component({
   selector: 'app-movie-details',

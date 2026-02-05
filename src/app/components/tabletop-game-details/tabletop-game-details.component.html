@@ -1,0 +1,8 @@
+<div class="info">
+  <p class="designers" *ngFor="let designer of game.designers">{{ designer }}</p>
+  <p class="artists" *ngFor="let artist of game.artists">{{ artist }}</p>
+  <p class="publisher" *ngFor="let publisher of game.publishers">{{ publisher }}</p>
+  <p class="mechanics" *ngFor="let mechanic of game.gameMechanics">{{ mechanic }}</p>
+  <p class="player_count">{{ game.playerCount }}</p>
+  <p class="playing_time">{{ game.playingTime }}</p>
+</div>

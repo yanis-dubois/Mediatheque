@@ -10,17 +10,26 @@
         <img src="assets/icons/chevron.svg"/>
       </h2>
     </a>
-  
-    <div class="row">
-      <div class="card" *ngFor="let media of collection.mediaList">
-        <a [routerLink]="['/media', media.id]" [title]="media.title">
+
+    <cdk-virtual-scroll-viewport 
+      orientation="horizontal" 
+      itemSize="" 
+      class="viewport"
+      minBufferPx="800" 
+      maxBufferPx="1600"
+    >
+
+      <div *cdkVirtualFor="let media of collection.mediaList; trackBy: trackByMediaId" class="media-item" >
+        <a [routerLink]="['/media', media.id]">
           <img class="image"
-            [src]="media.imageUrl"
+          [src]="media.id | posterPath"
             [alt]="media.title"
+            loading="lazy"
           />
         </a>
       </div>
-    </div>
-  
+
+    </cdk-virtual-scroll-viewport>
+
   </section>
 }

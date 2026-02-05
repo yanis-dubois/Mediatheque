@@ -11,6 +11,8 @@
   </div>
   <p>Click on the logos to learn more about the frameworks</p>
 
+  <button (click)="onAddTestMovie()">Add Data from frontend</button>
+
   <div *ngFor="let query of queries">
     <app-collection [query]="query" view="row"></app-collection>
   </div>

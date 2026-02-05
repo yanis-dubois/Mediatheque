@@ -30,7 +30,7 @@ pub fn get_connection(app: &AppHandle) -> Result<Connection> {
   let db_path = app_dir.join("mediatheque.db");
   let connection = Connection::open(db_path)?;
 
-  // Activate foreign key for ON DELETE CASCADE directive
+  // activate the ON DELETE CASCADE directive
   connection.execute("PRAGMA foreign_keys = ON;", [])?;
 
   Ok(connection)
@@ -66,13 +66,12 @@ pub fn init_db(connection: &mut Connection) -> Result<()> {
     -- Abstract Media
 
     CREATE TABLE IF NOT EXISTS media (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      id TEXT PRIMARY KEY NOT NULL,
       type TEXT NOT NULL CHECK(
           type IN ('BOOK', 'MOVIE', 'SERIES', 'VIDEO_GAME', 'TABLETOP_GAME')
       ),
 
       title TEXT NOT NULL,
-      image_url TEXT NOT NULL,
       description TEXT NOT NULL,
 
       release_date TEXT NOT NULL,
@@ -90,7 +89,7 @@ pub fn init_db(connection: &mut Connection) -> Result<()> {
     -- Detailed Media
 
     CREATE TABLE IF NOT EXISTS movie (
-      media_id INTEGER PRIMARY KEY,
+      media_id TEXT PRIMARY KEY,
 
       duration INTEGER NOT NULL,
       serie TEXT,
@@ -99,10 +98,19 @@ pub fn init_db(connection: &mut Connection) -> Result<()> {
     );
 
     CREATE TABLE IF NOT EXISTS series (
-      media_id INTEGER PRIMARY KEY,
+      media_id TEXT PRIMARY KEY,
 
       seasons INTEGER NOT NULL,
       episodes INTEGER NOT NULL,
+
+      FOREIGN KEY (media_id) REFERENCES media(id) ON DELETE CASCADE
+    );
+
+    CREATE TABLE IF NOT EXISTS tabletop_game (
+      media_id TEXT PRIMARY KEY,
+
+      player_count TEXT NOT NULL,
+      playing_time TEXT NOT NULL,
 
       FOREIGN KEY (media_id) REFERENCES media(id) ON DELETE CASCADE
     );
@@ -116,7 +124,17 @@ pub fn init_db(connection: &mut Connection) -> Result<()> {
       name TEXT NOT NULL UNIQUE
     );
 
+    CREATE TABLE IF NOT EXISTS company (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      name TEXT NOT NULL UNIQUE
+    );
+
     CREATE TABLE IF NOT EXISTS genre (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      name TEXT NOT NULL UNIQUE
+    );
+
+    CREATE TABLE IF NOT EXISTS game_mechanic (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       name TEXT NOT NULL UNIQUE
     );
@@ -126,7 +144,7 @@ pub fn init_db(connection: &mut Connection) -> Result<()> {
     -- Movie Relations
 
     CREATE TABLE IF NOT EXISTS movie_director (
-      movie_id INTEGER NOT NULL,
+      movie_id TEXT NOT NULL,
       director_id INTEGER NOT NULL,
       PRIMARY KEY (movie_id, director_id),
       FOREIGN KEY (movie_id) REFERENCES movie(media_id) ON DELETE CASCADE,
@@ -134,19 +152,17 @@ pub fn init_db(connection: &mut Connection) -> Result<()> {
     );
 
     CREATE TABLE IF NOT EXISTS movie_genre (
-      movie_id INTEGER NOT NULL,
+      movie_id TEXT NOT NULL,
       genre_id INTEGER NOT NULL,
       PRIMARY KEY (movie_id, genre_id),
       FOREIGN KEY (movie_id) REFERENCES movie(media_id) ON DELETE CASCADE,
       FOREIGN KEY (genre_id) REFERENCES genre(id) ON DELETE CASCADE
     );
 
-
-
     -- Series Relations
 
     CREATE TABLE IF NOT EXISTS series_creator (
-      series_id INTEGER NOT NULL,
+      series_id TEXT NOT NULL,
       creator_id INTEGER NOT NULL,
       PRIMARY KEY (series_id, creator_id),
       FOREIGN KEY (series_id) REFERENCES series(media_id) ON DELETE CASCADE,
@@ -154,12 +170,69 @@ pub fn init_db(connection: &mut Connection) -> Result<()> {
     );
 
     CREATE TABLE IF NOT EXISTS series_genre (
-      series_id INTEGER NOT NULL,
+      series_id TEXT NOT NULL,
       genre_id INTEGER NOT NULL,
       PRIMARY KEY (series_id, genre_id),
       FOREIGN KEY (series_id) REFERENCES series(media_id) ON DELETE CASCADE,
       FOREIGN KEY (genre_id) REFERENCES genre(id) ON DELETE CASCADE
     );
+
+    -- Tabletop Game Relations
+
+    CREATE TABLE IF NOT EXISTS tabletop_game_designer (
+      tabletop_game_id TEXT NOT NULL,
+      designer_id INTEGER NOT NULL,
+      PRIMARY KEY (tabletop_game_id, designer_id),
+      FOREIGN KEY (tabletop_game_id) REFERENCES tabletop_game(media_id) ON DELETE CASCADE,
+      FOREIGN KEY (designer_id) REFERENCES person(id) ON DELETE CASCADE
+    );
+
+    CREATE TABLE IF NOT EXISTS tabletop_game_artist (
+      tabletop_game_id TEXT NOT NULL,
+      artist_id INTEGER NOT NULL,
+      PRIMARY KEY (tabletop_game_id, artist_id),
+      FOREIGN KEY (tabletop_game_id) REFERENCES tabletop_game(media_id) ON DELETE CASCADE,
+      FOREIGN KEY (artist_id) REFERENCES person(id) ON DELETE CASCADE
+    );
+
+    CREATE TABLE IF NOT EXISTS tabletop_game_publisher (
+      tabletop_game_id TEXT NOT NULL,
+      publisher_id INTEGER NOT NULL,
+      PRIMARY KEY (tabletop_game_id, publisher_id),
+      FOREIGN KEY (tabletop_game_id) REFERENCES tabletop_game(media_id) ON DELETE CASCADE,
+      FOREIGN KEY (publisher_id) REFERENCES company(id) ON DELETE CASCADE
+    );
+
+    CREATE TABLE IF NOT EXISTS tabletop_game_game_mechanic (
+      tabletop_game_id TEXT NOT NULL,
+      game_mechanic_id INTEGER NOT NULL,
+      PRIMARY KEY (tabletop_game_id, game_mechanic_id),
+      FOREIGN KEY (tabletop_game_id) REFERENCES tabletop_game(media_id) ON DELETE CASCADE,
+      FOREIGN KEY (game_mechanic_id) REFERENCES game_mechanic(id) ON DELETE CASCADE
+    );
+
+
+
+    -- Media Index
+
+    CREATE INDEX IF NOT EXISTS idx_media_title ON media(title);
+    CREATE INDEX IF NOT EXISTS idx_media_release_date ON media(release_date);
+    CREATE INDEX IF NOT EXISTS idx_media_added_date ON media(added_date);
+    CREATE INDEX IF NOT EXISTS idx_media_status ON media(status);
+    CREATE INDEX IF NOT EXISTS idx_media_favorite ON media(favorite);
+
+    -- Relation Index (for revert search)
+
+    CREATE INDEX IF NOT EXISTS idx_movie_director_reverse ON movie_director(director_id);
+    CREATE INDEX IF NOT EXISTS idx_movie_genre_reverse ON movie_genre(genre_id);
+
+    CREATE INDEX IF NOT EXISTS idx_series_creator_reverse ON series_creator(creator_id);
+    CREATE INDEX IF NOT EXISTS idx_series_genre_reverse ON series_genre(genre_id);
+
+    CREATE INDEX IF NOT EXISTS idx_tabletop_game_designer_reverse ON tabletop_game_designer(designer_id);
+    CREATE INDEX IF NOT EXISTS idx_tabletop_game_artist_reverse ON tabletop_game_artist(artist_id);
+    CREATE INDEX IF NOT EXISTS idx_tabletop_game_publisher_reverse ON tabletop_game_publisher(publisher_id);
+    CREATE INDEX IF NOT EXISTS idx_tabletop_game_game_mechanic_reverse ON tabletop_game_game_mechanic(game_mechanic_id);
     "
   )?;
 
@@ -189,6 +262,7 @@ struct SeedMedia<'a> {
   // details
   movie_details: Option<SeedMovie<'a>>,
   series_details: Option<SeedSeries<'a>>,
+  tabletop_game_details: Option<SeedTabletopGame<'a>>,
 }
 
 impl<'a> Default for SeedMedia<'a> {
@@ -206,6 +280,7 @@ impl<'a> Default for SeedMedia<'a> {
       notes: "",
       movie_details: None,
       series_details: None,
+      tabletop_game_details: None,
     }
   }
 }
@@ -224,6 +299,16 @@ struct SeedSeries<'a> {
   genres: Vec<&'a str>,
   seasons: i32,
   episodes: i32,
+}
+
+#[derive(Default)]
+struct SeedTabletopGame<'a> {
+  designers: Vec<&'a str>,
+  artists: Vec<&'a str>,
+  publishers: Vec<&'a str>,
+  game_mechanics: Vec<&'a str>,
+  player_count: &'a str,
+  playing_time: &'a str,
 }
 
 pub fn seed_media(connection: &mut Connection) -> Result<()> {
@@ -245,13 +330,12 @@ pub fn seed_media(connection: &mut Connection) -> Result<()> {
 
     // insert in parent table Media
     tx.execute(
-      "INSERT INTO media (id, type, title, image_url, description, release_date, added_date, status, favorite, notes)
-        VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10)",
+      "INSERT INTO media (id, type, title, description, release_date, added_date, status, favorite, notes)
+        VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9)",
       params![
-        m.id,
+        m.id.to_string(),
         media_type_str,
         m.title,
-        m.image_url,
         m.description,
         m.release_date,
         m.added_date,
@@ -269,7 +353,7 @@ pub fn seed_media(connection: &mut Connection) -> Result<()> {
       // add movie
       tx.execute(
         "INSERT INTO movie (media_id, duration, serie) VALUES (?1, ?2, ?3)",
-        params![m.id, details.duration, details.serie],
+        params![m.id.to_string(), details.duration, details.serie],
       )?;
 
       // add genre and movie_genre relation
@@ -281,7 +365,7 @@ pub fn seed_media(connection: &mut Connection) -> Result<()> {
         tx.execute(
           "INSERT INTO movie_genre (movie_id, genre_id)
             SELECT ?1, id FROM genre WHERE name = ?2",
-          params![m.id, genre_name],
+          params![m.id.to_string(), genre_name],
         )?;
       }
 
@@ -294,7 +378,7 @@ pub fn seed_media(connection: &mut Connection) -> Result<()> {
         tx.execute(
           "INSERT INTO movie_director (movie_id, director_id)
             SELECT ?1, id FROM person WHERE name = ?2",
-          params![m.id, director_name],
+          params![m.id.to_string(), director_name],
         )?;
       }
     }
@@ -304,7 +388,7 @@ pub fn seed_media(connection: &mut Connection) -> Result<()> {
       // add series
       tx.execute(
         "INSERT INTO series (media_id, seasons, episodes) VALUES (?1, ?2, ?3)",
-        params![m.id, details.seasons, details.episodes],
+        params![m.id.to_string(), details.seasons, details.episodes],
       )?;
 
       // add genre and series_genre relation
@@ -316,7 +400,7 @@ pub fn seed_media(connection: &mut Connection) -> Result<()> {
         tx.execute(
           "INSERT INTO series_genre (series_id, genre_id)
             SELECT ?1, id FROM genre WHERE name = ?2",
-          params![m.id, genre_name],
+          params![m.id.to_string(), genre_name],
         )?;
       }
 
@@ -329,7 +413,68 @@ pub fn seed_media(connection: &mut Connection) -> Result<()> {
         tx.execute(
           "INSERT INTO series_creator (series_id, creator_id)
             SELECT ?1, id FROM person WHERE name = ?2",
-          params![m.id, creator_name],
+          params![m.id.to_string(), creator_name],
+        )?;
+      }
+    }
+    // tabletop game
+    else if let Some(details) = m.tabletop_game_details {
+
+      // add game
+      tx.execute(
+        "INSERT INTO tabletop_game (media_id, player_count, playing_time) VALUES (?1, ?2, ?3)",
+        params![m.id.to_string(), details.player_count, details.playing_time],
+      )?;
+
+      // add designers
+      for designer_name in details.designers {
+        tx.execute(
+          "INSERT OR IGNORE INTO person (name) VALUES (?1)",
+          [designer_name],
+        )?;
+        tx.execute(
+          "INSERT INTO tabletop_game_designer (tabletop_game_id, designer_id)
+          SELECT ?1, id FROM person WHERE name = ?2",
+          params![m.id.to_string(), designer_name],
+        )?;
+      }
+
+      // add artists
+      for artist_name in details.artists {
+        tx.execute(
+          "INSERT OR IGNORE INTO person (name) VALUES (?1)",
+          [artist_name],
+        )?;
+        tx.execute(
+          "INSERT INTO tabletop_game_artist (tabletop_game_id, artist_id)
+          SELECT ?1, id FROM person WHERE name = ?2",
+          params![m.id.to_string(), artist_name],
+        )?;
+      }
+
+      // add publishers
+      for publisher_name in details.publishers {
+        tx.execute(
+          "INSERT OR IGNORE INTO company (name) VALUES (?1)",
+          [publisher_name],
+        )?;
+        tx.execute(
+          "INSERT INTO tabletop_game_publisher (tabletop_game_id, publisher_id)
+          SELECT ?1, id FROM company WHERE name = ?2",
+          params![m.id.to_string(), publisher_name],
+        )?;
+      }
+
+      // add mechanics
+      for mechanic_name in details.game_mechanics {
+        tx.execute(
+          "INSERT OR IGNORE INTO game_mechanic (name) VALUES (?1)",
+          [mechanic_name],
+        )?;
+        tx.execute(
+          "INSERT INTO tabletop_game_game_mechanic (tabletop_game_id, game_mechanic_id)
+          SELECT ?1, id FROM game_mechanic WHERE name = ?2",
+          params![m.id.to_string(), mechanic_name],
         )?;
       }
     }
@@ -348,9 +493,8 @@ fn seed_data() -> Vec<SeedMedia<'static>> {
       media_type: MediaType::Movie,
       title: "Dune",
       description: "L'histoire de Paul Atreides...",
-      image_url: "assets/images/dune.jpg",
       release_date: "2021-09-15",
-      added_date: "2026-01-01",
+      added_date: "2026-02-01",
       status: MediaStatus::Finished,
       favorite: 1,
       notes: "Ce film est incroyable !",
@@ -483,7 +627,7 @@ fn seed_data() -> Vec<SeedMedia<'static>> {
       description: "A detective hunts rogue androids in a dystopian future.",
       image_url: "assets/images/blade-runner.jpg",
       release_date: "1982-06-25",
-      added_date: "2026-01-01",
+      added_date: "2026-02-02",
       status: MediaStatus::Finished,
       favorite: 1,
       notes: "Cyberpunk absolu.",
@@ -502,7 +646,7 @@ fn seed_data() -> Vec<SeedMedia<'static>> {
       description: "Aliens are segregated in a slum on Earth...",
       image_url: "assets/images/district-9.jpg",
       release_date: "2009-08-14",
-      added_date: "2026-01-01",
+      added_date: "2026-02-03",
       status: MediaStatus::Finished,
       favorite: 0,
       notes: "",
@@ -578,7 +722,7 @@ fn seed_data() -> Vec<SeedMedia<'static>> {
       description: "Two girls discover magical forest spirits...",
       image_url: "assets/images/totoro.jpg",
       release_date: "1988-04-16",
-      added_date: "2026-01-01",
+      added_date: "2026-01-29",
       status: MediaStatus::Finished,
       favorite: 1,
       notes: "Poétique et intemporel.",
@@ -616,7 +760,7 @@ fn seed_data() -> Vec<SeedMedia<'static>> {
       description: "In post-apocalyptic Neo-Tokyo...",
       image_url: "assets/images/akira.jpg",
       release_date: "1988-07-16",
-      added_date: "2026-01-01",
+      added_date: "2026-03-01",
       status: MediaStatus::Finished,
       favorite: 1,
       notes: "Indispensable.",
@@ -793,5 +937,186 @@ fn seed_data() -> Vec<SeedMedia<'static>> {
       }),
       ..Default::default()
     },
+
+
+
+
+
+    // 1. 7 Wonders Duel
+    SeedMedia {
+      id: 201,
+      media_type: MediaType::TabletopGame,
+      title: "7 Wonders Duel",
+      description: "Le meilleur jeu pour deux joueurs où vous bâtissez une civilisation et ses merveilles.",
+      image_url: "assets/images/7wonder.jpg",
+      tabletop_game_details: Some(SeedTabletopGame {
+          designers: vec!["Antoine Bauza", "Bruno Cathala"],
+          artists: vec!["Miguel Coimbra"],
+          publishers: vec!["Repos Production"],
+          game_mechanics: vec!["Draft", "Gestion de ressources", "Développement"],
+          player_count: "2",
+          playing_time: "30 min",
+      }),
+      ..Default::default()
+    },
+
+    // 2. Carcassonne
+    SeedMedia {
+      id: 202,
+      media_type: MediaType::TabletopGame,
+      title: "Carcassonne",
+      description: "Placez vos tuiles et vos partisans pour contrôler cités, routes et monastères.",
+      image_url: "assets/images/carcassonne.jpg",
+      tabletop_game_details: Some(SeedTabletopGame {
+          designers: vec!["Klaus-Jürgen Wrede"],
+          artists: vec!["Anne Pätzke", "Chris Quilliams"],
+          publishers: vec!["Hans im Glück"],
+          game_mechanics: vec!["Pose de tuiles", "Majorité"],
+          player_count: "2-5",
+          playing_time: "35 min",
+      }),
+      ..Default::default()
+    },
+
+    // 3. Dune Impérium
+    SeedMedia {
+      id: 203,
+      media_type: MediaType::TabletopGame,
+      title: "Dune Impérium",
+      description: "Mélange subtil de deck-building et de placement d'ouvriers dans l'univers de Frank Herbert.",
+      image_url: "assets/images/dune-imperium.jpg",
+      tabletop_game_details: Some(SeedTabletopGame {
+          designers: vec!["Paul Dennen"],
+          artists: vec!["Clay Brooks", "Nate Storm"],
+          publishers: vec!["Dire Wolf"],
+          game_mechanics: vec!["Deck-building", "Placement d'ouvriers", "Combat"],
+          player_count: "1-4",
+          playing_time: "60-120 min",
+      }),
+      ..Default::default()
+    },
+
+    // 4. Écosystème: Forêt
+    SeedMedia {
+      id: 204,
+      media_type: MediaType::TabletopGame,
+      title: "Écosystème: Forêt",
+      description: "Créez votre propre milieu naturel en plaçant judicieusement vos cartes animaux et habitats.",
+      image_url: "assets/images/ecosysteme-foret.jpg",
+      tabletop_game_details: Some(SeedTabletopGame {
+          designers: vec!["Matt Simpson"],
+          artists: vec!["Lindsay Rapp"],
+          publishers: vec!["Casasola Games"],
+          game_mechanics: vec!["Draft de cartes", "Placement", "Combinaison"],
+          player_count: "1-6",
+          playing_time: "15-20 min",
+      }),
+      ..Default::default()
+    },
+
+    // 5. Écosystème: Savane
+    SeedMedia {
+      id: 205,
+      media_type: MediaType::TabletopGame,
+      title: "Écosystème: Savane",
+      description: "La suite d'Écosystème transposée dans les plaines d'Afrique avec de nouvelles chaînes alimentaires.",
+      image_url: "assets/images/ecosysteme-savane.jpg",
+      tabletop_game_details: Some(SeedTabletopGame {
+          designers: vec!["Matt Simpson"],
+          artists: vec!["Lindsay Rapp"],
+          publishers: vec!["Casasola Games"],
+          game_mechanics: vec!["Draft de cartes", "Placement", "Combinaison"],
+          player_count: "1-6",
+          playing_time: "15-20 min",
+      }),
+      ..Default::default()
+    },
+
+    // 6. Harmonies
+    SeedMedia {
+      id: 206,
+      media_type: MediaType::TabletopGame,
+      title: "Harmonies",
+      favorite: 1,
+      description: "Un jeu poétique où vous construisez des paysages pour accueillir des animaux sauvages.",
+      image_url: "assets/images/harmonies.jpg",
+      tabletop_game_details: Some(SeedTabletopGame {
+          designers: vec!["Johan Benvenuto"],
+          artists: vec!["Maëva Da Silva"],
+          publishers: vec!["Libellud"],
+          game_mechanics: vec!["Draft", "Placement de jetons", "Objectifs"],
+          player_count: "1-4",
+          playing_time: "30-45 min",
+      }),
+      ..Default::default()
+    },
+
+    // 7. Not Alone
+    SeedMedia {
+      id: 207,
+      media_type: MediaType::TabletopGame,
+      title: "Not Alone",
+      favorite: 1,
+      description: "Un jeu asymétrique où un monstre traque un groupe d'explorateurs sur une planète hostile.",
+      image_url: "assets/images/not-alone.jpg",
+      tabletop_game_details: Some(SeedTabletopGame {
+          designers: vec!["Ghislain Masson"],
+          artists: vec!["Sébastien Caiveau"],
+          publishers: vec!["Geek Attitude Games"],
+          game_mechanics: vec!["Gestion de main", "Deduction", "Bluff"],
+          player_count: "2-7",
+          playing_time: "30-45 min",
+      }),
+      ..Default::default()
+    },
+    // 8. Spicy
+    SeedMedia {
+      id: 208,
+      media_type: MediaType::TabletopGame,
+      title: "Spicy",
+      description: "Un jeu de cartes et de bluff épicé avec des chats amateurs de piment.",
+      image_url: "assets/images/spicy.jpg",
+      tabletop_game_details: Some(SeedTabletopGame {
+          designers: vec!["Győri Zoltán Gábor"],
+          artists: vec!["Jimin May"],
+          publishers: vec!["HeidelBÄR Games"],
+          game_mechanics: vec!["Bluff", "Défausse"],
+          player_count: "2-6",
+          playing_time: "15-20 min",
+      }),
+      ..Default::default()
+    },
+    SeedMedia {
+      id: 209,
+      media_type: MediaType::TabletopGame,
+      title: "Root",
+      description: "Root is a game of adventure and war in which 2 to 4 (1 to 6 with the 'Riverfolk' expansion, 2-6 with the 'Underworld', or 'Marauder' expansions) players battle for control of a vast wilderness. Like Vast: The Crystal Caverns, each player in Root has unique capabilities and a different victory condition.",
+      image_url: "assets/images/root.jpg",
+      tabletop_game_details: Some(SeedTabletopGame {
+          designers: vec!["Cole Wehrle"],
+          artists: vec!["Kyle Ferrin"],
+          publishers: vec!["Leder Games"],
+          game_mechanics: vec!["Strategy", "Wargames"],
+          player_count: "2-4",
+          playing_time: "60-90 min",
+      }),
+      ..Default::default()
+    },
+    SeedMedia {
+      id: 210,
+      media_type: MediaType::TabletopGame,
+      title: "Root",
+      description: "In SETI: Search for Extraterrestrial Intelligence, you lead a scientific institution tasked with searching for traces of life beyond planet Earth. The game draws inspiration from current or emerging technologies and efforts in space exploration.Players will explore nearby planets and their moons by launching probes from Earth while taking advantage of ever-shifting planetary positions. Decide whether to land on their surface to collect valuable samples, or stay in orbit for a broader survey.",
+      image_url: "assets/images/seti.jpg",
+      tabletop_game_details: Some(SeedTabletopGame {
+          designers: vec!["Tomáš Holek"],
+          artists: vec!["Ondřej Hrdina", "Oto Kandera", "Jiří Kůs", "Jakub Lang"],
+          publishers: vec!["Czech Games Edition"],
+          game_mechanics: vec!["Strategy"],
+          player_count: "1-4",
+          playing_time: "40-160 min",
+      }),
+      ..Default::default()
+    }
   ]
 }

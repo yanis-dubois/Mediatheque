@@ -3,20 +3,23 @@ import { CommonModule } from '@angular/common';
 
 import { MovieDetailsComponent } from "@components/movie-details/movie-details.component";
 import { SerieDetailsComponent } from "@components/serie-details/serie-details.component";
+import { TabletopGameDetailsComponent } from "@components/tabletop-game-details/tabletop-game-details.component";
 
-import { Media, MediaStatus, MediaType } from '@models/media'
-import { Movie, Series } from '@models/mediaDetails';
+import { Media, MediaStatus, MediaType } from '@models/media.model'
+import { Movie, Series, TabletopGame } from '@models/media-details.model';
+
 import { MediaService } from '@services/media.service'
+import { PosterPathPipe } from "@pipe/image-path.pipe";
 
 @Component({
   selector: 'app-media-details',
   standalone: true,
-  imports: [CommonModule, MovieDetailsComponent, SerieDetailsComponent],
+  imports: [CommonModule, MovieDetailsComponent, SerieDetailsComponent, TabletopGameDetailsComponent, PosterPathPipe],
   templateUrl: './media-details.component.html',
   styleUrl: './media-details.component.css'
 })
 export class MediaDetailsComponent {
-  @Input({ required: true }) id!: number;
+  @Input({ required: true }) id!: string;
 
   protected readonly MediaType = MediaType;
   protected readonly MediaStatus = MediaStatus;
@@ -56,6 +59,9 @@ export class MediaDetailsComponent {
   }
   asSerie(m: Media): Series {
     return m as Series;
+  }
+  asTabletopGame(m: Media): TabletopGame {
+    return m as TabletopGame;
   }
 
   async onToggleFavorite() {

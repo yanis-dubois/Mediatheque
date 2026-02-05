@@ -2,37 +2,46 @@ import { Injectable } from '@angular/core';
 
 import { invoke } from '@tauri-apps/api/core';
 
-import { Media, MediaStatus } from '@models/media';
-import { Movie, Series } from '@models/mediaDetails';
+import { ExternalMedia, Media, MediaStatus } from '@models/media.model';
+import { Movie, Series } from '@models/media-details.model';
+import { GetMediaOptions } from '@models/media-query.model';
 
 @Injectable({ providedIn: 'root' })
 export class MediaService {
 
-  getById(id: number): Promise<Media | Movie | Series> {
+  /* get media */
+
+  getById(id: string): Promise<Media | Movie | Series> {
     return invoke<any>('get_media_by_id', { id });
   }
 
-  getAll(): Promise<Media[]> {
-    return invoke<Media[]>('get_all_media');
+  /* get dynamic collection */
+
+  getMediaList(options: GetMediaOptions = {}): Promise<Media[]> {
+    const filter = options.filter ?? {};
+    const order = options.order ?? [];
+    const pagination = options.page ?? { limit: 100, offset: 0 };
+
+    return invoke('get_media_list', { filter, order, pagination });
   }
 
-  getFavorite(): Promise<Media[]> {
-    return invoke<Media[]>('get_favorite_media');
-  }
+  /* update media */
 
-  getByStatus(status: MediaStatus): Promise<Media[]> {
-    return invoke<Media[]>('get_media_by_status', { status });
-  }
-
-  toggleFavorite(id: number, isFavorite: boolean): Promise<void> {
+  toggleFavorite(id: string, isFavorite: boolean): Promise<void> {
     return invoke('toggle_media_favorite', { id, isFavorite });
   }
 
-  updateStatus(id: number, status: MediaStatus): Promise<void> {
+  updateStatus(id: string, status: MediaStatus): Promise<void> {
     return invoke('update_media_status', { id, status });
   }
 
-  updateNotes(id: number, notes: string): Promise<void> {
+  updateNotes(id: string, notes: string): Promise<void> {
     return invoke('update_media_notes', { id, notes });
+  }
+
+  /* add media */
+
+  addToLibrary(media: ExternalMedia): Promise<void> {
+    return invoke('add_media_to_library', { data: media });
   }
 }

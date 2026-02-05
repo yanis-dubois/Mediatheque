@@ -1,10 +1,10 @@
-import { Component, Input } from '@angular/core';
+import { Component, HostListener, Input, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 
 import { CollectionService } from '@services/collection.service';
-import { CollectionQuery } from '@models/collectionQuery';
-import { Collection } from '@models/collection';
+import { CollectionQuery } from '@models/collection-query.model';
+import { Collection } from '@models/collection.model';
 
 import { CollectionRowComponent } from '@components/collection-row/collection-row.component';
 import { CollectionGridComponent } from '@components/collection-grid/collection-grid.component';
@@ -37,5 +37,9 @@ export class CollectionComponent {
     } finally {
       this.loading = false;
     }
+  }
+
+  trackByMediaId(media: any): number {
+    return media.id;
   }
 }

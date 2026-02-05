@@ -13,7 +13,7 @@ import { MediaDetailsComponent } from '@components/media-details/media-details.c
   styleUrl: './media-page.component.css'
 })
 export class MediaPageComponent {
-  id?: number;
+  id?: string;
   error?: string;
 
   constructor(
@@ -21,18 +21,13 @@ export class MediaPageComponent {
   ) {}
 
   ngOnInit() {
-    this.id = Number(this.route.snapshot.paramMap.get('id'));
-    console.info(this.id);
+    const id = this.route.snapshot.paramMap.get('id');
+    console.info(id);
 
-    if (!this.id) {
-      this.error = 'Required id not specified';
+    if (!id) {
+      throw new Error('Required id not specified');
     }
-    else if (isNaN(this.id)) {
-      this.error = `Invalid media id : ${this.id}`;
-    }
-
-    if (this.error) {
-      throw new Error(this.error);
-    }
+    
+    this.id = id;
   }
 }

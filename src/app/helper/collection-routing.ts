@@ -1,24 +1,24 @@
-import { CollectionQuery, CollectionQueryType } from '@models/collectionQuery';
-import { enumToPath } from '@models/media';
+import { CollectionQuery, CollectionQueryType } from '@models/collection-query.model';
+import { enumToPath } from '@models/media.model';
 
 export function collectionLink(query: CollectionQuery): any[] {
   switch (query.type) {
     case CollectionQueryType.ALL:
-      return ['/collection', 'all'];
+      return ['/collection', CollectionQueryType.ALL];
 
     case CollectionQueryType.SIMPLE:
-      return ['/collection', 'simple', query.id];
+      return ['/collection', CollectionQueryType.SIMPLE, query.id];
 
     case CollectionQueryType.FAVORITE:
-      return ['/collection', 'favorite'];
-
-    case CollectionQueryType.STATUS:
-      return ['/collection', 'status', enumToPath(query.status)];
+      return ['/collection', CollectionQueryType.FAVORITE];
 
     case CollectionQueryType.RECENT:
-      return ['/collection', 'recent'];
+      return ['/collection', CollectionQueryType.RECENT, 1];
 
-    default:
-      throw new Error('Unknown CollectionQuery');
+    case CollectionQueryType.MEDIA_TYPE:
+      return ['/collection', CollectionQueryType.MEDIA_TYPE, enumToPath(query.mediaType)];
+
+    case CollectionQueryType.STATUS:
+      return ['/collection', CollectionQueryType.STATUS, enumToPath(query.status)];
   }
 }

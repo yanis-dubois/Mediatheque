@@ -1,3 +1,6 @@
+@import "@angular/cdk/overlay-prebuilt.css";
+
+/* Phone */
 :root {
   --card-width-grid: 120px;
   --card-width-row: 110px;
@@ -14,7 +17,7 @@
 /* Desktop */
 @media (min-width: 1025px) {
   :root {
-    --card-width-grid: 180px;
+    --card-width-grid: 160px;
     --card-width-row: 160px;
   }
 }

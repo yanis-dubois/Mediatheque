@@ -1,4 +1,4 @@
-import { Media } from '@models/media';
+import { Media } from '@models/media.model';
 
 export interface Collection {
   name: string;

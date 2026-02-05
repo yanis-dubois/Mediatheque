@@ -6,7 +6,7 @@
 } 
 @else if (media) {
   <section class="header" >
-    <img class="image" [src]="media.imageUrl" [alt]="media.title" />
+    <img class="image" [src]="media.id | posterPath" [alt]="media.title" />
     <div class="info">
       <h1 class="title">{{ media.title }}</h1>
       <p class="type">{{ media.mediaType }}</p>
@@ -40,6 +40,9 @@
         }
         @case (MediaType.SERIES) {
           <app-serie-details [serie]="asSerie(media)"></app-serie-details>
+        }
+        @case (MediaType.TABLETOP_GAME) {
+          <app-tabletop-game-details [game]="asTabletopGame(media)"></app-tabletop-game-details>
         }
         @default {
           <p>Media type {{ media.mediaType }} not implemented yet !</p>

@@ -1,29 +1,45 @@
 .title {
   text-align: left;
+  margin-bottom: 0px;
 }
 
-.row {
-  display: grid;
-  grid-auto-flow: column;
-  grid-auto-columns: var(--card-width-row);
-  gap: 3px 6px;
-  overflow-x: auto;
+.viewport {
+  height: calc((var(--card-width-row) * 1.5) + 30px);
+  width: 100%;
+  scrollbar-width: none;
+  overflow-y: hidden !important;
+  touch-action: auto;
+
   scroll-behavior: smooth;
   scroll-snap-type: x mandatory;
 }
-
-.row::-webkit-scrollbar {
-  height: 0px;
+.viewport::-webkit-scrollbar {
+  display: none;
 }
-
-.card {
+::ng-deep .cdk-virtual-scroll-content-wrapper {
+  display: flex !important;
+  flex-direction: row !important;
+  height: 100% !important;
+  align-items: center;
+  padding: 0 !important;
+}
+.media-item {
+  flex: 0 0 auto;
   width: var(--card-width-row);
-  text-align: center;
-  flex-shrink: 0;
+  margin-right: 8px;
+  will-change: transform;
+  transition: transform 0.3s ease;
+
   scroll-snap-align: start;
+}
+.media-item:hover {
+  transform: scale(1.04);
+  z-index: 10;
 }
 
 .image {
   width: 100%;
-  border-radius: 15px;
+  height: auto;
+  aspect-ratio: 2 / 3;
+  border-radius: 12px;
 }

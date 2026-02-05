@@ -4,11 +4,10 @@ use super::enums::{MediaType, MediaStatus};
 #[derive(Debug, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct Media {
-  pub id: i32,
+  pub id: String,
   pub media_type: MediaType,
 
   pub title: String,
-  pub image_url: String,
   pub description: String,
 
   pub release_date: String,
@@ -24,6 +23,7 @@ pub struct Media {
 pub enum AnyMedia {
   Movie(Movie),
   Series(Series),
+  TabletopGame(TabletopGame),
   // add other media type
 
   // fallback
@@ -56,4 +56,20 @@ pub struct Series {
   pub genre: Vec<String>,
   pub seasons: i32,
   pub episodes: i32,
+}
+
+#[derive(Debug, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct TabletopGame {
+  #[serde(flatten)]
+  // media common fields
+  pub base: Media,
+
+  // series specific fields
+  pub designers: Vec<String>,
+  pub artists: Vec<String>,
+  pub publishers: Vec<String>,
+  pub game_mechanics: Vec<String>,
+  pub player_count: String,
+  pub playing_time: String,
 }

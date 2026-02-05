@@ -1,7 +1,7 @@
 import { Component, Input } from '@angular/core';
 import { CommonModule } from '@angular/common';
 
-import { Series } from '@models/mediaDetails';
+import { Series } from '@models/media-details.model';
 
 @Component({
   selector: 'app-serie-details',
