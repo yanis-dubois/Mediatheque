@@ -4,18 +4,23 @@
 @else if (collection) {
   <section>
 
-    <h1> {{collection.name}} </h1>
+    <a [routerLink]="collectionLink(query)">
+      <h2 class="title">
+        {{collection.name}} 
+        <img src="assets/icons/chevron.svg"/>
+      </h2>
+    </a>
 
     <div #scrollElement class="viewport-container">
       <div
-        [style.height.px]="virtualizer.getTotalSize()"
-        style="width: 100%; position: relative;"
+        style="height: 100%; position: relative;"
       >
         @for (vItem of virtualizer.getVirtualItems(); track vItem.key) {
           <div
-            [style.width.%]="100 / columns()" 
-            [style.transform]="'translateY(' + vItem.start + 'px) translateX(' + (vItem.lane * 100) + '%)'"
-            style="position: absolute; top: 0; left: 0; padding: 0px 4px; box-sizing: border-box;"
+            class="line"
+            [style.width.px]="vItem.size"
+            [style.transform]="'translateX(' + vItem.start + 'px)'"
+            style="position: absolute; top: 0; left: 0; height: 100%;"
           >
             <div class="card">
               <a [routerLink]="['/media', mediaList()[vItem.index].id]">

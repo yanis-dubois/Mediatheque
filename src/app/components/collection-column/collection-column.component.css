@@ -1,0 +1,37 @@
+.collection-layout {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  overflow: hidden;
+}
+
+.collection-header {
+  flex: 0 0 auto; /* don't stretch */
+  padding: 20px;
+}
+
+.viewport-container {
+  height: 100vh;
+  overflow-y: auto;
+  overflow-x: hidden;
+  display: block;
+  position: relative;
+  padding-top: 6px;
+  contain: strict;
+}
+
+.card img {
+  width: 100%;
+  background-color: #333;
+  border-radius: 12px;
+}
+
+.card {
+  will-change: transform;
+  transition: transform 0.3s ease;
+}
+
+.card:hover {
+  transform: scale(1.04);
+  z-index: 10;
+}

@@ -1,4 +1,4 @@
-import { Component, HostListener, Input, signal } from '@angular/core';
+import { Component, Input } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 
@@ -6,19 +6,20 @@ import { CollectionService } from '@services/collection.service';
 import { CollectionQuery } from '@models/collection-query.model';
 import { Collection } from '@models/collection.model';
 
-import { CollectionRowComponent } from '@components/collection-row/collection-row.component';
+import { CollectionLineComponent } from '@components/collection-line/collection-line.component';
 import { CollectionGridComponent } from '@components/collection-grid/collection-grid.component';
+import { CollectionColumnComponent } from '@components/collection-column/collection-column.component';
 
 @Component({
   selector: 'app-collection',
   standalone: true,
-  imports: [CommonModule, RouterModule, CollectionRowComponent, CollectionGridComponent],
+  imports: [CommonModule, RouterModule, CollectionLineComponent, CollectionGridComponent, CollectionColumnComponent],
   templateUrl: './collection.component.html',
   styleUrl: './collection.component.css'
 })
 export class CollectionComponent {
   @Input({ required: true }) query!: CollectionQuery;
-  @Input() view: 'grid' | 'row' = 'grid';
+  @Input() view: 'grid' | 'row' | 'column' | 'line' = 'column';
 
   collection?: Collection;
   loading = true;

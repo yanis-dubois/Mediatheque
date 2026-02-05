@@ -2,9 +2,11 @@
   <p>Loading ...</p>
 }
 @else if (collection) {
-  <section>
+  <section class="collection-layout">
 
-    <h1> {{collection.name}} </h1>
+    <div class="collection-header">
+      <h1> {{collection.name}} </h1>
+    </div>
 
     <div #scrollElement class="viewport-container">
       <div

@@ -9,9 +9,15 @@
         [collection]="collection"
         [loading]="loading"
       />
-    
-      <app-collection-row
-        *ngSwitchCase="'row'"
+
+      <app-collection-column
+        *ngSwitchCase="'column'"
+        [collection]="collection"
+        [loading]="loading"
+      />
+
+      <app-collection-line
+        *ngSwitchCase="'line'"
         [collection]="collection"
         [query]="query"
         [loading]="loading"

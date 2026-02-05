@@ -41,6 +41,8 @@ export const pathToMediaType = (path: string): MediaType => {
 export interface Media {
   id: string;
   mediaType: MediaType;
+  imageWidth: number;
+  imageHeight: number;
   title: string;
   description: string;
   releaseDate: string;

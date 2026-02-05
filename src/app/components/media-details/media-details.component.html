@@ -5,8 +5,13 @@
   <p>Error : {{ error }}</p>
 } 
 @else if (media) {
-  <section class="header" >
-    <img class="image" [src]="media.id | posterPath" [alt]="media.title" />
+  <section class="header">
+
+    <div>
+      <img class="image" [src]="media.id | posterPath" [alt]="media.title"/>
+      <p>({{ media.imageWidth }} x {{ media.imageHeight }})</p>
+    </div>
+  
     <div class="info">
       <h1 class="title">{{ media.title }}</h1>
       <p class="type">{{ media.mediaType }}</p>

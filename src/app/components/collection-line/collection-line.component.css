@@ -1,0 +1,46 @@
+.title {
+  text-align: left;
+  margin-bottom: 0px;
+}
+
+.viewport-container {
+  width: 100%;
+  height: calc((var(--card-width-line) * 1.5) + 30px);
+  overflow-x: auto;
+  overflow-y: hidden;
+  contain: strict;
+
+  /* remove scrollbar */
+  /* Firefox */
+  scrollbar-width: none;
+  /* Internet Explorer + Edge */
+  -ms-overflow-style: none;
+  /* Chrome + Safari + Opera */
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+.line {
+  display: flex;
+  align-items: center;
+  margin-right: 4px;
+}
+
+.card {
+  height: calc(var(--card-width-line) * 1.5);
+  will-change: transform;
+  transition: transform 0.3s ease;
+}
+.card:hover {
+  transform: scale(1.04);
+  z-index: 10;
+}
+
+.card img {
+  height: calc(var(--card-width-line) * 1.5);
+  width: auto;
+  background-color: #333;
+  border-radius: 12px;
+  object-fit: cover;
+}

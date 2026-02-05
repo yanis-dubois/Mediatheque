@@ -7,6 +7,9 @@ pub struct Media {
   pub id: String,
   pub media_type: MediaType,
 
+  pub image_width: u32,
+  pub image_height: u32,
+
   pub title: String,
   pub description: String,
 

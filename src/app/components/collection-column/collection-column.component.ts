@@ -10,13 +10,13 @@ import { Media } from '@models/media.model';
 import { PosterPathPipe } from '@pipe/image-path.pipe'
 
 @Component({
-  selector: 'app-collection-grid',
+  selector: 'app-collection-column',
   standalone: true,
   imports: [CommonModule, RouterModule, PosterPathPipe],
-  templateUrl: './collection-grid.component.html',
-  styleUrls: ['./collection-grid.component.css']
+  templateUrl: './collection-column.component.html',
+  styleUrls: ['./collection-column.component.css']
 })
-export class CollectionGridComponent {
+export class CollectionColumnComponent {
   @Input({ required: true }) collection!: Collection;
   @Input({ required: true }) loading!: boolean;
 
@@ -53,11 +53,12 @@ export class CollectionGridComponent {
     scrollElement: undefined, 
     getScrollElement: () => this.scrollElement?.nativeElement || null,
     estimateSize: (index: number) => {
-      const width = this.columnWidth();
-      const imageRatio = 1.5;
-      const extraSpace = 0; // for padding & other infos if added (title, ...)
+      const height = this.mediaList()[index].imageHeight;
+      const width = this.mediaList()[index].imageWidth;
+      const columnWidth = this.columnWidth();
+      const extraSpace = 2; // for padding & other infos if added (title, ...)
 
-      return (width * imageRatio) + extraSpace;
+      return (height * columnWidth) / width + extraSpace;
     },
     lanes: this.columns() || 1,
     enabled: !!this.scrollElement?.nativeElement,
@@ -65,7 +66,6 @@ export class CollectionGridComponent {
 
   constructor() {
     effect(() => {
-      const cols = this.columns();
       const scrollEl = this.scrollElement?.nativeElement;
       if (this.virtualizer && scrollEl) {
         setTimeout(() => {

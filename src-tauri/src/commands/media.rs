@@ -28,19 +28,21 @@ fn map_row_to_media(row: &rusqlite::Row) -> rusqlite::Result<Media> {
 
   // data that has to be transformed
   let type_str: String = row.get(1)?;
-  let status_str: String = row.get(6)?;
-  let fav_int: i32 = row.get(7)?;
+  let status_str: String = row.get(8)?;
+  let fav_int: i32 = row.get(9)?;
 
   Ok(Media {
     id: row.get(0)?,
     media_type: match_media_type(&type_str),
-    title: row.get(2)?,
-    description: row.get(3)?,
-    release_date: row.get(4)?,
-    added_date: row.get(5)?,
+    image_width: row.get(2)?,
+    image_height: row.get(3)?,
+    title: row.get(4)?,
+    description: row.get(5)?,
+    release_date: row.get(6)?,
+    added_date: row.get(7)?,
     status: match_media_status(&status_str),
     favorite: fav_int == 1, // 0/1 -> bool
-    notes: row.get(8)?,
+    notes: row.get(10)?,
   })
 }
 
@@ -302,8 +304,8 @@ pub fn insert_external_media(
   tx: &Transaction, 
   data: ExternalMediaRequest, 
   media_uuid: &str, 
-  width: u32, 
-  height: u32
+  image_width: u32, 
+  image_height: u32
 ) -> Result<(), rusqlite::Error> {
   println!("insert_external_media");
 
@@ -312,11 +314,13 @@ pub fn insert_external_media(
 
   // insert into Media
   tx.execute(
-    "INSERT INTO media (id, type, title, description, release_date, added_date, status, favorite, notes)
-      VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9)",
+    "INSERT INTO media (id, type, image_width, image_height, title, description, release_date, added_date, status, favorite, notes)
+      VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11)",
     params![
       media_uuid,
       base.media_type.to_string(),
+      image_width,
+      image_height,
       base.title,
       base.description,
       base.release_date,
@@ -382,8 +386,8 @@ pub async fn add_media_to_library(app: tauri::AppHandle, data: ExternalMediaRequ
     std::fs::write(&file_path, &bytes).map_err(|e| e.to_string())?;
 
     // get image dimensions
-    let dims = imagesize::size(&file_path).map_err(|e| e.to_string())?;
-    println!("image '{}' of dimensions ({}x{}) added in {:?} ", base.title, dims.width, dims.height, posters_dir);
+    let image_size = imagesize::size(&file_path).map_err(|e| e.to_string())?;
+    println!("image '{}' of dimensions ({}x{}) added in {:?} ", base.title, image_size.width, image_size.height, posters_dir);
 
     // DB connection
     let state = app.state::<DbState>();
@@ -391,7 +395,7 @@ pub async fn add_media_to_library(app: tauri::AppHandle, data: ExternalMediaRequ
     let tx = connection.transaction().map_err(|e| e.to_string())?;
 
     // INSERT media
-    insert_external_media(&tx, data, &media_uuid, dims.width as u32, dims.height as u32)
+    insert_external_media(&tx, data, &media_uuid, image_size.width as u32, image_size.height as u32)
       .map_err(|e| e.to_string())?;
 
     tx.commit().map_err(|e| e.to_string())?;

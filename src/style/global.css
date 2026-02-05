@@ -3,14 +3,14 @@
 /* Phone */
 :root {
   --card-width-grid: 120px;
-  --card-width-row: 110px;
+  --card-width-line: 110px;
 }
 
 /* Tablet */
 @media (min-width: 600px) {
   :root {
     --card-width-grid: 150px;
-    --card-width-row: 140px;
+    --card-width-line: 140px;
   }
 }
 
@@ -18,6 +18,6 @@
 @media (min-width: 1025px) {
   :root {
     --card-width-grid: 160px;
-    --card-width-row: 160px;
+    --card-width-line: 160px;
   }
 }

@@ -1,29 +1,33 @@
-import { Component, computed, effect, ElementRef, HostListener, inject, Input, signal, ViewChild } from '@angular/core';
+import { Component, effect, ElementRef, HostListener, inject, Input, signal, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 
 import { injectVirtualizer } from '@tanstack/angular-virtual';
 
+import { CollectionQuery } from '@models/collection-query.model';
 import { Collection } from '@models/collection.model';
-import { Media } from '@models/media.model';
+import { collectionLink } from '@helper/collection-routing'
 
 import { PosterPathPipe } from '@pipe/image-path.pipe'
+import { Media } from '@app/models/media.model';
 
 @Component({
-  selector: 'app-collection-grid',
+  selector: 'app-collection-line',
   standalone: true,
   imports: [CommonModule, RouterModule, PosterPathPipe],
-  templateUrl: './collection-grid.component.html',
-  styleUrls: ['./collection-grid.component.css']
+  templateUrl: './collection-line.component.html',
+  styleUrl: './collection-line.component.css'
 })
-export class CollectionGridComponent {
+export class CollectionLineComponent {
   @Input({ required: true }) collection!: Collection;
+  @Input({ required: true }) query!: CollectionQuery;
   @Input({ required: true }) loading!: boolean;
+
+  collectionLink = collectionLink;
 
   @ViewChild('scrollElement') set scrollEl(content: ElementRef<HTMLElement>) {
     if (content) {
       this.scrollElement = content;
-      this.containerWidth.set(content.nativeElement.offsetWidth);
     }
   }
   scrollElement!: ElementRef<HTMLElement>;
@@ -31,41 +35,26 @@ export class CollectionGridComponent {
   private el = inject(ElementRef);
 
   mediaList = signal<Media[]>([]); 
-  minColumnWidth = signal(150);
-  containerWidth = signal(0);
-
-  columns = computed(() => {
-    const width = this.containerWidth();
-    const minWidth = this.minColumnWidth();
-    const gap = 8;
-    return Math.max(1, Math.floor(width / (minWidth + gap)));
-  });
-
-  columnWidth = computed(() => {
-    const totalWidth = this.containerWidth();
-    const nbCols = this.columns();
-    const gap = 4;
-    return (totalWidth - (gap * (nbCols - 1))) / nbCols;
-  });
+  containerHeight = signal(0);
 
   virtualizer = injectVirtualizer(() => ({
     count: this.mediaList().length,
     scrollElement: undefined, 
-    getScrollElement: () => this.scrollElement?.nativeElement || null,
+    getScrollElement: () => this.scrollElement.nativeElement || null,
     estimateSize: (index: number) => {
-      const width = this.columnWidth();
-      const imageRatio = 1.5;
-      const extraSpace = 0; // for padding & other infos if added (title, ...)
+      const height = this.mediaList()[index].imageHeight;
+      const width = this.mediaList()[index].imageWidth + 4;
+      const lineHeight = this.containerHeight();
+      const extraSpace = 8; // for padding & other infos if added (title, ...)
 
-      return (width * imageRatio) + extraSpace;
+      return ((width * lineHeight) / height) + extraSpace;
     },
-    lanes: this.columns() || 1,
-    enabled: !!this.scrollElement?.nativeElement,
+    horizontal: true,
+    overscan: 5,
   }));
 
   constructor() {
     effect(() => {
-      const cols = this.columns();
       const scrollEl = this.scrollElement?.nativeElement;
       if (this.virtualizer && scrollEl) {
         setTimeout(() => {
@@ -83,9 +72,6 @@ export class CollectionGridComponent {
     this.updateDimensions();
 
     const ro = new ResizeObserver((entries) => {
-      const width = entries[0].contentRect.width;
-      this.containerWidth.set(width);
-      
       this.virtualizer.measure();
     });
 
@@ -102,15 +88,11 @@ export class CollectionGridComponent {
 
     // get css var(--card-width-grid)
     const style = getComputedStyle(this.el.nativeElement);
-    const cssWidth = style.getPropertyValue('--card-width-grid').trim();
-  
-    if (cssWidth) {
-      this.minColumnWidth.set(parseInt(cssWidth, 10));
-    }
+    const cssWidth = style.getPropertyValue('--card-width-line').trim();
 
-    const width = this.scrollElement.nativeElement.clientWidth;
-    if (width > 0) {
-      this.containerWidth.set(width);
+    if (cssWidth) {
+      const height = parseInt(cssWidth, 10) * 1.5;
+      this.containerHeight.set(height);
     }
   }
 }
