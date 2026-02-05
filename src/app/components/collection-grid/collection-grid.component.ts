@@ -100,7 +100,6 @@ export class CollectionGridComponent {
   private updateDimensions() {
     if (!this.scrollElement) return;
 
-    // get css var(--card-width-grid)
     const style = getComputedStyle(this.el.nativeElement);
     const cssWidth = style.getPropertyValue('--card-width-grid').trim();
   

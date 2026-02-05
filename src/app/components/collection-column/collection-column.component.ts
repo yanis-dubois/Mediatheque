@@ -37,7 +37,7 @@ export class CollectionColumnComponent {
   columns = computed(() => {
     const width = this.containerWidth();
     const minWidth = this.minColumnWidth();
-    const gap = 8;
+    const gap = 4;
     return Math.max(1, Math.floor(width / (minWidth + gap)));
   });
 
@@ -48,17 +48,21 @@ export class CollectionColumnComponent {
     return (totalWidth - (gap * (nbCols - 1))) / nbCols;
   });
 
+  getElementHeight(index: number) : number {
+    const height = this.mediaList()[index].imageHeight;
+    const width = this.mediaList()[index].imageWidth;
+    const columnWidth = this.columnWidth() - 4;
+
+    return (height * columnWidth) / width + 8;
+  }
+
   virtualizer = injectVirtualizer(() => ({
     count: this.mediaList().length,
     scrollElement: undefined, 
     getScrollElement: () => this.scrollElement?.nativeElement || null,
     estimateSize: (index: number) => {
-      const height = this.mediaList()[index].imageHeight;
-      const width = this.mediaList()[index].imageWidth;
-      const columnWidth = this.columnWidth();
-      const extraSpace = 2; // for padding & other infos if added (title, ...)
-
-      return (height * columnWidth) / width + extraSpace;
+      const extraSpace = 0; // for padding & other infos if added (title, ...)
+      return this.getElementHeight(index) + extraSpace;
     },
     lanes: this.columns() || 1,
     enabled: !!this.scrollElement?.nativeElement,
@@ -100,7 +104,6 @@ export class CollectionColumnComponent {
   private updateDimensions() {
     if (!this.scrollElement) return;
 
-    // get css var(--card-width-grid)
     const style = getComputedStyle(this.el.nativeElement);
     const cssWidth = style.getPropertyValue('--card-width-grid').trim();
   

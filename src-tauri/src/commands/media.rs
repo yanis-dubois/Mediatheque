@@ -351,7 +351,7 @@ pub fn insert_external_media(
         tx.execute("INSERT INTO movie_director (movie_id, director_id) SELECT ?1, id FROM person WHERE name = ?2", params![media_uuid, director_name])?;
       }
     },
-    // add other media types
+    // TODO add other media types
     _ => {} 
   }
 

@@ -37,17 +37,21 @@ export class CollectionLineComponent {
   mediaList = signal<Media[]>([]); 
   containerHeight = signal(0);
 
+  getElementWidth(index: number) : number {
+    const height = this.mediaList()[index].imageHeight;
+    const width = this.mediaList()[index].imageWidth;
+    const lineHeight = this.containerHeight();
+
+    return ((width * lineHeight) / height)
+  }
+
   virtualizer = injectVirtualizer(() => ({
     count: this.mediaList().length,
     scrollElement: undefined, 
     getScrollElement: () => this.scrollElement.nativeElement || null,
     estimateSize: (index: number) => {
-      const height = this.mediaList()[index].imageHeight;
-      const width = this.mediaList()[index].imageWidth + 4;
-      const lineHeight = this.containerHeight();
       const extraSpace = 8; // for padding & other infos if added (title, ...)
-
-      return ((width * lineHeight) / height) + extraSpace;
+      return this.getElementWidth(index) + extraSpace;
     },
     horizontal: true,
     overscan: 5,
@@ -86,7 +90,6 @@ export class CollectionLineComponent {
   private updateDimensions() {
     if (!this.scrollElement) return;
 
-    // get css var(--card-width-grid)
     const style = getComputedStyle(this.el.nativeElement);
     const cssWidth = style.getPropertyValue('--card-width-line').trim();
 

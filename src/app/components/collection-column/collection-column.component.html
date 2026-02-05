@@ -19,7 +19,10 @@
             [style.transform]="'translateY(' + vItem.start + 'px) translateX(' + (vItem.lane * 100) + '%)'"
             style="position: absolute; top: 0; left: 0; padding: 0px 4px; box-sizing: border-box;"
           >
-            <div class="card">
+            <div class="card"
+            [style.--scale-width]="1 + (8 / columnWidth())"
+            [style.--scale-height]="1 + (8 / getElementHeight(vItem.index))"
+          >
               <a [routerLink]="['/media', mediaList()[vItem.index].id]">
                 <img 
                   [src]="mediaList()[vItem.index].id | posterPath"

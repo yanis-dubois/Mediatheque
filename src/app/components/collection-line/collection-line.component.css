@@ -30,10 +30,15 @@
 .card {
   height: calc(var(--card-width-line) * 1.5);
   will-change: transform;
-  transition: transform 0.3s ease;
+  transition: transform var(--scale-card-out) ease;
+
+  backface-visibility: hidden;
+  transform: translateZ(0);
+  -webkit-font-smoothing: subpixel-antialiased;
 }
 .card:hover {
-  transform: scale(1.04);
+  transition: transform var(--scale-card-in) ease-out;
+  transform: scale(var(--scale-width), var(--scale-height));
   z-index: 10;
 }
 

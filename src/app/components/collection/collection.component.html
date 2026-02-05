@@ -4,6 +4,14 @@
 @else if (collection) {
   <section>
     <ng-container [ngSwitch]="view">
+
+      <app-collection-line
+        *ngSwitchCase="'line'"
+        [collection]="collection"
+        [query]="query"
+        [loading]="loading"
+      />
+
       <app-collection-grid
         *ngSwitchCase="'grid'"
         [collection]="collection"
@@ -16,10 +24,9 @@
         [loading]="loading"
       />
 
-      <app-collection-line
-        *ngSwitchCase="'line'"
+      <app-collection-row
+        *ngSwitchCase="'row'"
         [collection]="collection"
-        [query]="query"
         [loading]="loading"
       />
   

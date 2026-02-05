@@ -1,0 +1,75 @@
+@if (loading) {
+  <p>Loading ...</p>
+}
+@else if (collection) {
+  <section class="collection-layout">
+
+    <div class="collection-header">
+      <h1> {{collection.name}} </h1>
+    </div>
+
+    <!-- <div #scrollElement class="viewport-container">
+      <div
+        [style.height.px]="virtualizer.getTotalSize()"
+        style="width: 100%; position: relative;"
+      >
+        @for (vItem of virtualizer.getVirtualItems(); track vItem.key) {
+          <div
+            [style.width.%]="100 / columns()" 
+            [style.transform]="'translateY(' + vItem.start + 'px) translateX(' + (vItem.lane * 100) + '%)'"
+            style="position: absolute; top: 0; left: 0; padding: 0px 4px; box-sizing: border-box;"
+          >
+            <div class="card">
+              <a [routerLink]="['/media', mediaList()[vItem.index].id]">
+                <img 
+                  [src]="mediaList()[vItem.index].id | posterPath"
+                  [alt]="mediaList()[vItem.index].title"
+                  (load)="virtualizer.measure()" 
+                />
+              </a>  
+            </div>
+          </div>
+        }
+      </div>
+    </div> -->
+
+    <div #scrollElement class="viewport-container">
+      <div
+        [style.height.px]="virtualizer.getTotalSize()"
+        style="width: 100%; position: relative;"
+      >
+        @for (vRow of virtualizer.getVirtualItems(); track vRow.key) {
+          <div
+            [style.height.px]="rowHeight()"
+            [style.transform]="'translateY(' + vRow.start + 'px)'"
+            style="position: absolute; top: 0; left: 0; width: 100%;" 
+          >
+            @for (item of rows()[vRow.index]; track item.media.id) {
+              
+              <div
+                [style.width.px]="item.width"
+                [style.height.px]="item.height"
+                [style.transform]="'translateX(' + item.x + 'px)'"
+                style="position: absolute; top: 0; left: 0;" 
+              >
+                <div class="card"
+                  [style.--scale-width]="1 + (8 / item.width)"
+                  [style.--scale-height]="1 + (8 / item.height)"
+                >
+                  <a [routerLink]="['/media', item.media.id]">
+                    <img 
+                      [src]="item.media.id | posterPath"
+                      [alt]="item.media.title"
+                      [style.width.px]="item.width"
+                    >
+                  </a>
+                </div>
+              </div>
+            }
+          </div>
+        }
+      </div>
+    </div>
+
+  </section>
+}

@@ -1,12 +1,16 @@
 @import "@angular/cdk/overlay-prebuilt.css";
 
-/* Phone */
+/* phone */
 :root {
   --card-width-grid: 120px;
   --card-width-line: 110px;
+
+  /* animation */
+  --scale-card-in: 0.225s;
+  --scale-card-out: 0.6s;
 }
 
-/* Tablet */
+/* tablet */
 @media (min-width: 600px) {
   :root {
     --card-width-grid: 150px;
@@ -14,7 +18,7 @@
   }
 }
 
-/* Desktop */
+/* desktop */
 @media (min-width: 1025px) {
   :root {
     --card-width-grid: 160px;

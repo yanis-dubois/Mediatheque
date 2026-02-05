@@ -9,17 +9,18 @@ import { Collection } from '@models/collection.model';
 import { CollectionLineComponent } from '@components/collection-line/collection-line.component';
 import { CollectionGridComponent } from '@components/collection-grid/collection-grid.component';
 import { CollectionColumnComponent } from '@components/collection-column/collection-column.component';
+import { CollectionRowComponent } from '@components/collection-row/collection-row.component';
 
 @Component({
   selector: 'app-collection',
   standalone: true,
-  imports: [CommonModule, RouterModule, CollectionLineComponent, CollectionGridComponent, CollectionColumnComponent],
+  imports: [CommonModule, RouterModule, CollectionLineComponent, CollectionGridComponent, CollectionColumnComponent, CollectionRowComponent],
   templateUrl: './collection.component.html',
   styleUrl: './collection.component.css'
 })
 export class CollectionComponent {
   @Input({ required: true }) query!: CollectionQuery;
-  @Input() view: 'grid' | 'row' | 'column' | 'line' = 'column';
+  @Input() view: 'line' | 'grid' | 'column' | 'row' = 'row';
 
   collection?: Collection;
   loading = true;
