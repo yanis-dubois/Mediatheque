@@ -25,9 +25,10 @@ export class MediaPageComponent {
     console.info(id);
 
     if (!id) {
-      throw new Error('Required id not specified');
+      this.error = 'Required id not specified';
+      throw new Error(this.error);
     }
-    
+
     this.id = id;
   }
 }

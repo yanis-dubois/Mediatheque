@@ -4,9 +4,7 @@ import { RouterModule } from '@angular/router';
 
 import { injectVirtualizer } from '@tanstack/angular-virtual';
 
-import { CollectionQuery } from '@models/collection-query.model';
 import { Collection } from '@models/collection.model';
-import { collectionLink } from '@helper/collection-routing'
 
 import { PosterPathPipe } from '@pipe/image-path.pipe'
 import { Media } from '@app/models/media.model';
@@ -20,10 +18,7 @@ import { Media } from '@app/models/media.model';
 })
 export class CollectionLineComponent {
   @Input({ required: true }) collection!: Collection;
-  @Input({ required: true }) query!: CollectionQuery;
   @Input({ required: true }) loading!: boolean;
-
-  collectionLink = collectionLink;
 
   @ViewChild('scrollElement') set scrollEl(content: ElementRef<HTMLElement>) {
     if (content) {

@@ -1,22 +1,22 @@
 import { Media, MediaStatus, MediaType } from "./media.model";
 
+export interface GetMediaOptions {
+  filter?: MediaFilter;
+  order?: MediaOrder[];
+  page?: Pagination;
+}
+
 export enum MediaOrderField {
-  ADDED_DATE = 'added_date',
-  RELEASE_DATE = 'release_date',
-  MEDIA_TYPE = 'media_type',
-  FAVORITE = 'favorite',
-  STATUS = 'status',
+  ADDED_DATE = 'ADDED_DATE',
+  RELEASE_DATE = 'RELEASE_DATE',
+  MEDIA_TYPE = 'MEDIA_TYPE',
+  FAVORITE = 'FAVORITE',
+  STATUS = 'STATUS',
 }
 
 export enum MediaOrderDirection {
   ASC = 'ASC',
   DESC = 'DESC',
-}
-
-export interface GetMediaOptions {
-  filter?: MediaFilter;
-  order?: MediaOrder[];
-  page?: Pagination;
 }
 
 export interface MediaFilter {

@@ -3,7 +3,6 @@ import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 
 import { CollectionService } from '@services/collection.service';
-import { CollectionQuery } from '@models/collection-query.model';
 import { Collection } from '@models/collection.model';
 
 import { CollectionLineComponent } from '@components/collection-line/collection-line.component';
@@ -19,7 +18,7 @@ import { CollectionRowComponent } from '@components/collection-row/collection-ro
   styleUrl: './collection.component.css'
 })
 export class CollectionComponent {
-  @Input({ required: true }) query!: CollectionQuery;
+  @Input({ required: true }) id!: string;
   @Input() view: 'line' | 'grid' | 'column' | 'row' = 'row';
 
   collection?: Collection;
@@ -32,10 +31,10 @@ export class CollectionComponent {
 
   async ngOnInit() {
     try {
-      this.collection = await this.collectionService.getCollection(this.query);
+      this.collection = await this.collectionService.getById(this.id);
     } catch (e) {
       console.error(e);
-      this.error = 'Collection introuvable';
+      this.error = 'Collection not found 😢';
     } finally {
       this.loading = false;
     }

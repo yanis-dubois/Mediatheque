@@ -18,7 +18,9 @@ pub fn run() {
       commands::media::toggle_media_favorite,
       commands::media::update_media_status,
       commands::media::update_media_notes,
-      commands::media::add_media_to_library
+      commands::media::add_media_to_library,
+      commands::collection::get_collection_by_id,
+      commands::collection::get_all_collection_ids
     ])
     .run(tauri::generate_context!())
     .expect("error while running tauri application");

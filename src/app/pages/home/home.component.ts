@@ -1,11 +1,9 @@
-import { Component } from '@angular/core';
+import { Component, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 
-import { CollectionQuery, CollectionQueryType } from '@models/collection-query.model';
-import { MediaStatus, MediaType } from "@models/media.model";
-
 import { CollectionComponent } from '@components/collection/collection.component';
+import { CollectionService } from '@app/services/collection.service';
 
 @Component({
   selector: 'app-home',
@@ -16,15 +14,20 @@ import { CollectionComponent } from '@components/collection/collection.component
 })
 export class HomeComponent {
 
-  queries: CollectionQuery[] = [
-    {type: CollectionQueryType.FAVORITE},
-    {type: CollectionQueryType.RECENT},
-    {type: CollectionQueryType.STATUS, status: MediaStatus.IN_PROGRESS},
-    {type: CollectionQueryType.STATUS, status: MediaStatus.TO_DISCOVER},
-    {type: CollectionQueryType.MEDIA_TYPE, mediaType: MediaType.MOVIE},
-    {type: CollectionQueryType.MEDIA_TYPE, mediaType: MediaType.SERIES},
-    {type: CollectionQueryType.MEDIA_TYPE, mediaType: MediaType.TABLETOP_GAME},
-    {type: CollectionQueryType.ALL},
-  ]
+  collectionIds = signal<string[]>([]);
+
+  constructor(
+    private collectionService: CollectionService
+  ) {}
+
+  async ngOnInit() {
+    try {
+      const ids = await this.collectionService.getAllIds();
+      this.collectionIds.set(ids);
+      console.log(ids);
+    } catch (err) {
+      console.error("Erreur lors de la récupération des IDs :", err);
+    }
+  }
 
 }

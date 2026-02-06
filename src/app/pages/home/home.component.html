@@ -11,7 +11,7 @@
   </div>
   <p>Click on the logos to learn more about the frameworks</p>
 
-  <div *ngFor="let query of queries">
-    <app-collection [query]="query" view="line"></app-collection>
+  <div *ngFor="let id of collectionIds()">
+    <app-collection [id]="id" view="line"></app-collection>
   </div>
 </main>

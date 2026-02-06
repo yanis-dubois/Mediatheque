@@ -1,7 +1,9 @@
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
+use crate::models::enums::{MediaOrderDirection, MediaOrderField};
+
 use super::enums::{MediaType, MediaStatus};
 
-#[derive(Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Default)]
 #[serde(rename_all = "camelCase")]
 pub struct MediaFilter {
   pub media_type: Option<MediaType>,
@@ -10,11 +12,11 @@ pub struct MediaFilter {
   pub search_query: Option<String>,
 }
 
-#[derive(Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct MediaOrder {
-  pub field: String,      // "added_date", "release_date", "media_type", "favorite", "status"
-  pub direction: String,  // "ASC" / "DESC"
+  pub field: MediaOrderField,
+  pub direction: MediaOrderDirection,
 }
 
 #[derive(Deserialize)]

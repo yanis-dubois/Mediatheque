@@ -3,7 +3,14 @@ use rusqlite::{params, Connection, Result};
 use tauri::AppHandle;
 use tauri::Manager;
 
+use crate::models::enums::CollectionMediaType;
+use crate::models::enums::CollectionType;
+use crate::models::enums::CollectionView;
+use crate::models::enums::MediaOrderDirection;
+use crate::models::enums::MediaOrderField;
 use crate::models::enums::{MediaType, MediaStatus};
+use crate::models::query::MediaFilter;
+use crate::models::query::MediaOrder;
 
 pub struct DbState {
   pub connection: Mutex<Connection>,
@@ -49,7 +56,7 @@ pub fn setup_db(app: &AppHandle) -> Result<()> {
   init_db(&mut connection_wrapper)?;
 
   // add test data in DB
-  seed_media(&mut connection_wrapper).map_err(|e| e)?;
+  seed_data(&mut connection_wrapper).map_err(|e| e)?;
 
   // give connection to Tauri using Mutex
   app.manage(DbState {
@@ -63,6 +70,55 @@ pub fn init_db(connection: &mut Connection) -> Result<()> {
 
   connection.execute_batch(
     "
+    -- Collection
+
+    CREATE TABLE collection (
+      id TEXT PRIMARY KEY,
+      name TEXT NOT NULL,
+
+      type TEXT NOT NULL CHECK(
+        type IN ('MANUAL', 'DYNAMIC')
+      ),
+      media_type TEXT NOT NULL CHECK(
+        media_type IN ('ALL', 'BOOK', 'MOVIE', 'SERIES', 'VIDEO_GAME', 'TABLETOP_GAME')
+      ),
+
+      added_date TEXT NOT NULL,
+
+      favorite INTEGER NOT NULL DEFAULT 0 CHECK(favorite IN (0, 1)),
+      description TEXT NOT NULL DEFAULT '',
+
+      sort_order TEXT, -- in JSON, ex: [{field: 'favorite', direction: 'DESC'}, {field: 'status', direction: 'ASC'}]
+      preferred_view TEXT CHECK(
+        preferred_view IN ('GRID', 'ROW', 'COLUMN')
+      ) DEFAULT 'GRID',
+
+      has_image INTEGER NOT NULL DEFAULT 0 CHECK(has_image IN (0, 1))
+    );
+
+    -- Specific Collection
+  
+    -- Manual Collection
+    CREATE TABLE collection_media (
+      collection_id TEXT NOT NULL,
+      media_id TEXT NOT NULL,
+      position INTEGER, -- allow personnalised order
+
+      PRIMARY KEY (collection_id, media_id),
+      FOREIGN KEY (collection_id) REFERENCES collection(id) ON DELETE CASCADE,
+      FOREIGN KEY (media_id) REFERENCES media(id) ON DELETE CASCADE
+    );
+
+    -- Dynamic Collection
+    CREATE TABLE collection_dynamic_filter (
+      collection_id TEXT PRIMARY KEY,
+      filter TEXT, -- in JSON, ex: [{media_type: 'MOVIE'}, {favorite: 'true'}]
+
+      FOREIGN KEY (collection_id) REFERENCES collection(id) ON DELETE CASCADE
+    );
+
+
+
     -- Abstract Media
 
     CREATE TABLE IF NOT EXISTS media (
@@ -86,8 +142,6 @@ pub fn init_db(connection: &mut Connection) -> Result<()> {
       favorite INTEGER NOT NULL DEFAULT 0 CHECK(favorite IN (0, 1)),
       notes TEXT NOT NULL DEFAULT ''
     );
-
-
 
     -- Detailed Media
 
@@ -316,7 +370,57 @@ struct SeedTabletopGame<'a> {
   playing_time: &'a str,
 }
 
-pub fn seed_media(connection: &mut Connection) -> Result<()> {
+/* --------------------------- */
+
+struct SeedCollection<'a> {
+  id: i32,
+  name: &'a str,
+  collection_type: CollectionType,
+  media_type: CollectionMediaType,
+  added_date: &'a str,
+  favorite: i32,
+  description: &'a str,
+  sort_order: Vec<MediaOrder>,
+  prefered_view: CollectionView,
+  has_image: i32,
+
+  // details
+  collection_manual: Option<SeedCollectionManual>,
+  collection_dynamic: Option<SeedCollectionDynamic>,
+}
+
+impl<'a> Default for SeedCollection<'a> {
+  fn default() -> Self {
+    Self {
+      id: 0,
+      name: "Sans titre",
+      collection_type: CollectionType::Manual,
+      media_type: CollectionMediaType::All,
+      added_date: "2026-01-01",
+      favorite: 0,
+      description: "",
+      sort_order: vec![],
+      prefered_view: CollectionView::Grid,
+      has_image: 0,
+      collection_manual: None,
+      collection_dynamic: None,
+    }
+  }
+}
+
+#[derive(Default)]
+struct SeedCollectionManual {
+  media_ids: Vec<i32>,
+}
+
+#[derive(Default)]
+struct SeedCollectionDynamic {
+  filter: Option<MediaFilter>,
+}
+
+/* --------------------------- */
+
+pub fn seed_data(connection: &mut Connection) -> Result<()> {
   // don't seed if not needed
   let count: i64 = connection.query_row("SELECT COUNT(*) FROM media", [], |row| row.get(0))?;
   if count > 0 {
@@ -326,7 +430,7 @@ pub fn seed_media(connection: &mut Connection) -> Result<()> {
   // setup transaction for security and performance
   let tx = connection.transaction()?;
 
-  let media_list = seed_data();
+  let media_list = seed_media();
 
   for m in media_list {
     // conversion Enums -> String (format SCREAMING_SNAKE_CASE)
@@ -487,13 +591,78 @@ pub fn seed_media(connection: &mut Connection) -> Result<()> {
     }
   }
 
+
+
+  /* ****************************** */
+
+
+
+  let collection_list = seed_collection();
+
+  for c in collection_list {
+    // enum -> string
+    let collection_type_str = c.collection_type.to_string();
+    let media_type_str = c.media_type.to_string();
+    let view_str = c.prefered_view.to_string();
+
+    // Vec<MediaOrder> -> JSON
+    let sort_order_json = serde_json::to_string(&c.sort_order)
+        .map_err(|e| rusqlite::Error::ToSqlConversionFailure(Box::new(e)))?;
+
+    // insert in parent table Collection
+    tx.execute(
+      "INSERT INTO collection (id, name, type, media_type, added_date, favorite, description, sort_order, preferred_view, has_image)
+       VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10)",
+      params![
+        c.id.to_string(),
+        c.name,
+        collection_type_str,
+        media_type_str,
+        c.added_date,
+        c.favorite,
+        c.description,
+        sort_order_json,
+        view_str,
+        c.has_image,
+      ],
+    )?;
+
+    // insert details
+
+    // static collection
+    if let Some(manual) = c.collection_manual {
+      for (pos, m_id) in manual.media_ids.iter().enumerate() {
+        tx.execute(
+          "INSERT INTO collection_media (collection_id, media_id, position)
+           VALUES (?1, ?2, ?3)",
+          params![c.id.to_string(), m_id.to_string(), pos as i32],
+        )?;
+      }
+    }
+
+    // dynamic collection
+    else if let Some(dynamic) = c.collection_dynamic {
+      if let Some(filter_obj) = dynamic.filter {
+        // MediaFilter -> JSON
+        let filter_json = serde_json::to_string(&filter_obj)
+            .map_err(|e| rusqlite::Error::ToSqlConversionFailure(Box::new(e)))?;
+
+        tx.execute(
+          "INSERT INTO collection_dynamic_filter (collection_id, filter)
+           VALUES (?1, ?2)",
+          params![c.id.to_string(), filter_json],
+        )?;
+      }
+    }
+  }
+
   // validate all operations
   tx.commit()?;
   println!("Database initialized with success !");
   Ok(())
 }
 
-fn seed_data() -> Vec<SeedMedia<'static>> {
+fn seed_media() -> Vec<SeedMedia<'static>> {
   vec![
     SeedMedia {
       id: 1,
@@ -779,6 +948,24 @@ fn seed_data() -> Vec<SeedMedia<'static>> {
         directors: vec!["Hayao Miyazaki"],
         genres: vec!["Animation", "Adventure", "Fantasy"],
         serie: Some("Studio Ghibli"),
+        duration: 117,
+      }),
+      ..Default::default()
+    },
+    SeedMedia {
+      id: 17,
+      media_type: MediaType::Movie,
+      title: "Dune",
+      description: "En l'an 10191, la substance la plus importante est l'Épice. Elle ne se trouve que sur une seule planète, Arakis, connue aussi sous le nom de Dune. La famille Atréide vient à gouverner cette planète mais son ennemi, la dynastie des Harkonnen lui tend un piège dès son arrivée. Paul, le fils du Duc Leto Atréide se réfugie alors dans le désert avec sa mère et y rencontre les Fremens, peuple caché dans le désert attendant l'arrivée d'un Messie",
+      release_date: "1984-03-11",
+      added_date: "2026-01-25",
+      status: MediaStatus::Finished,
+      favorite: 0,
+      notes: "Tellement kitch ",
+      movie_details: Some(SeedMovie {
+        directors: vec!["David Lynch"],
+        genres: vec!["Action", "Adventure", "Sci-Fi"],
+        serie: None,
         duration: 117,
       }),
       ..Default::default()
@@ -1104,5 +1291,166 @@ fn seed_data() -> Vec<SeedMedia<'static>> {
       }),
       ..Default::default()
     }
+  ]
+}
+
+fn seed_collection() -> Vec<SeedCollection<'static>> {
+  vec![
+    SeedCollection { 
+      id: 0, 
+      name: "Favorite", 
+      collection_type: CollectionType::Dynamic, 
+      prefered_view: CollectionView::Row, 
+      collection_dynamic: Some(SeedCollectionDynamic { 
+        filter: Some(MediaFilter {
+          favorite_only: Some(true), 
+          media_type: None, 
+          status: None, 
+          search_query: None 
+        })
+      }),
+      ..Default::default()
+    },
+    SeedCollection { 
+      id: 1, 
+      name: "Recent", 
+      collection_type: CollectionType::Dynamic, 
+      prefered_view: CollectionView::Row, 
+      sort_order: vec![
+        MediaOrder { field: MediaOrderField::AddedDate, direction: MediaOrderDirection::Desc }
+      ],
+      collection_dynamic: Some(SeedCollectionDynamic { 
+        filter: None
+      }),
+      ..Default::default()
+    },
+    SeedCollection { 
+      id: 2, 
+      name: "Movie", 
+      collection_type: CollectionType::Dynamic, 
+      prefered_view: CollectionView::Grid, 
+      collection_dynamic: Some(SeedCollectionDynamic { 
+        filter: Some(MediaFilter {
+          favorite_only: None, 
+          media_type: Some(MediaType::Movie), 
+          status: None, 
+          search_query: None 
+        })
+      }),
+      ..Default::default()
+    },
+    SeedCollection { 
+      id: 3, 
+      name: "Series", 
+      collection_type: CollectionType::Dynamic, 
+      prefered_view: CollectionView::Grid, 
+      collection_dynamic: Some(SeedCollectionDynamic { 
+        filter: Some(MediaFilter {
+          favorite_only: None, 
+          media_type: Some(MediaType::Series), 
+          status: None, 
+          search_query: None 
+        })
+      }),
+      ..Default::default()
+    },
+    SeedCollection { 
+      id: 4, 
+      name: "Tabletop Game", 
+      collection_type: CollectionType::Dynamic, 
+      prefered_view: CollectionView::Grid, 
+      collection_dynamic: Some(SeedCollectionDynamic { 
+        filter: Some(MediaFilter {
+          favorite_only: None, 
+          media_type: Some(MediaType::TabletopGame), 
+          status: None, 
+          search_query: None 
+        })
+      }),
+      ..Default::default()
+    },
+    SeedCollection { 
+      id: 5, 
+      name: "To Discover", 
+      collection_type: CollectionType::Dynamic, 
+      prefered_view: CollectionView::Row, 
+      collection_dynamic: Some(SeedCollectionDynamic { 
+        filter: Some(MediaFilter {
+          favorite_only: None, 
+          media_type: None, 
+          status: Some(MediaStatus::ToDiscover), 
+          search_query: None 
+        })
+      }),
+      ..Default::default()
+    },
+    SeedCollection { 
+      id: 6, 
+      name: "Dune", 
+      collection_type: CollectionType::Dynamic, 
+      prefered_view: CollectionView::Row, 
+      collection_dynamic: Some(SeedCollectionDynamic { 
+        filter: Some(MediaFilter {
+          favorite_only: None, 
+          media_type: None, 
+          status: None, 
+          search_query: Some("Dune".to_string()) 
+        })
+      }),
+      ..Default::default()
+    },
+    SeedCollection { 
+      id: 7, 
+      name: "Finished", 
+      collection_type: CollectionType::Dynamic, 
+      prefered_view: CollectionView::Column, 
+      collection_dynamic: Some(SeedCollectionDynamic { 
+        filter: Some(MediaFilter {
+          favorite_only: None, 
+          media_type: None, 
+          status: Some(MediaStatus::Finished), 
+          search_query: None
+        })
+      }),
+      ..Default::default()
+    },
+    SeedCollection { 
+      id: 8, 
+      name: "Finished Movie with 'A'", 
+      collection_type: CollectionType::Dynamic, 
+      prefered_view: CollectionView::Column, 
+      collection_dynamic: Some(SeedCollectionDynamic { 
+        filter: Some(MediaFilter {
+          favorite_only: None, 
+          media_type: Some(MediaType::Movie), 
+          status: Some(MediaStatus::Finished), 
+          search_query: Some("A".to_string()) 
+        })
+      }),
+      ..Default::default()
+    },
+    SeedCollection { 
+      id: 10, 
+      name: "All Media", 
+      collection_type: CollectionType::Dynamic, 
+      prefered_view: CollectionView::Row, 
+      collection_dynamic: Some(SeedCollectionDynamic { 
+        filter: None
+      }),
+      ..Default::default()
+    },
+
+
+
+    SeedCollection { 
+      id: 100, 
+      name: "My Collection", 
+      collection_type: CollectionType::Manual, 
+      prefered_view: CollectionView::Row, 
+      collection_manual: Some(SeedCollectionManual {
+        media_ids: vec![1, 4, 16, 102, 201]
+      }),
+      ..Default::default()
+    },
   ]
 }

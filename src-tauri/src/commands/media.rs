@@ -5,26 +5,26 @@ use crate::models::enums::{MediaType, MediaStatus};
 use crate::models::query::{MediaFilter, MediaOrder, Pagination};
 
 // convert SQL TEXT -> Enums
-fn match_media_type(s: &str) -> MediaType {
+pub fn match_media_type(s: &str) -> MediaType {
   match s {
-      "BOOK" => MediaType::Book,
-      "SERIES" => MediaType::Series,
-      "VIDEO_GAME" => MediaType::VideoGame,
-      "TABLETOP_GAME" => MediaType::TabletopGame,
-      _ => MediaType::Movie, // default
+    "BOOK" => MediaType::Book,
+    "SERIES" => MediaType::Series,
+    "VIDEO_GAME" => MediaType::VideoGame,
+    "TABLETOP_GAME" => MediaType::TabletopGame,
+    _ => MediaType::Movie, // default
   }
 }
 fn match_media_status(s: &str) -> MediaStatus {
   match s {
-      "IN_PROGRESS" => MediaStatus::InProgress,
-      "FINISHED" => MediaStatus::Finished,
-      "DROPPED" => MediaStatus::Dropped,
-      _ => MediaStatus::ToDiscover, // default
+    "IN_PROGRESS" => MediaStatus::InProgress,
+    "FINISHED" => MediaStatus::Finished,
+    "DROPPED" => MediaStatus::Dropped,
+    _ => MediaStatus::ToDiscover, // default
   }
 }
 
 // convert SQL -> Media
-fn map_row_to_media(row: &rusqlite::Row) -> rusqlite::Result<Media> {
+pub fn map_row_to_media(row: &rusqlite::Row) -> rusqlite::Result<Media> {
 
   // data that has to be transformed
   let type_str: String = row.get(1)?;
@@ -61,10 +61,10 @@ pub fn get_media_by_id(state: tauri::State<'_, DbState>, id: String) -> Result<A
 
   // retrieve data from Media
   let mut stmt = connection.prepare("SELECT * FROM media WHERE id = ?1")
-      .map_err(|e| e.to_string())?;
+    .map_err(|e| e.to_string())?;
 
   let base = stmt.query_row([&id], map_row_to_media)
-      .map_err(|e| e.to_string())?;
+    .map_err(|e| e.to_string())?;
 
   println!("retrieved base media : {}", base.title);
 
@@ -159,7 +159,7 @@ pub fn get_media_by_id(state: tauri::State<'_, DbState>, id: String) -> Result<A
         println!("{}", err_msg);
         err_msg
       })?;
-  
+
       Ok(AnyMedia::TabletopGame(game))
     }
     // fallback : only base data
@@ -210,7 +210,6 @@ pub fn get_media_list(
 
   // ORDER
 
-  let safe_fields = ["added_date", "release_date", "media_type", "favorite", "status"];
   let order_clause = 
     if order.is_empty() {
       "ORDER BY title ASC".to_string() // default ORDER
@@ -219,13 +218,7 @@ pub fn get_media_list(
       let mut parts = Vec::new();
 
       for o in order {
-        let field = 
-          if safe_fields.contains(&o.field.as_str()) { &o.field } 
-          else { "added_date" };
-        let dir = 
-          if o.direction.to_uppercase() == "DESC" { "DESC" } 
-          else { "ASC" };
-        parts.push(format!("{} {}", field, dir));
+        parts.push(format!("{} {}", o.field, o.direction));
       }
       parts.push(format!("title ASC")); // lastly order by title
 

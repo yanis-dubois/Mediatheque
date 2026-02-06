@@ -4,7 +4,7 @@
 @else if (collection) {
   <section>
 
-    <a [routerLink]="collectionLink(query)">
+    <a [routerLink]="['/collection', collection.id]">
       <h2 class="title">
         {{collection.name}} 
         <img src="assets/icons/chevron.svg"/>

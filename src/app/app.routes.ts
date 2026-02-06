@@ -10,13 +10,9 @@ export const routes: Routes = [
     component: HomeComponent
   },
   {
-    path: 'collection/:type',
+    path: 'collection/:id',
     component: CollectionPageComponent
   },
-  {
-    path: 'collection/:type/:value',
-    component: CollectionPageComponent
-  },  
   {
     path: 'media/:id',
     component: MediaPageComponent
