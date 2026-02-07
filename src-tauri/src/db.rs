@@ -123,8 +123,8 @@ pub fn init_db(connection: &mut Connection) -> Result<()> {
 
     CREATE TABLE IF NOT EXISTS media (
       id TEXT PRIMARY KEY NOT NULL,
-      type TEXT NOT NULL CHECK(
-          type IN ('BOOK', 'MOVIE', 'SERIES', 'VIDEO_GAME', 'TABLETOP_GAME')
+      media_type TEXT NOT NULL CHECK(
+        media_type IN ('BOOK', 'MOVIE', 'SERIES', 'VIDEO_GAME', 'TABLETOP_GAME')
       ),
 
       image_width INTEGER NOT NULL,
@@ -137,7 +137,7 @@ pub fn init_db(connection: &mut Connection) -> Result<()> {
       added_date TEXT NOT NULL,
 
       status TEXT NOT NULL CHECK(
-          status IN ('TO_DISCOVER', 'IN_PROGRESS', 'FINISHED', 'DROPPED')
+        status IN ('TO_DISCOVER', 'IN_PROGRESS', 'FINISHED', 'DROPPED')
       ),
       favorite INTEGER NOT NULL DEFAULT 0 CHECK(favorite IN (0, 1)),
       notes TEXT NOT NULL DEFAULT ''
@@ -439,7 +439,7 @@ pub fn seed_data(connection: &mut Connection) -> Result<()> {
 
     // insert in parent table Media
     tx.execute(
-      "INSERT INTO media (id, type, image_width, image_height, title, description, release_date, added_date, status, favorite, notes)
+      "INSERT INTO media (id, media_type, image_width, image_height, title, description, release_date, added_date, status, favorite, notes)
         VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11)",
       params![
         m.id.to_string(),
@@ -602,7 +602,10 @@ pub fn seed_data(connection: &mut Connection) -> Result<()> {
   for c in collection_list {
     // enum -> string
     let collection_type_str = c.collection_type.to_string();
-    let media_type_str = c.media_type.to_string();
+    let media_type_str = match &c.media_type {
+      CollectionMediaType::All => "ALL".to_string(),
+      CollectionMediaType::Specific(media) => media.to_string(),
+    };
     let view_str = c.prefered_view.to_string();
 
     // Vec<MediaOrder> -> JSON
@@ -1301,8 +1304,14 @@ fn seed_collection() -> Vec<SeedCollection<'static>> {
       name: "Favorite", 
       collection_type: CollectionType::Dynamic, 
       prefered_view: CollectionView::Row, 
+      sort_order: vec![
+        MediaOrder { field: MediaOrderField::MediaType, direction: MediaOrderDirection::Asc },
+        MediaOrder { field: MediaOrderField::Status, direction: MediaOrderDirection::Asc },
+        MediaOrder { field: MediaOrderField::ReleaseDate, direction: MediaOrderDirection::Asc }
+      ],
       collection_dynamic: Some(SeedCollectionDynamic { 
         filter: Some(MediaFilter {
+          collection_id: None,
           favorite_only: Some(true), 
           media_type: None, 
           status: None, 
@@ -1328,9 +1337,11 @@ fn seed_collection() -> Vec<SeedCollection<'static>> {
       id: 2, 
       name: "Movie", 
       collection_type: CollectionType::Dynamic, 
+      media_type: CollectionMediaType::Specific(MediaType::Movie),
       prefered_view: CollectionView::Grid, 
       collection_dynamic: Some(SeedCollectionDynamic { 
         filter: Some(MediaFilter {
+          collection_id: None,
           favorite_only: None, 
           media_type: Some(MediaType::Movie), 
           status: None, 
@@ -1342,10 +1353,12 @@ fn seed_collection() -> Vec<SeedCollection<'static>> {
     SeedCollection { 
       id: 3, 
       name: "Series", 
-      collection_type: CollectionType::Dynamic, 
+      collection_type: CollectionType::Dynamic,
+      media_type: CollectionMediaType::Specific(MediaType::Series),
       prefered_view: CollectionView::Grid, 
       collection_dynamic: Some(SeedCollectionDynamic { 
         filter: Some(MediaFilter {
+          collection_id: None,
           favorite_only: None, 
           media_type: Some(MediaType::Series), 
           status: None, 
@@ -1358,9 +1371,11 @@ fn seed_collection() -> Vec<SeedCollection<'static>> {
       id: 4, 
       name: "Tabletop Game", 
       collection_type: CollectionType::Dynamic, 
+      media_type: CollectionMediaType::Specific(MediaType::TabletopGame),
       prefered_view: CollectionView::Grid, 
       collection_dynamic: Some(SeedCollectionDynamic { 
         filter: Some(MediaFilter {
+          collection_id: None,
           favorite_only: None, 
           media_type: Some(MediaType::TabletopGame), 
           status: None, 
@@ -1376,6 +1391,7 @@ fn seed_collection() -> Vec<SeedCollection<'static>> {
       prefered_view: CollectionView::Row, 
       collection_dynamic: Some(SeedCollectionDynamic { 
         filter: Some(MediaFilter {
+          collection_id: None,
           favorite_only: None, 
           media_type: None, 
           status: Some(MediaStatus::ToDiscover), 
@@ -1391,6 +1407,7 @@ fn seed_collection() -> Vec<SeedCollection<'static>> {
       prefered_view: CollectionView::Row, 
       collection_dynamic: Some(SeedCollectionDynamic { 
         filter: Some(MediaFilter {
+          collection_id: None,
           favorite_only: None, 
           media_type: None, 
           status: None, 
@@ -1406,6 +1423,7 @@ fn seed_collection() -> Vec<SeedCollection<'static>> {
       prefered_view: CollectionView::Column, 
       collection_dynamic: Some(SeedCollectionDynamic { 
         filter: Some(MediaFilter {
+          collection_id: None,
           favorite_only: None, 
           media_type: None, 
           status: Some(MediaStatus::Finished), 
@@ -1418,9 +1436,11 @@ fn seed_collection() -> Vec<SeedCollection<'static>> {
       id: 8, 
       name: "Finished Movie with 'A'", 
       collection_type: CollectionType::Dynamic, 
+      media_type: CollectionMediaType::Specific(MediaType::Movie),
       prefered_view: CollectionView::Column, 
       collection_dynamic: Some(SeedCollectionDynamic { 
         filter: Some(MediaFilter {
+          collection_id: None,
           favorite_only: None, 
           media_type: Some(MediaType::Movie), 
           status: Some(MediaStatus::Finished), 

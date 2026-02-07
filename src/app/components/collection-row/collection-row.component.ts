@@ -12,7 +12,6 @@ import { PosterPathPipe } from '@pipe/image-path.pipe'
 interface PositionedMedia {
   media: Media;
   x: number;
-  y: number;
   width: number;
   height: number;
 }
@@ -50,46 +49,44 @@ export class CollectionRowComponent {
     let currentLineWidth = 0;
     const gap = this.gap;
 
-    this.mediaList().forEach((media, index) => {
-        const ratio = media.imageWidth / media.imageHeight;
-        const width = this.rowHeight() * ratio;
+    this.mediaList().forEach((media) => {
+      const ratio = media.imageWidth / media.imageHeight;
+      const width = this.rowHeight() * ratio;
 
-        // Si l'ajout de cette image dépasse le container
-        if (currentLineWidth + width > containerWidth && currentLine.length > 0) {
-            // CALCUL DU REDIMENSIONNEMENT
-            // On retire les gaps du calcul pour ne scaler que les images
-            const totalGaps = (currentLine.length - 1) * gap;
-            const availableWidth = containerWidth - totalGaps;
-            const scalingFactor = availableWidth / (currentLineWidth - totalGaps);
+      // if that image can't fit
+      if (currentLineWidth + width > containerWidth && currentLine.length > 0) {
+        // calculate the scaling factor to fill the blanks
+        const totalGaps = (currentLine.length - 1) * gap;
+        const availableWidth = containerWidth - totalGaps;
+        const scalingFactor = availableWidth / (currentLineWidth - totalGaps);
 
-            // On applique le scale à chaque image de la ligne finie
-            let xOffset = 0;
-            currentLine.forEach(item => {
-                item.width = item.width * scalingFactor;
-                item.height = this.rowHeight() * scalingFactor;
-                item.x = xOffset;
-                xOffset += item.width + gap;
-            });
-
-            lines.push(currentLine);
-            currentLine = [];
-            currentLineWidth = 0;
-        }
-
-        currentLine.push({
-            media,
-            width: width,
-            height: this.rowHeight(),
-            x: currentLineWidth, // Provisoire, sera recalculé à la fin de la ligne
-            y: 0 // On n'en a plus besoin car translateY gère la ligne
+        // apply it
+        let xOffset = 0;
+        currentLine.forEach(item => {
+          item.width = item.width * scalingFactor;
+          item.height = this.rowHeight() * scalingFactor;
+          item.x = xOffset;
+          xOffset += item.width + gap;
         });
 
-        currentLineWidth += width + gap;
+        lines.push(currentLine);
+        currentLine = [];
+        currentLineWidth = 0;
+      }
+
+      currentLine.push({
+        media,
+        width: width,
+        height: this.rowHeight(),
+        x: currentLineWidth,
+      });
+
+      currentLineWidth += width + gap;
     });
 
-    // Ne pas oublier la dernière ligne (qui ne sera pas forcément justifiée)
+    // last line that won't be justified
     if (currentLine.length > 0) {
-        lines.push(currentLine);
+      lines.push(currentLine);
     }
 
     return lines;

@@ -1,7 +1,7 @@
 use crate::db::{DbState};
 use crate::models::external_media::{ExternalMediaRequest};
 use crate::models::media::{AnyMedia, Media, Movie, Series, TabletopGame};
-use crate::models::enums::{MediaType, MediaStatus};
+use crate::models::enums::{CollectionMediaType, CollectionType, MediaStatus, MediaType};
 use crate::models::query::{MediaFilter, MediaOrder, Pagination};
 
 // convert SQL TEXT -> Enums
@@ -172,6 +172,8 @@ pub fn get_media_by_id(state: tauri::State<'_, DbState>, id: String) -> Result<A
 #[tauri::command]
 pub fn get_media_list(
     state: tauri::State<'_, DbState>,
+    collection_type: CollectionType,
+    collection_media_type: CollectionMediaType,
     filter: MediaFilter,
     order: Vec<MediaOrder>,
     pagination: Pagination,
@@ -181,22 +183,31 @@ pub fn get_media_list(
 
   let mut conditions = Vec::new();
   let mut params: Vec<Box<dyn rusqlite::ToSql>> = Vec::new();
+  let mut join_clauses = Vec::new();
 
   // WHERE
 
+  // for manual collection
+  if let Some(col_id) = filter.collection_id {
+    // join table
+    join_clauses.push("INNER JOIN collection_media cm ON m.id = cm.media_id".to_string());
+    conditions.push("cm.collection_id = ?".to_string());
+    params.push(Box::new(col_id));
+  }
+  // other generic filter
   if let Some(t) = filter.media_type {
-    conditions.push("type = ?".to_string());
+    conditions.push("m.media_type = ?".to_string());
     params.push(Box::new(t.to_string()));
   }
   if let Some(s) = filter.status {
-    conditions.push("status = ?".to_string());
+    conditions.push("m.status = ?".to_string());
     params.push(Box::new(s.to_string()));
   }
   if let Some(true) = filter.favorite_only {
-    conditions.push("favorite = 1".to_string());
+    conditions.push("m.favorite = 1".to_string());
   }
   if let Some(q) = filter.search_query {
-    conditions.push("title LIKE ?".to_string());
+    conditions.push("m.title LIKE ?".to_string());
     params.push(Box::new(format!("%{}%", q)));
   }
 
@@ -208,27 +219,35 @@ pub fn get_media_list(
       format!("WHERE {}", conditions.join(" AND "))
     };
 
+  // JOIN
+
+  let joins = join_clauses.join(" ");
+
   // ORDER
 
-  let order_clause = 
-    if order.is_empty() {
-      "ORDER BY title ASC".to_string() // default ORDER
-    } 
-    else {
-      let mut parts = Vec::new();
+  let order_clause = {
+    let mut parts = Vec::new();
 
-      for o in order {
-        parts.push(format!("{} {}", o.field, o.direction));
-      }
-      parts.push(format!("title ASC")); // lastly order by title
+    // manual order by default
+    if collection_type == CollectionType::Manual {
+      parts.push(format!("cm.position ASC"));
+    }
 
-      format!("ORDER BY {}", parts.join(", "))
-    };
+    // add all orders
+    for o in order {
+      parts.push(format!("m.{} {}", o.field, o.direction));
+    }
+
+    // lastly order by title
+    parts.push(format!("m.title ASC")); 
+
+    format!("ORDER BY {}", parts.join(", "))
+  };
 
   // final query
   let sql = format!(
-    "SELECT * FROM media {} {} LIMIT {} OFFSET {}",
-    where_clause, order_clause, pagination.limit, pagination.offset
+    "SELECT DISTINCT m.* FROM media m {} {} {} LIMIT {} OFFSET {}",
+    joins, where_clause, order_clause, pagination.limit, pagination.offset
   );
 
   let mut stmt = connection.prepare(&sql).map_err(|e| e.to_string())?;
@@ -307,7 +326,7 @@ pub fn insert_external_media(
 
   // insert into Media
   tx.execute(
-    "INSERT INTO media (id, type, image_width, image_height, title, description, release_date, added_date, status, favorite, notes)
+    "INSERT INTO media (id, media_type, image_width, image_height, title, description, release_date, added_date, status, favorite, notes)
       VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11)",
     params![
       media_uuid,

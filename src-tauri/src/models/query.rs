@@ -6,6 +6,7 @@ use super::enums::{MediaType, MediaStatus};
 #[derive(Debug, Serialize, Deserialize, Default)]
 #[serde(rename_all = "camelCase")]
 pub struct MediaFilter {
+  pub collection_id: Option<String>, // for manual collection
   pub media_type: Option<MediaType>,
   pub status: Option<MediaStatus>,
   pub favorite_only: Option<bool>,

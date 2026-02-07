@@ -8,12 +8,21 @@
       <h1> {{collection.name}} </h1>
       <div style="display: flex; justify-content:space-around;">
         <p> {{collection.collectionType}} </p>
-        <p> {{collection.mediaType}} </p>
+        <p> 
+          @if (collection.mediaType.type === 'ALL') {
+            <span>Toutes catégories</span>
+          }
+          @else {
+            <span>{{ collection.mediaType.value }}</span>
+          }
+        </p>
         <p> {{collection.addedDate}} </p>
         <p> {{collection.favorite}} </p>
         <p> {{collection.hasImage}} </p>
         <p> {{collection.preferedView}} </p>
-        <p> {{collection.sortOrder}} </p>
+        @for (sortOrder of collection.sortOrder; track sortOrder.field) {
+          <p> {{sortOrder.field}} </p>
+        }
         <p> {{collection.description}} </p>
       </div>
     </div>

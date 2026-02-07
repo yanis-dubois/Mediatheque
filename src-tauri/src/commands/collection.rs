@@ -1,6 +1,4 @@
-use rusqlite::params;
-
-use crate::commands::media::{get_media_list, map_row_to_media, match_media_type};
+use crate::commands::media::{get_media_list, match_media_type};
 use crate::db::{DbState};
 use crate::models::collection::Collection;
 use crate::models::enums::{CollectionMediaType, CollectionType, CollectionView};
@@ -72,6 +70,8 @@ pub fn get_collection_by_id(
       .map_err(|e| e.to_string())?
   };
 
+  let mut filter = MediaFilter::default();
+
   // retrieve media list
   match collection.collection_type {
     CollectionType::Dynamic => {
@@ -86,36 +86,16 @@ pub fn get_collection_by_id(
       };
 
       // JSON -> MediaFilter
-      let filter: MediaFilter = filter_json
-            .and_then(|json| serde_json::from_str(&json).ok())
-            .unwrap_or_default();
-
-      // get corresponding media list
-      collection.media_list = get_media_list(state, filter, collection.sort_order.clone(), pagination)?;
+      filter = filter_json
+        .and_then(|json| serde_json::from_str(&json).ok())
+        .unwrap_or_default();
     },
     CollectionType::Manual => {
-      let connection = state.connection.lock().map_err(|_| "DB Lock failed")?;
-      
-      // get filtered media list
-      let mut stmt = connection.prepare(
-        "SELECT m.* FROM media m
-          INNER JOIN collection_media cm ON m.id = cm.media_id
-          WHERE cm.collection_id = ?1
-          ORDER BY cm.position ASC
-          LIMIT ?2 OFFSET ?3"
-      ).map_err(|e| e.to_string())?;
-
-      let list = stmt.query_map(
-        params![collection_id, pagination.limit, pagination.offset],
-        map_row_to_media
-      )
-      .map_err(|e| e.to_string())?
-      .collect::<rusqlite::Result<Vec<_>>>()
-      .map_err(|e| e.to_string())?;
-
-      collection.media_list = list;
+      filter.collection_id = Some(collection_id);
     }
   }
+
+  collection.media_list = get_media_list(state, collection.collection_type.clone(), collection.media_type.clone(), filter, collection.sort_order.clone(), pagination)?;
 
   Ok(collection)
 }
