@@ -1311,11 +1311,8 @@ fn seed_collection() -> Vec<SeedCollection<'static>> {
       ],
       collection_dynamic: Some(SeedCollectionDynamic { 
         filter: Some(MediaFilter {
-          collection_id: None,
-          favorite_only: Some(true), 
-          media_type: None, 
-          status: None, 
-          search_query: None 
+          favorite_only: Some(true),
+          ..Default::default()
         })
       }),
       ..Default::default()
@@ -1341,11 +1338,8 @@ fn seed_collection() -> Vec<SeedCollection<'static>> {
       prefered_view: CollectionView::Grid, 
       collection_dynamic: Some(SeedCollectionDynamic { 
         filter: Some(MediaFilter {
-          collection_id: None,
-          favorite_only: None, 
-          media_type: Some(MediaType::Movie), 
-          status: None, 
-          search_query: None 
+          media_type: Some(MediaType::Movie),
+          ..Default::default()
         })
       }),
       ..Default::default()
@@ -1358,11 +1352,8 @@ fn seed_collection() -> Vec<SeedCollection<'static>> {
       prefered_view: CollectionView::Grid, 
       collection_dynamic: Some(SeedCollectionDynamic { 
         filter: Some(MediaFilter {
-          collection_id: None,
-          favorite_only: None, 
-          media_type: Some(MediaType::Series), 
-          status: None, 
-          search_query: None 
+          media_type: Some(MediaType::Series),
+          ..Default::default()
         })
       }),
       ..Default::default()
@@ -1375,11 +1366,8 @@ fn seed_collection() -> Vec<SeedCollection<'static>> {
       prefered_view: CollectionView::Grid, 
       collection_dynamic: Some(SeedCollectionDynamic { 
         filter: Some(MediaFilter {
-          collection_id: None,
-          favorite_only: None, 
           media_type: Some(MediaType::TabletopGame), 
-          status: None, 
-          search_query: None 
+          ..Default::default()
         })
       }),
       ..Default::default()
@@ -1391,11 +1379,8 @@ fn seed_collection() -> Vec<SeedCollection<'static>> {
       prefered_view: CollectionView::Row, 
       collection_dynamic: Some(SeedCollectionDynamic { 
         filter: Some(MediaFilter {
-          collection_id: None,
-          favorite_only: None, 
-          media_type: None, 
           status: Some(MediaStatus::ToDiscover), 
-          search_query: None 
+          ..Default::default()
         })
       }),
       ..Default::default()
@@ -1407,11 +1392,8 @@ fn seed_collection() -> Vec<SeedCollection<'static>> {
       prefered_view: CollectionView::Row, 
       collection_dynamic: Some(SeedCollectionDynamic { 
         filter: Some(MediaFilter {
-          collection_id: None,
-          favorite_only: None, 
-          media_type: None, 
-          status: None, 
-          search_query: Some("Dune".to_string()) 
+          search_query: Some("Dune".to_string()),
+          ..Default::default()
         })
       }),
       ..Default::default()
@@ -1423,11 +1405,8 @@ fn seed_collection() -> Vec<SeedCollection<'static>> {
       prefered_view: CollectionView::Column, 
       collection_dynamic: Some(SeedCollectionDynamic { 
         filter: Some(MediaFilter {
-          collection_id: None,
-          favorite_only: None, 
-          media_type: None, 
           status: Some(MediaStatus::Finished), 
-          search_query: None
+          ..Default::default()
         })
       }),
       ..Default::default()
@@ -1440,17 +1419,126 @@ fn seed_collection() -> Vec<SeedCollection<'static>> {
       prefered_view: CollectionView::Column, 
       collection_dynamic: Some(SeedCollectionDynamic { 
         filter: Some(MediaFilter {
-          collection_id: None,
-          favorite_only: None, 
           media_type: Some(MediaType::Movie), 
           status: Some(MediaStatus::Finished), 
-          search_query: Some("A".to_string()) 
+          search_query: Some("A".to_string()),
+          ..Default::default()
         })
       }),
       ..Default::default()
     },
     SeedCollection { 
-      id: 10, 
+      id: 9, 
+      name: "Movie ordered by Genre", 
+      collection_type: CollectionType::Dynamic, 
+      media_type: CollectionMediaType::Specific(MediaType::Movie),
+      prefered_view: CollectionView::Row,
+      sort_order: vec![
+        MediaOrder { field: MediaOrderField::Genre, direction: MediaOrderDirection::Asc },
+      ],
+      collection_dynamic: Some(SeedCollectionDynamic { 
+        filter: Some(MediaFilter {
+          media_type: Some(MediaType::Movie), 
+          ..Default::default()
+        })
+      }),
+      ..Default::default()
+    },
+    SeedCollection { 
+      id: 10,
+      name: "Movie ordered by Directors", 
+      collection_type: CollectionType::Dynamic, 
+      media_type: CollectionMediaType::Specific(MediaType::Movie),
+      prefered_view: CollectionView::Row,
+      sort_order: vec![
+        MediaOrder { field: MediaOrderField::Directors, direction: MediaOrderDirection::Asc },
+      ],
+      collection_dynamic: Some(SeedCollectionDynamic { 
+        filter: Some(MediaFilter {
+          media_type: Some(MediaType::Movie), 
+          ..Default::default()
+        })
+      }),
+      ..Default::default()
+    },
+    SeedCollection { 
+      id: 11,
+      name: "Series ordered by Creators", 
+      collection_type: CollectionType::Dynamic, 
+      media_type: CollectionMediaType::Specific(MediaType::Series),
+      prefered_view: CollectionView::Row,
+      sort_order: vec![
+        MediaOrder { field: MediaOrderField::Creators, direction: MediaOrderDirection::Asc },
+      ],
+      collection_dynamic: Some(SeedCollectionDynamic { 
+        filter: Some(MediaFilter {
+          media_type: Some(MediaType::Series), 
+          ..Default::default()
+        })
+      }),
+      ..Default::default()
+    },
+    SeedCollection { 
+      id: 12,
+      name: "Series ordered by Genre", 
+      collection_type: CollectionType::Dynamic, 
+      media_type: CollectionMediaType::Specific(MediaType::Series),
+      prefered_view: CollectionView::Row,
+      sort_order: vec![
+        MediaOrder { field: MediaOrderField::Genre, direction: MediaOrderDirection::Asc },
+      ],
+      collection_dynamic: Some(SeedCollectionDynamic { 
+        filter: Some(MediaFilter {
+          media_type: Some(MediaType::Series), 
+          ..Default::default()
+        })
+      }),
+      ..Default::default()
+    },
+    SeedCollection { 
+      id: 13,
+      name: "Animation Fantasy", 
+      collection_type: CollectionType::Dynamic, 
+      media_type: CollectionMediaType::Specific(MediaType::Series),
+      prefered_view: CollectionView::Row,
+      collection_dynamic: Some(SeedCollectionDynamic { 
+        filter: Some(MediaFilter {
+          genres: Some(vec!["Animation".to_string(), "Fantasy".to_string()]),
+          ..Default::default()
+        })
+      }),
+      ..Default::default()
+    },
+    SeedCollection { 
+      id: 14,
+      name: "Sci-Fi", 
+      collection_type: CollectionType::Dynamic, 
+      media_type: CollectionMediaType::Specific(MediaType::Series),
+      prefered_view: CollectionView::Row,
+      collection_dynamic: Some(SeedCollectionDynamic { 
+        filter: Some(MediaFilter {
+          genres: Some(vec!["Sci-Fi".to_string()]),
+          ..Default::default()
+        })
+      }),
+      ..Default::default()
+    },
+    SeedCollection { 
+      id: 15,
+      name: "Denis Villeneuve", 
+      collection_type: CollectionType::Dynamic, 
+      media_type: CollectionMediaType::Specific(MediaType::Series),
+      prefered_view: CollectionView::Row,
+      collection_dynamic: Some(SeedCollectionDynamic { 
+        filter: Some(MediaFilter {
+          person: Some("Denis Villeneuve".to_string()),
+          ..Default::default()
+        })
+      }),
+      ..Default::default()
+    },
+    SeedCollection { 
+      id: 1000, 
       name: "All Media", 
       collection_type: CollectionType::Dynamic, 
       prefered_view: CollectionView::Row, 

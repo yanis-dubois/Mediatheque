@@ -2,8 +2,8 @@
 
 /* phone */
 :root {
-  --card-width-grid: 120px;
-  --card-width-line: 110px;
+  --card-width-grid: 110px;
+  --card-width-line: 100px;
 
   /* animation */
   --scale-card-in: 0.225s;
@@ -13,15 +13,15 @@
 /* tablet */
 @media (min-width: 600px) {
   :root {
-    --card-width-grid: 150px;
-    --card-width-line: 140px;
+    --card-width-grid: 130px;
+    --card-width-line: 120px;
   }
 }
 
 /* desktop */
 @media (min-width: 1025px) {
   :root {
-    --card-width-grid: 160px;
-    --card-width-line: 160px;
+    --card-width-grid: 140px;
+    --card-width-line: 140px;
   }
 }

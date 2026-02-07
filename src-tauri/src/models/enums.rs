@@ -65,7 +65,7 @@ pub enum CollectionView {
 
 
 
-#[derive(Debug, Serialize, Deserialize, PartialEq, Clone)]
+#[derive(Debug, Serialize, Deserialize, PartialEq, Clone, Copy)]
 #[serde(rename_all = "SCREAMING_SNAKE_CASE")]
 #[derive(strum::Display, strum::EnumString)]
 #[strum(serialize_all = "SCREAMING_SNAKE_CASE")]
@@ -76,31 +76,13 @@ pub enum MediaOrderField {
   ReleaseDate,
   MediaType,
   Favorite,
-  Status
-}
+  Status,
 
-#[derive(Debug, Serialize, Deserialize, PartialEq, Clone)]
-#[serde(rename_all = "SCREAMING_SNAKE_CASE")]
-#[derive(strum::Display, strum::EnumString)]
-#[strum(serialize_all = "SCREAMING_SNAKE_CASE")]
-#[derive(Default)]
-pub enum MovieOrderField {
-  #[default]
   Directors,
   Genre,
   Serie,
-  Duration
-}
-
-#[derive(Debug, Serialize, Deserialize, PartialEq, Clone)]
-#[serde(rename_all = "SCREAMING_SNAKE_CASE")]
-#[derive(strum::Display, strum::EnumString)]
-#[strum(serialize_all = "SCREAMING_SNAKE_CASE")]
-#[derive(Default)]
-pub enum SeriesOrderField {
-  #[default]
+  Duration,
   Creators,
-  Genre,
   Seasons,
   Episodes
 }

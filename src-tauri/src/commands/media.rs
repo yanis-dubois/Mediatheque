@@ -1,7 +1,7 @@
 use crate::db::{DbState};
 use crate::models::external_media::{ExternalMediaRequest};
 use crate::models::media::{AnyMedia, Media, Movie, Series, TabletopGame};
-use crate::models::enums::{CollectionMediaType, CollectionType, MediaStatus, MediaType};
+use crate::models::enums::{CollectionMediaType, CollectionType, MediaOrderField, MediaStatus, MediaType};
 use crate::models::query::{MediaFilter, MediaOrder, Pagination};
 
 // convert SQL TEXT -> Enums
@@ -185,16 +185,72 @@ pub fn get_media_list(
   let mut params: Vec<Box<dyn rusqlite::ToSql>> = Vec::new();
   let mut join_clauses = Vec::new();
 
-  // WHERE
+  // --- JOIN ---
+  // if collection has a specific type and is ordered by specific fields,
+  // then we join the needed tables
+  if let CollectionMediaType::Specific(media_type) = &collection_media_type {
+    match media_type {
+      MediaType::Movie => {
+        join_clauses.push("LEFT JOIN movie mv ON m.id = mv.media_id".to_string());
+        if order.iter().any(|o| o.field == MediaOrderField::Genre) {
+          join_clauses.push(
+            "LEFT JOIN (
+              SELECT movie_id, MIN(g.name) as first_genre_name 
+              FROM movie_genre mg 
+              JOIN genre g ON mg.genre_id = g.id 
+              GROUP BY movie_id
+            ) g_sorted ON m.id = g_sorted.movie_id".to_string()
+          );
+        }
+        if order.iter().any(|o| o.field == MediaOrderField::Directors) {
+          join_clauses.push(
+            "LEFT JOIN (
+              SELECT movie_id, MIN(p.name) as first_person_name 
+              FROM movie_director md 
+              JOIN person p ON md.director_id = p.id 
+              GROUP BY movie_id
+            ) p_sorted ON m.id = p_sorted.movie_id".to_string()
+          );
+        }
+      },
+      MediaType::Series => {
+        join_clauses.push("LEFT JOIN series s ON m.id = s.media_id".to_string());
+        if order.iter().any(|o| o.field == MediaOrderField::Genre) {
+          join_clauses.push(
+            "LEFT JOIN (
+              SELECT series_id, MIN(g.name) as first_genre_name 
+              FROM series_genre sg 
+              JOIN genre g ON sg.genre_id = g.id 
+              GROUP BY series_id
+            ) g_sorted ON m.id = g_sorted.series_id".to_string()
+          );
+        }
+        if order.iter().any(|o| o.field == MediaOrderField::Creators) {
+          join_clauses.push("LEFT JOIN series_creator sc ON m.id = sc.series_id LEFT JOIN person p ON sc.creator_id = p.id".to_string());
+          join_clauses.push(
+            "LEFT JOIN (
+              SELECT series_id, MIN(p.name) as first_person_name 
+              FROM series_creator sc
+              JOIN person p ON sc.creator_id = p.id 
+              GROUP BY series_id
+            ) p_sorted ON m.id = p_sorted.series_id".to_string()
+          );
+        }
+      },
+      // no join by default
+      _ => {}
+    }
+  }
 
+  // --- WHERE ---
   // for manual collection
   if let Some(col_id) = filter.collection_id {
     // join table
     join_clauses.push("INNER JOIN collection_media cm ON m.id = cm.media_id".to_string());
     conditions.push("cm.collection_id = ?".to_string());
-    params.push(Box::new(col_id));
+    params.push(Box::new(col_id.clone()));
   }
-  // other generic filter
+  // generic filter
   if let Some(t) = filter.media_type {
     conditions.push("m.media_type = ?".to_string());
     params.push(Box::new(t.to_string()));
@@ -210,37 +266,80 @@ pub fn get_media_list(
     conditions.push("m.title LIKE ?".to_string());
     params.push(Box::new(format!("%{}%", q)));
   }
+  // specific filters 
+  // by Person (Movie, Series) TODO: add all other medias
+  if let Some(person_name) = filter.person {
+    conditions.push(format!(
+      "EXISTS (
+        SELECT 1 FROM movie_director md JOIN person p ON md.director_id = p.id 
+        WHERE md.movie_id = m.id AND p.name LIKE ?
+        UNION
+        SELECT 1 FROM series_creator sc JOIN person p ON sc.creator_id = p.id 
+        WHERE sc.series_id = m.id AND p.name LIKE ?
+      )"
+    ));
+    params.push(Box::new(format!("%{}%", person_name)));
+    params.push(Box::new(format!("%{}%", person_name)));
+  }
+  // by Genre (Movie, Series)
+  if let Some(genres) = filter.genres {
+    if !genres.is_empty() {
+      // concatenate all genre
+      let placeholders = genres.iter().map(|_| "?").collect::<Vec<_>>().join(",");
+
+      conditions.push(format!(
+        "EXISTS (
+          SELECT 1 FROM movie_genre mg JOIN genre g ON mg.genre_id = g.id 
+          WHERE mg.movie_id = m.id AND g.name IN ({})
+          UNION
+          SELECT 1 FROM series_genre sg JOIN genre g ON sg.genre_id = g.id 
+          WHERE sg.series_id = m.id AND g.name IN ({})
+        )", placeholders, placeholders
+      ));
+
+      for g in &genres { params.push(Box::new(g.clone())); }
+      for g in &genres { params.push(Box::new(g.clone())); }
+    }
+  }
+  // TODO [...]
 
   let where_clause = 
-    if conditions.is_empty() {
-      String::new()
-    } 
-    else {
-      format!("WHERE {}", conditions.join(" AND "))
-    };
-
-  // JOIN
-
+    if conditions.is_empty() { String::new() } 
+    else { format!("WHERE {}", conditions.join(" AND ")) };
   let joins = join_clauses.join(" ");
 
-  // ORDER
-
+  // --- ORDER BY ---
   let order_clause = {
     let mut parts = Vec::new();
 
     // manual order by default
     if collection_type == CollectionType::Manual {
-      parts.push(format!("cm.position ASC"));
+      parts.push("cm.position ASC".to_string());
     }
 
-    // add all orders
     for o in order {
-      parts.push(format!("m.{} {}", o.field, o.direction));
+      let mapped_field = match (o.field, &collection_media_type) {
+        // Movie specific field
+        (MediaOrderField::Directors, CollectionMediaType::Specific(MediaType::Movie)) => "p_sorted.first_person_name".to_string(),
+        (MediaOrderField::Genre, CollectionMediaType::Specific(MediaType::Movie)) => "g_sorted.first_genre_name".to_string(),
+        (MediaOrderField::Serie, CollectionMediaType::Specific(MediaType::Movie)) => "mv.serie".to_string(),
+        (MediaOrderField::Duration, CollectionMediaType::Specific(MediaType::Movie)) => "mv.duration".to_string(),
+
+        // Series specific field
+        (MediaOrderField::Creators, CollectionMediaType::Specific(MediaType::Series)) => "p_sorted.first_person_name".to_string(),
+        (MediaOrderField::Genre, CollectionMediaType::Specific(MediaType::Series)) => "g_sorted.first_genre_name".to_string(),
+        (MediaOrderField::Seasons, CollectionMediaType::Specific(MediaType::Series)) => "s.seasons".to_string(),
+        (MediaOrderField::Episodes, CollectionMediaType::Specific(MediaType::Series)) => "s.episodes".to_string(),
+
+        // Media generic field
+        _ => format!("m.{}", o.field)
+      };
+
+      parts.push(format!("{} {}", mapped_field, o.direction));
     }
 
     // lastly order by title
-    parts.push(format!("m.title ASC")); 
-
+    parts.push("m.title ASC".to_string()); 
     format!("ORDER BY {}", parts.join(", "))
   };
 
