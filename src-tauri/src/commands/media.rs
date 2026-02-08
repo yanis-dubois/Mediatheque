@@ -167,7 +167,7 @@ pub fn get_media_by_id(state: tauri::State<'_, DbState>, id: String) -> Result<A
   }
 }
 
-/* -- GET dynamic collection -- */
+/* -- GET collection -- */
 
 #[tauri::command]
 pub fn get_media_list(
@@ -309,7 +309,11 @@ pub fn get_media_list(
   let joins = join_clauses.join(" ");
 
   // --- ORDER BY ---
-  let order_clause = {
+  let order_clause = 
+    if order.is_empty() {
+      format!("ORDER BY title ASC")
+    }
+    else {
     let mut parts = Vec::new();
 
     // manual order by default
@@ -318,7 +322,7 @@ pub fn get_media_list(
     }
 
     for o in order {
-      let mapped_field = match (o.field, &collection_media_type) {
+      let mapped_field: String = match (o.field, &collection_media_type) {
         // Movie specific field
         (MediaOrderField::Directors, CollectionMediaType::Specific(MediaType::Movie)) => "p_sorted.first_person_name".to_string(),
         (MediaOrderField::Genre, CollectionMediaType::Specific(MediaType::Movie)) => "g_sorted.first_genre_name".to_string(),
@@ -338,8 +342,6 @@ pub fn get_media_list(
       parts.push(format!("{} {}", mapped_field, o.direction));
     }
 
-    // lastly order by title
-    parts.push("m.title ASC".to_string()); 
     format!("ORDER BY {}", parts.join(", "))
   };
 
@@ -381,15 +383,15 @@ pub fn toggle_media_favorite(state: tauri::State<'_, DbState>, id: String, is_fa
 
 #[tauri::command]
 pub fn update_media_status(state: tauri::State<'_, DbState>, id: String, status: MediaStatus) -> Result<(), String> {
-    let connection = state.connection.lock().map_err(|_| "Failed to lock database")?;
+  let connection = state.connection.lock().map_err(|_| "Failed to lock database")?;
 
-    connection.execute(
-      "UPDATE media SET status = ?1 WHERE id = ?2",
-      [status.to_string(), id],
-    )
-    .map_err(|e| e.to_string())?;
+  connection.execute(
+    "UPDATE media SET status = ?1 WHERE id = ?2",
+    [status.to_string(), id],
+  )
+  .map_err(|e| e.to_string())?;
 
-    Ok(())
+  Ok(())
 }
 
 #[tauri::command]

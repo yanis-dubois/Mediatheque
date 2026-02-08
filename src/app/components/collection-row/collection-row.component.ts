@@ -1,10 +1,9 @@
-import { Component, computed, effect, ElementRef, HostListener, inject, Input, signal, ViewChild } from '@angular/core';
+import { Component, computed, effect, ElementRef, HostListener, inject, input, Input, signal, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 
 import { injectVirtualizer } from '@tanstack/angular-virtual';
 
-import { Collection } from '@models/collection.model';
 import { Media } from '@models/media.model';
 
 import { PosterPathPipe } from '@pipe/image-path.pipe'
@@ -24,8 +23,9 @@ interface PositionedMedia {
   styleUrls: ['./collection-row.component.css']
 })
 export class CollectionRowComponent {
-  @Input({ required: true }) collection!: Collection;
   @Input({ required: true }) loading!: boolean;
+
+  mediaList = input.required<Media[]>();
 
   @ViewChild('scrollElement') set scrollEl(content: ElementRef<HTMLElement>) {
     if (content) {
@@ -37,7 +37,6 @@ export class CollectionRowComponent {
 
   private el = inject(ElementRef);
 
-  mediaList = signal<Media[]>([]); 
   rowHeight = signal(150*1.5);
   containerWidth = signal(0);
   private gap = 8;
@@ -107,17 +106,15 @@ export class CollectionRowComponent {
 
   constructor() {
     effect(() => {
+      const rowCount = this.rows().length;
       const scrollEl = this.scrollElement?.nativeElement;
+
       if (this.virtualizer && scrollEl) {
         setTimeout(() => {
           this.virtualizer.measure();
         });
       }
     });
-  }
-
-  ngOnInit() {
-    this.mediaList.set(this.collection.mediaList);
   }
 
   ngAfterViewInit() {

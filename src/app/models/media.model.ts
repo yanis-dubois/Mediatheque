@@ -13,15 +13,6 @@ export enum MediaStatus {
   DROPPED = 'DROPPED'
 }
 
-/** "IN_PROGRESS" -> "in progress" */
-export const enumToName = (str: string): string => {
-  return str
-  .toLowerCase()
-  .split('_')
-  .map(word => word.charAt(0).toUpperCase() + word.slice(1))
-  .join(' ');
-};
-
 /** "IN_PROGRESS" -> "in-progress" */
 export const enumToPath = (str: string): string => {
   return str.toLowerCase().replace(/_/g, '-');

@@ -56,7 +56,7 @@ pub enum CollectionMediaType {
 #[derive(strum::Display, strum::EnumString)]
 #[strum(serialize_all = "SCREAMING_SNAKE_CASE")]
 #[derive(Default)]
-pub enum CollectionView {
+pub enum CollectionLayout {
   #[default]
   Grid,
   Row,
@@ -72,6 +72,7 @@ pub enum CollectionView {
 #[derive(Default)]
 pub enum MediaOrderField {
   #[default]
+  Title,
   AddedDate,
   ReleaseDate,
   MediaType,

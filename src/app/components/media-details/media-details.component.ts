@@ -81,7 +81,7 @@ export class MediaDetailsComponent {
     const statusEnum = newStatus as MediaStatus;
 
     try {
-      await this.mediaService.updateStatus(this.id, statusEnum);
+      await this.mediaService.updateStatus(this.media.id, statusEnum);
       this.status.set(statusEnum);
     } catch (e) {
       console.error("Error while updating status", e);

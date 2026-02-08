@@ -12,6 +12,6 @@
   <p>Click on the logos to learn more about the frameworks</p>
 
   <div *ngFor="let id of collectionIds()">
-    <app-collection [id]="id" view="line"></app-collection>
+    <app-collection [id]="id" [view]="CollectionDisplayMode.PREVIEW"></app-collection>
   </div>
 </main>

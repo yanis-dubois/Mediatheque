@@ -5,7 +5,7 @@ use tauri::Manager;
 
 use crate::models::enums::CollectionMediaType;
 use crate::models::enums::CollectionType;
-use crate::models::enums::CollectionView;
+use crate::models::enums::CollectionLayout;
 use crate::models::enums::MediaOrderDirection;
 use crate::models::enums::MediaOrderField;
 use crate::models::enums::{MediaType, MediaStatus};
@@ -89,8 +89,8 @@ pub fn init_db(connection: &mut Connection) -> Result<()> {
       description TEXT NOT NULL DEFAULT '',
 
       sort_order TEXT, -- in JSON, ex: [{field: 'favorite', direction: 'DESC'}, {field: 'status', direction: 'ASC'}]
-      preferred_view TEXT CHECK(
-        preferred_view IN ('GRID', 'ROW', 'COLUMN')
+      preferred_layout TEXT CHECK(
+        preferred_layout IN ('GRID', 'ROW', 'COLUMN')
       ) DEFAULT 'GRID',
 
       has_image INTEGER NOT NULL DEFAULT 0 CHECK(has_image IN (0, 1))
@@ -381,7 +381,7 @@ struct SeedCollection<'a> {
   favorite: i32,
   description: &'a str,
   sort_order: Vec<MediaOrder>,
-  prefered_view: CollectionView,
+  prefered_view: CollectionLayout,
   has_image: i32,
 
   // details
@@ -400,7 +400,7 @@ impl<'a> Default for SeedCollection<'a> {
       favorite: 0,
       description: "",
       sort_order: vec![],
-      prefered_view: CollectionView::Grid,
+      prefered_view: CollectionLayout::Grid,
       has_image: 0,
       collection_manual: None,
       collection_dynamic: None,
@@ -610,11 +610,11 @@ pub fn seed_data(connection: &mut Connection) -> Result<()> {
 
     // Vec<MediaOrder> -> JSON
     let sort_order_json = serde_json::to_string(&c.sort_order)
-        .map_err(|e| rusqlite::Error::ToSqlConversionFailure(Box::new(e)))?;
+      .map_err(|e| rusqlite::Error::ToSqlConversionFailure(Box::new(e)))?;
 
     // insert in parent table Collection
     tx.execute(
-      "INSERT INTO collection (id, name, type, media_type, added_date, favorite, description, sort_order, preferred_view, has_image)
+      "INSERT INTO collection (id, name, type, media_type, added_date, favorite, description, sort_order, preferred_layout, has_image)
        VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10)",
       params![
         c.id.to_string(),
@@ -1303,10 +1303,10 @@ fn seed_collection() -> Vec<SeedCollection<'static>> {
       id: 0, 
       name: "Favorite", 
       collection_type: CollectionType::Dynamic, 
-      prefered_view: CollectionView::Row, 
+      prefered_view: CollectionLayout::Row, 
       sort_order: vec![
         MediaOrder { field: MediaOrderField::MediaType, direction: MediaOrderDirection::Asc },
-        MediaOrder { field: MediaOrderField::Status, direction: MediaOrderDirection::Asc },
+        MediaOrder { field: MediaOrderField::Status, direction: MediaOrderDirection::Desc },
         MediaOrder { field: MediaOrderField::ReleaseDate, direction: MediaOrderDirection::Asc }
       ],
       collection_dynamic: Some(SeedCollectionDynamic { 
@@ -1321,7 +1321,7 @@ fn seed_collection() -> Vec<SeedCollection<'static>> {
       id: 1, 
       name: "Recent", 
       collection_type: CollectionType::Dynamic, 
-      prefered_view: CollectionView::Row, 
+      prefered_view: CollectionLayout::Row, 
       sort_order: vec![
         MediaOrder { field: MediaOrderField::AddedDate, direction: MediaOrderDirection::Desc }
       ],
@@ -1335,7 +1335,7 @@ fn seed_collection() -> Vec<SeedCollection<'static>> {
       name: "Movie", 
       collection_type: CollectionType::Dynamic, 
       media_type: CollectionMediaType::Specific(MediaType::Movie),
-      prefered_view: CollectionView::Grid, 
+      prefered_view: CollectionLayout::Grid, 
       collection_dynamic: Some(SeedCollectionDynamic { 
         filter: Some(MediaFilter {
           media_type: Some(MediaType::Movie),
@@ -1349,7 +1349,7 @@ fn seed_collection() -> Vec<SeedCollection<'static>> {
       name: "Series", 
       collection_type: CollectionType::Dynamic,
       media_type: CollectionMediaType::Specific(MediaType::Series),
-      prefered_view: CollectionView::Grid, 
+      prefered_view: CollectionLayout::Grid, 
       collection_dynamic: Some(SeedCollectionDynamic { 
         filter: Some(MediaFilter {
           media_type: Some(MediaType::Series),
@@ -1363,7 +1363,7 @@ fn seed_collection() -> Vec<SeedCollection<'static>> {
       name: "Tabletop Game", 
       collection_type: CollectionType::Dynamic, 
       media_type: CollectionMediaType::Specific(MediaType::TabletopGame),
-      prefered_view: CollectionView::Grid, 
+      prefered_view: CollectionLayout::Grid, 
       collection_dynamic: Some(SeedCollectionDynamic { 
         filter: Some(MediaFilter {
           media_type: Some(MediaType::TabletopGame), 
@@ -1376,7 +1376,7 @@ fn seed_collection() -> Vec<SeedCollection<'static>> {
       id: 5, 
       name: "To Discover", 
       collection_type: CollectionType::Dynamic, 
-      prefered_view: CollectionView::Row, 
+      prefered_view: CollectionLayout::Row, 
       collection_dynamic: Some(SeedCollectionDynamic { 
         filter: Some(MediaFilter {
           status: Some(MediaStatus::ToDiscover), 
@@ -1389,7 +1389,7 @@ fn seed_collection() -> Vec<SeedCollection<'static>> {
       id: 6, 
       name: "Dune", 
       collection_type: CollectionType::Dynamic, 
-      prefered_view: CollectionView::Row, 
+      prefered_view: CollectionLayout::Row, 
       collection_dynamic: Some(SeedCollectionDynamic { 
         filter: Some(MediaFilter {
           search_query: Some("Dune".to_string()),
@@ -1402,7 +1402,7 @@ fn seed_collection() -> Vec<SeedCollection<'static>> {
       id: 7, 
       name: "Finished", 
       collection_type: CollectionType::Dynamic, 
-      prefered_view: CollectionView::Column, 
+      prefered_view: CollectionLayout::Column, 
       collection_dynamic: Some(SeedCollectionDynamic { 
         filter: Some(MediaFilter {
           status: Some(MediaStatus::Finished), 
@@ -1416,7 +1416,7 @@ fn seed_collection() -> Vec<SeedCollection<'static>> {
       name: "Finished Movie with 'A'", 
       collection_type: CollectionType::Dynamic, 
       media_type: CollectionMediaType::Specific(MediaType::Movie),
-      prefered_view: CollectionView::Column, 
+      prefered_view: CollectionLayout::Column, 
       collection_dynamic: Some(SeedCollectionDynamic { 
         filter: Some(MediaFilter {
           media_type: Some(MediaType::Movie), 
@@ -1432,7 +1432,7 @@ fn seed_collection() -> Vec<SeedCollection<'static>> {
       name: "Movie ordered by Genre", 
       collection_type: CollectionType::Dynamic, 
       media_type: CollectionMediaType::Specific(MediaType::Movie),
-      prefered_view: CollectionView::Row,
+      prefered_view: CollectionLayout::Row,
       sort_order: vec![
         MediaOrder { field: MediaOrderField::Genre, direction: MediaOrderDirection::Asc },
       ],
@@ -1449,7 +1449,7 @@ fn seed_collection() -> Vec<SeedCollection<'static>> {
       name: "Movie ordered by Directors", 
       collection_type: CollectionType::Dynamic, 
       media_type: CollectionMediaType::Specific(MediaType::Movie),
-      prefered_view: CollectionView::Row,
+      prefered_view: CollectionLayout::Row,
       sort_order: vec![
         MediaOrder { field: MediaOrderField::Directors, direction: MediaOrderDirection::Asc },
       ],
@@ -1466,7 +1466,7 @@ fn seed_collection() -> Vec<SeedCollection<'static>> {
       name: "Series ordered by Creators", 
       collection_type: CollectionType::Dynamic, 
       media_type: CollectionMediaType::Specific(MediaType::Series),
-      prefered_view: CollectionView::Row,
+      prefered_view: CollectionLayout::Row,
       sort_order: vec![
         MediaOrder { field: MediaOrderField::Creators, direction: MediaOrderDirection::Asc },
       ],
@@ -1483,7 +1483,7 @@ fn seed_collection() -> Vec<SeedCollection<'static>> {
       name: "Series ordered by Genre", 
       collection_type: CollectionType::Dynamic, 
       media_type: CollectionMediaType::Specific(MediaType::Series),
-      prefered_view: CollectionView::Row,
+      prefered_view: CollectionLayout::Row,
       sort_order: vec![
         MediaOrder { field: MediaOrderField::Genre, direction: MediaOrderDirection::Asc },
       ],
@@ -1500,7 +1500,7 @@ fn seed_collection() -> Vec<SeedCollection<'static>> {
       name: "Animation Fantasy", 
       collection_type: CollectionType::Dynamic, 
       media_type: CollectionMediaType::Specific(MediaType::Series),
-      prefered_view: CollectionView::Row,
+      prefered_view: CollectionLayout::Row,
       collection_dynamic: Some(SeedCollectionDynamic { 
         filter: Some(MediaFilter {
           genres: Some(vec!["Animation".to_string(), "Fantasy".to_string()]),
@@ -1514,7 +1514,7 @@ fn seed_collection() -> Vec<SeedCollection<'static>> {
       name: "Sci-Fi", 
       collection_type: CollectionType::Dynamic, 
       media_type: CollectionMediaType::Specific(MediaType::Series),
-      prefered_view: CollectionView::Row,
+      prefered_view: CollectionLayout::Row,
       collection_dynamic: Some(SeedCollectionDynamic { 
         filter: Some(MediaFilter {
           genres: Some(vec!["Sci-Fi".to_string()]),
@@ -1528,7 +1528,7 @@ fn seed_collection() -> Vec<SeedCollection<'static>> {
       name: "Denis Villeneuve", 
       collection_type: CollectionType::Dynamic, 
       media_type: CollectionMediaType::Specific(MediaType::Series),
-      prefered_view: CollectionView::Row,
+      prefered_view: CollectionLayout::Row,
       collection_dynamic: Some(SeedCollectionDynamic { 
         filter: Some(MediaFilter {
           person: Some("Denis Villeneuve".to_string()),
@@ -1541,7 +1541,7 @@ fn seed_collection() -> Vec<SeedCollection<'static>> {
       id: 1000, 
       name: "All Media", 
       collection_type: CollectionType::Dynamic, 
-      prefered_view: CollectionView::Row, 
+      prefered_view: CollectionLayout::Row, 
       collection_dynamic: Some(SeedCollectionDynamic { 
         filter: None
       }),
@@ -1554,7 +1554,7 @@ fn seed_collection() -> Vec<SeedCollection<'static>> {
       id: 100, 
       name: "My Collection", 
       collection_type: CollectionType::Manual, 
-      prefered_view: CollectionView::Row, 
+      prefered_view: CollectionLayout::Row, 
       collection_manual: Some(SeedCollectionManual {
         media_ids: vec![1, 4, 16, 102, 201]
       }),

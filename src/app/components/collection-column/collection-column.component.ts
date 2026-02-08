@@ -1,10 +1,9 @@
-import { Component, computed, effect, ElementRef, HostListener, inject, Input, signal, ViewChild } from '@angular/core';
+import { Component, computed, effect, ElementRef, HostListener, inject, input, Input, signal, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 
 import { injectVirtualizer } from '@tanstack/angular-virtual';
 
-import { Collection } from '@models/collection.model';
 import { Media } from '@models/media.model';
 
 import { PosterPathPipe } from '@pipe/image-path.pipe'
@@ -17,8 +16,9 @@ import { PosterPathPipe } from '@pipe/image-path.pipe'
   styleUrls: ['./collection-column.component.css']
 })
 export class CollectionColumnComponent {
-  @Input({ required: true }) collection!: Collection;
   @Input({ required: true }) loading!: boolean;
+
+  mediaList = input.required<Media[]>();
 
   @ViewChild('scrollElement') set scrollEl(content: ElementRef<HTMLElement>) {
     if (content) {
@@ -30,7 +30,6 @@ export class CollectionColumnComponent {
 
   private el = inject(ElementRef);
 
-  mediaList = signal<Media[]>([]); 
   minColumnWidth = signal(150);
   containerWidth = signal(0);
 
@@ -77,10 +76,6 @@ export class CollectionColumnComponent {
         });
       }
     });
-  }
-
-  ngOnInit() {
-    this.mediaList.set(this.collection.mediaList);
   }
 
   ngAfterViewInit() {

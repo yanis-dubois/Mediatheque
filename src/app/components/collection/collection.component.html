@@ -3,34 +3,19 @@
 } 
 @else if (collection) {
   <section>
-    <ng-container [ngSwitch]="view">
-
-      <app-collection-line
-        *ngSwitchCase="'line'"
-        [collection]="collection"
-        [id]="id"
-        [loading]="loading"
-      />
-
-      <app-collection-grid
-        *ngSwitchCase="'grid'"
-        [collection]="collection"
-        [loading]="loading"
-      />
-
-      <app-collection-column
-        *ngSwitchCase="'column'"
-        [collection]="collection"
-        [loading]="loading"
-      />
-
-      <app-collection-row
-        *ngSwitchCase="'row'"
-        [collection]="collection"
-        [loading]="loading"
-      />
-  
-      <p *ngSwitchDefault>invalid collection view : {{ view }}</p>
-    </ng-container>
+    @switch (view) {
+      @case (CollectionDisplayMode.PREVIEW) {
+        <app-collection-line
+          [collection]="collection"
+          [loading]="loading"
+        />
+      }
+      @case (CollectionDisplayMode.DETAILS) {
+        <app-collection-details
+          [collection]="collection"
+          [loading]="loading"
+        />
+      }
+    }
   </section>
 }

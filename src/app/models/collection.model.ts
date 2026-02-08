@@ -14,7 +14,7 @@ export interface Collection {
   description: string;
 
   sortOrder: MediaOrder[];
-  preferedView: CollectionView;
+  preferredLayout: CollectionLayout;
 
   hasImage: boolean;
 
@@ -30,8 +30,13 @@ export type CollectionMediaType =
   | { type: 'ALL' } 
   | { type: 'SPECIFIC', value: MediaType };
 
-export enum CollectionView {
+export enum CollectionLayout {
   GRID = "GRID",
   ROW = "ROW",
   COLUMN = "COLUMN"
+}
+
+export enum CollectionDisplayMode {
+  PREVIEW = "PREVIEW",
+  DETAILS = "DETAILS"
 }

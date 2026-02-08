@@ -1,0 +1,92 @@
+@if (collection) {
+  <section>
+
+    <div class="collection-header">
+      <h1 
+        contenteditable="true"
+        #nameInput
+        (focus)="isEditingName.set(true)"
+        (blur)="onNameBlur(nameInput.innerText)"
+        (keydown.enter)="$event.preventDefault(); nameInput.blur()"
+        (keydown.escape)="nameInput.innerText = name(); nameInput.blur()"
+        [class.editing]="isEditingName()"
+        class="editable-title"
+      >
+        {{ name() }}
+      </h1>
+
+      <div style="display: flex; justify-content:space-around;">
+        <p> {{collection.collectionType}} </p>
+        <p> 
+          @if (collection.mediaType.type === 'ALL') {
+            <span>Toutes catégories</span>
+          }
+          @else {
+            <span>{{ collection.mediaType.value }}</span>
+          }
+        </p>
+        <p> {{collection.addedDate}} </p>
+
+        <div>
+          <button (click)="onToggleFavorite()" [class.is-favorite]="favorite()">
+            @if (favorite()) {
+              ❤️
+            } @else {
+              🩶
+            }
+          </button>
+        </div>
+
+        <p> {{collection.hasImage}} </p>
+
+        <div class="collection-layout-box">
+          <select 
+            [value]="preferredLayout()" 
+            (change)="onLayoutChange($any($event.target).value)"
+          >
+            @for (opt of collectionLayoutOption; track opt) {
+              <option [value]="opt" [selected]="opt === preferredLayout()">{{ opt }}</option>
+            }
+          </select>
+        </div>
+
+        <app-sort-manager [(sortOrder)]="sortOrder" />
+
+        <div class="fieldset-container">
+          <label class="fieldset-label">Description</label>
+          <textarea 
+            #descriptionArea
+            [value]="description()"
+            (focus)="isEditingDescription.set(true)"
+            (blur)="onDescriptionBlur(descriptionArea.value)"
+            (keydown.escape)="descriptionArea.value = description(); descriptionArea.blur()"
+            placeholder="Description..."
+            [class.editing]="isEditingDescription()"
+          ></textarea>
+        </div>
+
+      </div>
+    </div>
+
+    @switch (preferredLayout()) {
+      @case (CollectionLayout.GRID) {
+        <app-collection-grid
+          [mediaList]="mediaList()"
+          [loading]="loading"
+        />
+      }
+      @case (CollectionLayout.ROW) {
+        <app-collection-row
+          [mediaList]="mediaList()"
+          [loading]="loading"
+        />
+      }
+      @case (CollectionLayout.COLUMN) {
+        <app-collection-column
+          [mediaList]="mediaList()"
+          [loading]="loading"
+        />
+      }
+    }
+  </section>
+}

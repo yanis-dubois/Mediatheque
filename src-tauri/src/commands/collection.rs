@@ -1,8 +1,8 @@
 use crate::commands::media::{get_media_list, match_media_type};
 use crate::db::{DbState};
 use crate::models::collection::Collection;
-use crate::models::enums::{CollectionMediaType, CollectionType, CollectionView};
-use crate::models::query::{MediaFilter, Pagination};
+use crate::models::enums::{CollectionMediaType, CollectionType, CollectionLayout};
+use crate::models::query::{MediaFilter, MediaOrder, Pagination};
 
 // convert SQL TEXT -> Enums
 fn match_collection_type(s: &str) -> CollectionType {
@@ -18,12 +18,12 @@ fn match_collection_media_type(s: &str) -> CollectionMediaType {
     _ => CollectionMediaType::Specific(match_media_type(s))
   }
 }
-fn match_collection_view(s: &str) -> CollectionView {
+fn match_collection_view(s: &str) -> CollectionLayout {
   match s {
-    "GRID" => CollectionView::Grid,
-    "ROW" => CollectionView::Row,
-    "COLUMN" => CollectionView::Column,
-    _ => CollectionView::Grid
+    "GRID" => CollectionLayout::Grid,
+    "ROW" => CollectionLayout::Row,
+    "COLUMN" => CollectionLayout::Column,
+    _ => CollectionLayout::Grid
   }
 }
 
@@ -47,11 +47,13 @@ fn map_row_to_collection(row: &rusqlite::Row) -> rusqlite::Result<Collection> {
     favorite: fav_int == 1,
     description: row.get(6)?,
     sort_order: serde_json::from_str(&sort_order_raw).unwrap_or_default(),
-    prefered_view: match_collection_view(&prefered_view_str),
+    preferred_layout: match_collection_view(&prefered_view_str),
     has_image: has_image_int == 1,
     media_list: vec![],
   })
 }
+
+/* -- GET -- */
 
 #[tauri::command]
 pub fn get_collection_by_id(
@@ -113,4 +115,77 @@ pub fn get_all_collection_ids(state: tauri::State<'_, DbState>) -> Result<Vec<St
     .map_err(|e| e.to_string())?;
 
   Ok(ids)
+}
+
+/* -- UPDATE -- */
+
+#[tauri::command]
+pub fn toggle_collection_favorite(state: tauri::State<'_, DbState>, id: String, is_favorite: bool) -> Result<(), String> {
+  let connection = state.connection.lock().map_err(|_| "Failed to lock database")?;
+
+  connection.execute(
+    "UPDATE collection SET favorite = ?1 WHERE id = ?2",
+    [if is_favorite { "1" } else { "0" }, &id],
+  )
+  .map_err(|e| e.to_string())?;
+
+  Ok(())
+}
+
+#[tauri::command]
+pub fn update_collection_name(state: tauri::State<'_, DbState>, id: String, name: String) -> Result<(), String> {
+  let connection = state.connection.lock().map_err(|_| "Failed to lock database")?;
+
+  connection.execute(
+    "UPDATE collection SET name = ?1 WHERE id = ?2",
+    [name, id],
+  )
+  .map_err(|e| e.to_string())?;
+
+  Ok(())
+}
+
+#[tauri::command]
+pub fn update_collection_description(state: tauri::State<'_, DbState>, id: String, description: String) -> Result<(), String> {
+  let connection = state.connection.lock().map_err(|_| "Failed to lock database")?;
+
+  connection.execute(
+    "UPDATE collection SET description = ?1 WHERE id = ?2",
+    [description, id],
+  )
+  .map_err(|e| e.to_string())?;
+
+  Ok(())
+}
+
+#[tauri::command]
+pub fn update_collection_preferred_layout(state: tauri::State<'_, DbState>, id: String, layout: CollectionLayout) -> Result<(), String> {
+  let connection = state.connection.lock().map_err(|_| "Failed to lock database")?;
+
+  connection.execute(
+    "UPDATE collection SET preferred_layout = ?1 WHERE id = ?2",
+    [layout.to_string(), id],
+  )
+  .map_err(|e| e.to_string())?;
+
+  Ok(())
+}
+
+#[tauri::command]
+pub fn update_collection_sort(state: tauri::State<'_, DbState>, id: String, sort: Vec<MediaOrder>) -> Result<(), String> {
+  println!("update_collection_sort");
+
+  let connection = state.connection.lock().map_err(|_| "Failed to lock database")?;
+
+  // Vec<MediaOrder> -> JSON
+  let sort_order_json = serde_json::to_string(&sort)
+    .map_err(|e| e.to_string())?;
+
+  connection.execute(
+    "UPDATE collection SET sort_order = ?1 WHERE id = ?2",
+    [sort_order_json, id],
+  )
+  .map_err(|e| e.to_string())?;
+
+  Ok(())
 }

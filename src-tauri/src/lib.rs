@@ -20,7 +20,12 @@ pub fn run() {
       commands::media::update_media_notes,
       commands::media::add_media_to_library,
       commands::collection::get_collection_by_id,
-      commands::collection::get_all_collection_ids
+      commands::collection::get_all_collection_ids,
+      commands::collection::toggle_collection_favorite,
+      commands::collection::update_collection_name,
+      commands::collection::update_collection_description,
+      commands::collection::update_collection_preferred_layout,
+      commands::collection::update_collection_sort
     ])
     .run(tauri::generate_context!())
     .expect("error while running tauri application");

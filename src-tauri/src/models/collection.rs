@@ -1,5 +1,5 @@
 use serde::{Serialize};
-use crate::models::{enums::CollectionView, media::Media, query::MediaOrder};
+use crate::models::{enums::CollectionLayout, media::Media, query::MediaOrder};
 
 use super::enums::{CollectionType, CollectionMediaType};
 
@@ -18,7 +18,7 @@ pub struct Collection {
   pub description: String,
 
   pub sort_order: Vec<MediaOrder>,
-  pub prefered_view: CollectionView,
+  pub preferred_layout: CollectionLayout,
 
   pub has_image: bool,
 

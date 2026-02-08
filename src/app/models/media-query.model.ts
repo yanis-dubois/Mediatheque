@@ -7,6 +7,7 @@ export interface GetMediaOptions {
 }
 
 export enum MediaOrderField {
+  TITLE = 'TITLE',
   ADDED_DATE = 'ADDED_DATE',
   RELEASE_DATE = 'RELEASE_DATE',
   MEDIA_TYPE = 'MEDIA_TYPE',
@@ -19,16 +20,16 @@ export enum MediaOrderDirection {
   DESC = 'DESC',
 }
 
+export interface MediaOrder {
+  field: MediaOrderField;
+  direction: MediaOrderDirection;
+}
+
 export interface MediaFilter {
   mediaType?: MediaType;
   status?: MediaStatus;
   favoriteOnly?: boolean;
   searchQuery?: string;
-}
-
-export interface MediaOrder {
-  field: MediaOrderField;
-  direction: MediaOrderDirection;
 }
 
 export interface Pagination {

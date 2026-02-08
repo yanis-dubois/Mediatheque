@@ -2,24 +2,25 @@ import { Component, Input } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 
-import { CollectionService } from '@services/collection.service';
-import { Collection } from '@models/collection.model';
-
 import { CollectionLineComponent } from '@components/collection-line/collection-line.component';
-import { CollectionGridComponent } from '@components/collection-grid/collection-grid.component';
-import { CollectionColumnComponent } from '@components/collection-column/collection-column.component';
-import { CollectionRowComponent } from '@components/collection-row/collection-row.component';
+import { CollectionDetailsComponent } from "@components/collection-details/collection-details.component";
+
+import { Collection, CollectionDisplayMode } from '@models/collection.model';
+
+import { CollectionService } from '@services/collection.service';
 
 @Component({
   selector: 'app-collection',
   standalone: true,
-  imports: [CommonModule, RouterModule, CollectionLineComponent, CollectionGridComponent, CollectionColumnComponent, CollectionRowComponent],
+  imports: [CommonModule, RouterModule, CollectionLineComponent, CollectionDetailsComponent],
   templateUrl: './collection.component.html',
   styleUrl: './collection.component.css'
 })
 export class CollectionComponent {
   @Input({ required: true }) id!: string;
-  @Input() view: 'line' | 'grid' | 'column' | 'row' = 'row';
+  @Input({ required: true }) view!: CollectionDisplayMode;
+
+  protected readonly CollectionDisplayMode = CollectionDisplayMode;
 
   collection?: Collection;
   loading = true;
