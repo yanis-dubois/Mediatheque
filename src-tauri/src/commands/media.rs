@@ -246,8 +246,8 @@ pub fn get_media_list(
   // for manual collection
   if let Some(col_id) = filter.collection_id {
     // join table
-    join_clauses.push("INNER JOIN collection_media cm ON m.id = cm.media_id".to_string());
-    conditions.push("cm.collection_id = ?".to_string());
+    // join_clauses.push("INNER JOIN collection_media cm ON m.id = cm.media_id".to_string());
+    // conditions.push("cm.collection_id = ?".to_string());
     params.push(Box::new(col_id.clone()));
   }
   // generic filter
@@ -311,15 +311,15 @@ pub fn get_media_list(
   // --- ORDER BY ---
   let order_clause = 
     if order.is_empty() {
-      format!("ORDER BY title ASC")
+      if collection_type == CollectionType::Manual {
+        format!("ORDER BY cm.position ASC")
+      }
+      else {
+        format!("ORDER BY title ASC")
+      }
     }
     else {
     let mut parts = Vec::new();
-
-    // manual order by default
-    if collection_type == CollectionType::Manual {
-      parts.push("cm.position ASC".to_string());
-    }
 
     for o in order {
       let mapped_field: String = match (o.field, &collection_media_type) {
@@ -345,11 +345,48 @@ pub fn get_media_list(
     format!("ORDER BY {}", parts.join(", "))
   };
 
-  // final query
-  let sql = format!(
-    "SELECT DISTINCT m.* FROM media m {} {} {} LIMIT {} OFFSET {}",
-    joins, where_clause, order_clause, pagination.limit, pagination.offset
-  );
+  // --- SELECT ---
+  // let select_clause = 
+  //   if collection_type == CollectionType::Manual {
+  //     "SELECT m.*"
+  //   } else {
+  //     "SELECT DISTINCT m.*"
+  //   };
+
+  // // -- GROUP BY --
+  // let group_by_clause = 
+  //   if collection_type == CollectionType::Manual {
+  //     "GROUP BY cm.rowid"
+  //   } else {
+  //       ""
+  //   };
+
+  //--- final query ---
+  // let sql = format!(
+  //   "{} FROM media m {} {} {} {} LIMIT {} OFFSET {}",
+  //   select_clause, joins, where_clause, group_by_clause, order_clause, pagination.limit, pagination.offset
+  // );
+  let sql = 
+    if collection_type == CollectionType::Manual {
+      format!(
+        "SELECT m.* FROM (
+            SELECT media_id, position FROM collection_media WHERE collection_id = ?
+          ) AS cm
+          INNER JOIN media m ON m.id = cm.media_id
+          {} 
+          {} 
+          LIMIT {} OFFSET {}",
+        joins,
+        order_clause,
+        pagination.limit,
+        pagination.offset
+      )
+    } else {
+      format!(
+        "SELECT DISTINCT m.* FROM media m {} {} {} LIMIT {} OFFSET {}",
+        joins, where_clause, order_clause, pagination.limit, pagination.offset
+      )
+    };
 
   let mut stmt = connection.prepare(&sql).map_err(|e| e.to_string())?;
   

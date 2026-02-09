@@ -100,11 +100,11 @@ pub fn init_db(connection: &mut Connection) -> Result<()> {
   
     -- Manual Collection
     CREATE TABLE collection_media (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
       collection_id TEXT NOT NULL,
       media_id TEXT NOT NULL,
       position INTEGER, -- allow personnalised order
 
-      PRIMARY KEY (collection_id, media_id),
       FOREIGN KEY (collection_id) REFERENCES collection(id) ON DELETE CASCADE,
       FOREIGN KEY (media_id) REFERENCES media(id) ON DELETE CASCADE
     );
@@ -270,8 +270,14 @@ pub fn init_db(connection: &mut Connection) -> Result<()> {
 
 
 
+    -- Collection Index
+
+    CREATE INDEX IF NOT EXISTS idx_collection_media_ids ON collection_media(collection_id, media_id);
+    CREATE INDEX IF NOT EXISTS idx_collection_media_pos ON collection_media(collection_id, position);
+
     -- Media Index
 
+    CREATE INDEX IF NOT EXISTS idx_media_id ON media(id);
     CREATE INDEX IF NOT EXISTS idx_media_title ON media(title);
     CREATE INDEX IF NOT EXISTS idx_media_release_date ON media(release_date);
     CREATE INDEX IF NOT EXISTS idx_media_added_date ON media(added_date);
@@ -599,7 +605,16 @@ pub fn seed_data(connection: &mut Connection) -> Result<()> {
 
   let collection_list = seed_collection();
 
-  for c in collection_list {
+  for mut c in collection_list {
+
+    if c.id == 101 {
+      if let Some(manual) = &mut c.collection_manual {
+        for i in 1..100000 {
+          manual.media_ids.push(1);
+        }
+      }
+    }
+
     // enum -> string
     let collection_type_str = c.collection_type.to_string();
     let media_type_str = match &c.media_type {
@@ -632,7 +647,7 @@ pub fn seed_data(connection: &mut Connection) -> Result<()> {
 
     // insert details
 
-    // static collection
+    // manual collection
     if let Some(manual) = c.collection_manual {
       for (pos, m_id) in manual.media_ids.iter().enumerate() {
         tx.execute(
@@ -1552,6 +1567,16 @@ fn seed_collection() -> Vec<SeedCollection<'static>> {
 
     SeedCollection { 
       id: 100, 
+      name: "My Collection", 
+      collection_type: CollectionType::Manual, 
+      prefered_view: CollectionLayout::Row, 
+      collection_manual: Some(SeedCollectionManual {
+        media_ids: vec![1, 1, 4, 16, 102, 201]
+      }),
+      ..Default::default()
+    },
+    SeedCollection { 
+      id: 101, 
       name: "My Collection", 
       collection_type: CollectionType::Manual, 
       prefered_view: CollectionLayout::Row, 

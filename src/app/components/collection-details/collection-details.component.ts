@@ -136,8 +136,10 @@ export class CollectionDetailsComponent {
     try {
       await this.collectionService.updateSortOrder(this.collection.id, newSort);
       // update media list
-      const mediaList = await this.collectionService.getById(this.collection.id);
-      this.mediaList.set(mediaList.mediaList);
+      const collection = await this.collectionService.getById(this.collection.id);
+      setTimeout(() => {
+        this.mediaList.set(collection.mediaList);
+      }, 0);
     } catch (e) {
       console.error("Error while updating collection type", e);
     } finally {

@@ -3,6 +3,14 @@ use super::enums::{MediaType, MediaStatus};
 
 #[derive(Debug, Serialize)]
 #[serde(rename_all = "camelCase")]
+struct MediaLayoutInfo {
+    id: i32,
+    w: u16,
+    h: u16,
+}
+
+#[derive(Debug, Serialize)]
+#[serde(rename_all = "camelCase")]
 pub struct Media {
   pub id: String,
   pub media_type: MediaType,

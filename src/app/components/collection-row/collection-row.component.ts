@@ -1,4 +1,4 @@
-import { Component, computed, effect, ElementRef, HostListener, inject, input, Input, signal, ViewChild } from '@angular/core';
+import { Component, computed, effect, ElementRef, HostListener, inject, input, Input, signal, untracked, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 
@@ -9,6 +9,7 @@ import { Media } from '@models/media.model';
 import { PosterPathPipe } from '@pipe/image-path.pipe'
 
 interface PositionedMedia {
+  uniqueKey: string,
   media: Media;
   x: number;
   width: number;
@@ -24,16 +25,9 @@ interface PositionedMedia {
 })
 export class CollectionRowComponent {
   @Input({ required: true }) loading!: boolean;
+  @ViewChild('scrollElement') scrollElement!: ElementRef<HTMLElement>;
 
   mediaList = input.required<Media[]>();
-
-  @ViewChild('scrollElement') set scrollEl(content: ElementRef<HTMLElement>) {
-    if (content) {
-      this.scrollElement = content;
-      this.containerWidth.set(content.nativeElement.offsetWidth);
-    }
-  }
-  scrollElement!: ElementRef<HTMLElement>;
 
   private el = inject(ElementRef);
 
@@ -47,6 +41,7 @@ export class CollectionRowComponent {
     let currentLine: PositionedMedia[] = [];
     let currentLineWidth = 0;
     const gap = this.gap;
+    let globalIndex = 0;
 
     this.mediaList().forEach((media) => {
       const ratio = media.imageWidth / media.imageHeight;
@@ -74,6 +69,7 @@ export class CollectionRowComponent {
       }
 
       currentLine.push({
+        uniqueKey: `${media.id}-${globalIndex++}`,
         media,
         width: width,
         height: this.rowHeight(),
@@ -106,14 +102,16 @@ export class CollectionRowComponent {
 
   constructor() {
     effect(() => {
-      const rowCount = this.rows().length;
-      const scrollEl = this.scrollElement?.nativeElement;
-
-      if (this.virtualizer && scrollEl) {
-        setTimeout(() => {
-          this.virtualizer.measure();
-        });
-      }
+      this.rows().length;
+      this.containerWidth();
+      
+      untracked(() => {
+        if (this.virtualizer && this.scrollElement?.nativeElement) {
+          requestAnimationFrame(() => {
+            this.virtualizer.measure();
+          });
+        }
+      });
     });
   }
 
