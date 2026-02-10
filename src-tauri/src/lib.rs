@@ -27,6 +27,7 @@ pub fn run() {
       commands::collection::update_collection_description,
       commands::collection::update_collection_preferred_layout,
       commands::collection::update_collection_sort,
+      commands::collection::update_collection_filter,
     ])
     .run(tauri::generate_context!())
     .expect("error while running tauri application");

@@ -3,19 +3,21 @@ import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 
 import { SortManagerComponent } from '@components/sort-manager/sort-manager.component';
+import { FilterManagerComponent } from '@components/filter-manager/filter-manager.component';
 import { CollectionGridComponent } from '@components/collection-grid/collection-grid.component';
 import { CollectionColumnComponent } from '@components/collection-column/collection-column.component';
 import { CollectionRowComponent } from '@components/collection-row/collection-row.component';
 
 import { Collection, CollectionLayout, CollectionMediaType, CollectionType } from '@models/collection.model';
-import { MediaOrder } from '@models/media-query.model';
+import { MediaFilter, MediaOrder } from '@models/media-query.model';
 
 import { CollectionService } from '@services/collection.service';
+import { debounceTime, Subject } from 'rxjs';
 
 @Component({
   selector: 'app-collection-details',
   standalone: true,
-  imports: [CommonModule, RouterModule, SortManagerComponent, CollectionGridComponent, CollectionColumnComponent, CollectionRowComponent],
+  imports: [CommonModule, RouterModule, SortManagerComponent, FilterManagerComponent, CollectionGridComponent, CollectionColumnComponent, CollectionRowComponent],
   templateUrl: './collection-details.component.html',
   styleUrl: './collection-details.component.css'
 })
@@ -42,17 +44,28 @@ export class CollectionDetailsComponent {
   preferredLayout = signal<CollectionLayout>(CollectionLayout.GRID);
   sortOrder = signal<MediaOrder[]>([]);
 
+  filter = signal<MediaFilter>({});
+
+  private refreshLayout$ = new Subject<void>();
+
   constructor(
     private collectionService: CollectionService
   ) {
+    this.refreshLayout$.pipe(
+      debounceTime(200),
+    ).subscribe(() => {
+      this.onLayoutNeedsRefresh.emit();
+    });
+
     effect(() => {
       const newSort = this.sortOrder();
+      this.updateSort(newSort);
+    }, { allowSignalWrites: true });
 
-      // save only if changed
-      if (this.collection && JSON.stringify(newSort) !== JSON.stringify(this.collection.sortOrder)) {
-        this.onSortOrderChange(newSort);
-      }
-    });
+    effect(() => {
+      const newFilter = this.filter();
+      this.updateFilter(newFilter);
+    }, { allowSignalWrites: true });
   }
 
   async ngOnInit() {
@@ -63,10 +76,13 @@ export class CollectionDetailsComponent {
     this.collectionMediaType.set(this.collection.mediaType);
     this.preferredLayout.set(this.collection.preferredLayout);
     this.sortOrder.set(this.collection.sortOrder);
+
+    if (this.collection.collectionType == CollectionType.DYNAMIC) {
+      this.filter.set(this.collection.filter);
+    }
   }
 
   async onToggleFavorite() {
-    if (!this.collection) return;
     const isFavorite = !this.favorite();
 
     try {
@@ -78,7 +94,6 @@ export class CollectionDetailsComponent {
   }
 
   async onNameBlur(newName: string) {
-    if (!this.collection) return;
     this.isEditingName.set(false);
   
     // save only if changed
@@ -116,7 +131,6 @@ export class CollectionDetailsComponent {
   }
 
   async onLayoutChange(newLayout: string) {
-    if (!this.collection) return;
     const view = newLayout as CollectionLayout;
 
     try {
@@ -127,20 +141,21 @@ export class CollectionDetailsComponent {
     }
   }
 
-  private isProcessing = false;
-
-  async onSortOrderChange(newSort: MediaOrder[]) {
-    if (!this.collection || this.isProcessing) return;
-
-    this.isProcessing = true;
+  async updateSort(newSort: MediaOrder[]) {
     try {
-      await this.collectionService.updateSortOrder(this.collection.id, newSort);
-      // update media list 
-      this.onLayoutNeedsRefresh.emit();
+      await this.collectionService.updateSort(this.collection.id, newSort);
+      this.refreshLayout$.next();
     } catch (e) {
       console.error("Error while updating collection type", e);
-    } finally {
-      this.isProcessing = false;
+    }
+  }
+
+  private async updateFilter(newFilters: MediaFilter) {
+    try {
+      await this.collectionService.updateFilter(this.collection.id, newFilters);
+      this.refreshLayout$.next();
+    } catch (e) {
+      console.error("Error while updating collection filter:", e);
     }
   }
 }

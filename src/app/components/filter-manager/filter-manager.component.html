@@ -1,0 +1,58 @@
+<div class="filter-container" appClickOutside (clickOutside)="isOpen.set(false)">
+
+  <button (click)="isOpen.set(!isOpen())" class="filter-trigger">
+    🔍 Filtres
+  </button>
+
+  @if (isOpen()) {
+    <div class="filter-menu" (clickOutside)="isOpen.set(false)">
+      <div class="filter-group">
+        <label>Search</label>
+        <input 
+          type="text" 
+          [value]="filter().searchQuery || ''" 
+          (input)="updateFilter('searchQuery', $any($event.target).value)"
+          placeholder="Title, person, ..."
+        />
+      </div>
+
+      <div class="filter-group">
+        <label>Type</label>
+        <select [value]="filter().mediaType || ''" (change)="updateFilter('mediaType', $any($event.target).value)">
+          <option value="">All</option>
+          @for (type of mediaTypeOptions; track type) {
+            <option [value]="type" [selected]="type === filter().mediaType">
+              {{ type | humanize }}
+            </option>
+          }
+        </select>
+      </div>
+
+      <div class="filter-group">
+        <label>Status</label>
+        <select [value]="filter().status || ''" (change)="updateFilter('status', $any($event.target).value)">
+          <option value="">All</option>
+          @for (status of statusOptions; track status) {
+            <option [value]="status" [selected]="status === filter().status">
+              {{ status | humanize }}
+            </option>
+          }
+        </select>
+      </div>
+
+      <div class="filter-group checkbox">
+        <input 
+          type="checkbox" 
+          [checked]="filter().favoriteOnly" 
+          (change)="updateFilter('favoriteOnly', $any($event.target).checked)"
+          id="favOnly"
+        />
+        <label for="favOnly">Favorite</label>
+      </div>
+
+      <br> <!-- TODO: media specific filter -->
+
+      <button (click)="resetFilter()" class="reset-btn">Réinitialiser</button>
+    </div>
+  }
+</div>

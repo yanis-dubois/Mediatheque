@@ -24,6 +24,11 @@ export interface MediaFilter {
   status?: MediaStatus;
   favoriteOnly?: boolean;
   searchQuery?: string;
+
+  // specific filed
+  person?: string;
+  genres?: string[];
+  serie?: string;
 }
 
 // TODO : La réponse structurée pour le total_count

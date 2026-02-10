@@ -3,7 +3,7 @@ import { Injectable } from '@angular/core';
 import { invoke } from '@tauri-apps/api/core';
 
 import { Collection, CollectionLayout } from '@models/collection.model';
-import { MediaOrder } from '@models/media-query.model';
+import { MediaFilter, MediaOrder } from '@models/media-query.model';
 import { Media } from '@models/media.model';
 
 @Injectable({ providedIn: 'root' })
@@ -69,6 +69,7 @@ export class CollectionService {
 
   /* update */
 
+  // generic 
   toggleFavorite(id: string, isFavorite: boolean): Promise<void> {
     return invoke('toggle_collection_favorite', { id, isFavorite });
   }
@@ -85,7 +86,12 @@ export class CollectionService {
     return invoke('update_collection_preferred_layout', { id, layout });
   }
 
-  updateSortOrder(id: string, sort: MediaOrder[]) {
+  updateSort(id: string, sort: MediaOrder[]) {
     return invoke('update_collection_sort', { id, sort });
+  }
+
+  // dynamic
+  updateFilter(id: string, filter: MediaFilter) {
+    return invoke('update_collection_filter', { id, filter });
   }
 }

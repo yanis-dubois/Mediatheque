@@ -3,7 +3,7 @@ use crate::models::enums::{MediaOrderDirection, MediaOrderField};
 
 use super::enums::{MediaType, MediaStatus};
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct MediaFilter {
   // manual collection
@@ -18,7 +18,7 @@ pub struct MediaFilter {
   // specific filed
   pub person: Option<String>,
   pub genres: Option<Vec<String>>,
-  pub serie: Option<String>, // TODO
+  pub serie: Option<String>,
   // [...]
 
   // TODO: not realy usefull so ...

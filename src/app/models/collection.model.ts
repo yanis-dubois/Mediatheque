@@ -1,5 +1,5 @@
-import { Media, MediaType } from '@models/media.model';
-import { MediaOrder } from './media-query.model';
+import { MediaType } from '@models/media.model';
+import { MediaFilter, MediaOrder } from '@models/media-query.model';
 
 export interface Collection {
   id: string;
@@ -14,6 +14,7 @@ export interface Collection {
   description: string;
 
   sortOrder: MediaOrder[];
+  filter: MediaFilter;
   preferredLayout: CollectionLayout;
 
   hasImage: boolean;

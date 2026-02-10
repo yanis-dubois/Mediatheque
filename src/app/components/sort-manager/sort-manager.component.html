@@ -7,25 +7,6 @@
   @if (isOpen()) {
     <div class="sort-dropdown" (clickOutside)="isOpen.set(false)">
 
-      <!-- <div class="sort-list">
-        @for (order of sortOrder(); track $index) {
-          <div class="sort-item">
-
-            <select [value]="order.field" (change)="updateField($index, $any($event.target).value)">
-              @for (field of getFieldsForIndex($index); track field) {
-                <option [value]="field" [selected]="field === order.field">{{ field | humanize}}</option>
-              }
-            </select>
-
-            <button (click)="toggleDirection($index)" class="btn-direction">
-              {{ order.direction === 'ASC' ? '↑' : '↓' }}
-            </button>
-
-            <button (click)="$event.stopPropagation(); removeSort($index)" class="btn-remove">×</button>
-
-          </div>
-        }
-      </div> -->
       <div class="sort-list" 
         cdkDropList 
         (cdkDropListDropped)="drop($event)">
