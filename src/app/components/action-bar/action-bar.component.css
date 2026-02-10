@@ -1,6 +1,5 @@
 .chevron {
   transform: rotate(180deg) translateX(5px);
-  filter: invert(1);
 }
 
 .action-bar {

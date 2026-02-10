@@ -1,11 +1,5 @@
 import { Media, MediaStatus, MediaType } from "./media.model";
 
-export interface GetMediaOptions {
-  filter?: MediaFilter;
-  order?: MediaOrder[];
-  page?: Pagination;
-}
-
 export enum MediaOrderField {
   TITLE = 'TITLE',
   ADDED_DATE = 'ADDED_DATE',
@@ -30,11 +24,6 @@ export interface MediaFilter {
   status?: MediaStatus;
   favoriteOnly?: boolean;
   searchQuery?: string;
-}
-
-export interface Pagination {
-  limit: number;
-  offset: number;
 }
 
 // TODO : La réponse structurée pour le total_count

@@ -2,7 +2,7 @@ use crate::db::{DbState};
 use crate::models::external_media::{ExternalMediaRequest};
 use crate::models::media::{AnyMedia, Media, Movie, Series, TabletopGame};
 use crate::models::enums::{CollectionMediaType, CollectionType, MediaOrderField, MediaStatus, MediaType};
-use crate::models::query::{MediaFilter, MediaOrder, Pagination};
+use crate::models::query::{MediaFilter, MediaOrder};
 
 // convert SQL TEXT -> Enums
 pub fn match_media_type(s: &str) -> MediaType {
@@ -169,17 +169,12 @@ pub fn get_media_by_id(state: tauri::State<'_, DbState>, id: String) -> Result<A
 
 /* -- GET collection -- */
 
-#[tauri::command]
-pub fn get_media_list(
-    state: tauri::State<'_, DbState>,
-    collection_type: CollectionType,
-    collection_media_type: CollectionMediaType,
-    filter: MediaFilter,
-    order: Vec<MediaOrder>,
-    pagination: Pagination,
-) -> Result<Vec<Media>, String> {
-
-  let connection = state.connection.lock().map_err(|_| "Failed to lock database")?;
+fn build_media_query_parts(
+  collection_type: &CollectionType,
+  collection_media_type: &CollectionMediaType,
+  filter: &MediaFilter,
+  order: &Vec<MediaOrder>,
+) -> (String, String, String, Vec<Box<dyn rusqlite::ToSql>>) {
 
   let mut conditions = Vec::new();
   let mut params: Vec<Box<dyn rusqlite::ToSql>> = Vec::new();
@@ -244,31 +239,30 @@ pub fn get_media_list(
 
   // --- WHERE ---
   // for manual collection
-  if let Some(col_id) = filter.collection_id {
-    // join table
-    // join_clauses.push("INNER JOIN collection_media cm ON m.id = cm.media_id".to_string());
-    // conditions.push("cm.collection_id = ?".to_string());
+  if let Some(col_id) = &filter.collection_id {
+    join_clauses.push("INNER JOIN collection_media cm ON m.id = cm.media_id".to_string());
+    conditions.push("cm.collection_id = ?".to_string());
     params.push(Box::new(col_id.clone()));
   }
   // generic filter
-  if let Some(t) = filter.media_type {
+  if let Some(t) = &filter.media_type {
     conditions.push("m.media_type = ?".to_string());
     params.push(Box::new(t.to_string()));
   }
-  if let Some(s) = filter.status {
+  if let Some(s) = &filter.status {
     conditions.push("m.status = ?".to_string());
     params.push(Box::new(s.to_string()));
   }
-  if let Some(true) = filter.favorite_only {
+  if let Some(true) = &filter.favorite_only {
     conditions.push("m.favorite = 1".to_string());
   }
-  if let Some(q) = filter.search_query {
+  if let Some(q) = &filter.search_query {
     conditions.push("m.title LIKE ?".to_string());
     params.push(Box::new(format!("%{}%", q)));
   }
   // specific filters 
   // by Person (Movie, Series) TODO: add all other medias
-  if let Some(person_name) = filter.person {
+  if let Some(person_name) = &filter.person {
     conditions.push(format!(
       "EXISTS (
         SELECT 1 FROM movie_director md JOIN person p ON md.director_id = p.id 
@@ -282,7 +276,7 @@ pub fn get_media_list(
     params.push(Box::new(format!("%{}%", person_name)));
   }
   // by Genre (Movie, Series)
-  if let Some(genres) = filter.genres {
+  if let Some(genres) = &filter.genres {
     if !genres.is_empty() {
       // concatenate all genre
       let placeholders = genres.iter().map(|_| "?").collect::<Vec<_>>().join(",");
@@ -297,8 +291,8 @@ pub fn get_media_list(
         )", placeholders, placeholders
       ));
 
-      for g in &genres { params.push(Box::new(g.clone())); }
-      for g in &genres { params.push(Box::new(g.clone())); }
+      for g in genres { params.push(Box::new(g.clone())); }
+      for g in genres { params.push(Box::new(g.clone())); }
     }
   }
   // TODO [...]
@@ -311,7 +305,7 @@ pub fn get_media_list(
   // --- ORDER BY ---
   let order_clause = 
     if order.is_empty() {
-      if collection_type == CollectionType::Manual {
+      if *collection_type == CollectionType::Manual {
         format!("ORDER BY cm.position ASC")
       }
       else {
@@ -345,62 +339,69 @@ pub fn get_media_list(
     format!("ORDER BY {}", parts.join(", "))
   };
 
-  // --- SELECT ---
-  // let select_clause = 
-  //   if collection_type == CollectionType::Manual {
-  //     "SELECT m.*"
-  //   } else {
-  //     "SELECT DISTINCT m.*"
-  //   };
+  (joins, where_clause, order_clause, params)
+}
 
-  // // -- GROUP BY --
-  // let group_by_clause = 
-  //   if collection_type == CollectionType::Manual {
-  //     "GROUP BY cm.rowid"
-  //   } else {
-  //       ""
-  //   };
+#[tauri::command]
+pub fn get_media_layout_list(
+  state: tauri::State<'_, DbState>,
+  collection_type: CollectionType,
+  collection_media_type: CollectionMediaType,
+  filter: MediaFilter,
+  order: Vec<MediaOrder>,
+) -> Result<Vec<(String, u16, u16)>, String> {
+  let connection = state.connection.lock().map_err(|_| "Lock error")?;
 
-  //--- final query ---
-  // let sql = format!(
-  //   "{} FROM media m {} {} {} {} LIMIT {} OFFSET {}",
-  //   select_clause, joins, where_clause, group_by_clause, order_clause, pagination.limit, pagination.offset
-  // );
+  let (joins, where_clause, order_clause, params) = build_media_query_parts(
+    &collection_type, &collection_media_type, &filter, &order
+  );
+
   let sql = 
     if collection_type == CollectionType::Manual {
       format!(
-        "SELECT m.* FROM (
-            SELECT media_id, position FROM collection_media WHERE collection_id = ?
-          ) AS cm
-          INNER JOIN media m ON m.id = cm.media_id
-          {} 
-          {} 
-          LIMIT {} OFFSET {}",
-        joins,
-        order_clause,
-        pagination.limit,
-        pagination.offset
+        "SELECT m.id, m.image_width, m.image_height FROM media m {} {} {}",
+        joins, where_clause, order_clause
       )
-    } else {
+    }
+    else {
       format!(
-        "SELECT DISTINCT m.* FROM media m {} {} {} LIMIT {} OFFSET {}",
-        joins, where_clause, order_clause, pagination.limit, pagination.offset
+        "SELECT DISTINCT m.id, m.image_width, m.image_height FROM media m {} {} {}",
+        joins, where_clause, order_clause
       )
     };
 
   let mut stmt = connection.prepare(&sql).map_err(|e| e.to_string())?;
-  
-  // params conversion for rusqlite
   let params_ref: Vec<&dyn rusqlite::ToSql> = params.iter().map(|p| p.as_ref()).collect();
 
-  // apply query
-  let media_list = stmt
-    .query_map(&params_ref[..], map_row_to_media)
+  let list = stmt.query_map(&params_ref[..], |row| {
+    Ok((
+      row.get(0)?,
+      row.get(1)?,
+      row.get(2)?,
+    ))
+  }).map_err(|e| e.to_string())?.collect::<rusqlite::Result<Vec<_>>>().map_err(|e| e.to_string())?;
+
+  Ok(list)
+}
+
+#[tauri::command]
+pub fn get_media_batch(
+    state: tauri::State<'_, DbState>,
+    media_ids: Vec<String>,
+) -> Result<Vec<Media>, String> {
+  let connection = state.connection.lock().map_err(|_| "Lock failed")?;
+  
+  let placeholders: String = media_ids.iter().map(|_| "?").collect::<Vec<_>>().join(",");
+  let sql = format!("SELECT * FROM media WHERE id IN ({})", placeholders);
+
+  let mut stmt = connection.prepare(&sql).map_err(|e| e.to_string())?;
+  
+  let list = stmt.query_map(rusqlite::params_from_iter(media_ids), map_row_to_media)
     .map_err(|e| e.to_string())?
     .collect::<rusqlite::Result<Vec<_>>>()
     .map_err(|e| e.to_string())?;
 
-  Ok(media_list)
+  Ok(list)
 }
 
 /* -- UPDATE media -- */
@@ -537,7 +538,6 @@ pub async fn add_media_to_library(app: tauri::AppHandle, data: ExternalMediaRequ
 
     // get image dimensions
     let image_size = imagesize::size(&file_path).map_err(|e| e.to_string())?;
-    println!("image '{}' of dimensions ({}x{}) added in {:?} ", base.title, image_size.width, image_size.height, posters_dir);
 
     // DB connection
     let state = app.state::<DbState>();

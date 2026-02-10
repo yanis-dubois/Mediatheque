@@ -22,11 +22,8 @@ export class AppComponent {
     console.log("🚀 App initialisée, lancement des tests...");
 
     try {
-      // await this.simulateInitialData(); STOPPED 
+      // await this.simulateInitialData();
       console.log("✅ Données de test insérées.");
-
-      // 3. Optionnel : Rafraîchir ta liste de médias après l'insertion
-      // this.mediaService.loadAllMedia(); 
     } catch (err) {
       console.error("❌ Échec du seed :", err);
     }

@@ -71,19 +71,19 @@
     @switch (preferredLayout()) {
       @case (CollectionLayout.GRID) {
         <app-collection-grid
-          [mediaList]="mediaList()"
+          [mediaLayoutData]="mediaLayoutData()"
           [loading]="loading"
         />
       }
       @case (CollectionLayout.ROW) {
         <app-collection-row
-          [mediaList]="mediaList()"
+          [mediaLayoutData]="mediaLayoutData()"
           [loading]="loading"
         />
       }
       @case (CollectionLayout.COLUMN) {
         <app-collection-column
-          [mediaList]="mediaList()"
+          [mediaLayoutData]="mediaLayoutData()"
           [loading]="loading"
         />
       }

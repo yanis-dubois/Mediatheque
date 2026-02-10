@@ -1,7 +1,7 @@
 @if (loading) {
   <p>Loading ...</p>
 }
-@else if (mediaList()) {
+@else if (mediaLayoutData()) {
   <section>
     <div #scrollElement class="viewport-container">
       <div
@@ -9,24 +9,30 @@
         style="width: 100%; position: relative;"
       >
         @for (vItem of virtualizer.getVirtualItems(); track vItem.key) {
-          <div
-            [style.width.%]="100 / columns()" 
-            [style.transform]="'translateY(' + vItem.start + 'px) translateX(' + (vItem.lane * 100) + '%)'"
-            style="position: absolute; top: 0; left: 0; padding: 0px 4px; box-sizing: border-box;"
-          >
-            <div class="card"
-              [style.--scale-width]="1 + (8 / columnWidth())"
-              [style.--scale-height]="1 + (8 / (columnWidth() * 1.5))"
+          @if (getMediaLayout(vItem.index); as layout) {
+            <div
+              [style.width.%]="100 / columns()" 
+              [style.transform]="'translateY(' + vItem.start + 'px) translateX(' + (vItem.lane * 100) + '%)'"
+              style="position: absolute; top: 0; left: 0; padding: 0px 4px; box-sizing: border-box;"
             >
-              <a [routerLink]="['/media', mediaList()[vItem.index].id]">
-                <img 
-                  [src]="mediaList()[vItem.index].id | posterPath"
-                  [alt]="mediaList()[vItem.index].title"
-                  (load)="virtualizer.measure()" 
-                />
-              </a>  
+              <div class="card"
+                [style.--scale-width]="1 + (8 / columnWidth())"
+                [style.--scale-height]="1 + (8 / (columnWidth() * 1.5))"
+              >
+                @if (visibleMediaMap()[layout.id]; as media) {
+                  <a [routerLink]="['/media', media.id]">
+                    <img 
+                      [src]="media.id | posterPath"
+                      [alt]="media.title"
+                      [style.width.px]="columnWidth()"
+                    >
+                  </a>
+                } @else {
+                  <div class="skeleton-card" [style.width.px]="columnWidth()" [style.height.px]="(columnWidth() * 1.5)"></div>
+                }
+              </div>
             </div>
-          </div>
+          }
         }
       </div>
     </div>

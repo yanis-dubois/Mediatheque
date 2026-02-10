@@ -2,18 +2,20 @@ import { Component, computed, effect, ElementRef, HostListener, inject, input, I
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 
-import { injectVirtualizer } from '@tanstack/angular-virtual';
+import { injectVirtualizer, VirtualItem } from '@tanstack/angular-virtual';
 
 import { Media } from '@models/media.model';
 
 import { PosterPathPipe } from '@pipe/image-path.pipe'
+import { CollectionService } from '@services/collection.service';
+import { debounceTime, Subject, switchMap } from 'rxjs';
 
 interface PositionedMedia {
   uniqueKey: string,
-  media: Media;
-  x: number;
+  id: string;
   width: number;
   height: number;
+  x: number;
 }
 
 @Component({
@@ -27,8 +29,12 @@ export class CollectionRowComponent {
   @Input({ required: true }) loading!: boolean;
   @ViewChild('scrollElement') scrollElement!: ElementRef<HTMLElement>;
 
-  mediaList = input.required<Media[]>();
+  // all media infos (id, width, height)
+  mediaLayoutData = input.required<[string, number, number][]>();
+  // media currently visible in the virtualizer
+  protected visibleMediaMap = signal<Record<string, Media>>({});
 
+  private scrollSubject = new Subject<string[]>();
   private el = inject(ElementRef);
 
   rowHeight = signal(150*1.5);
@@ -36,6 +42,7 @@ export class CollectionRowComponent {
   private gap = 8;
 
   rows = computed(() => {
+    const data = this.mediaLayoutData();
     const lines: PositionedMedia[][] = [];
     const containerWidth = this.containerWidth();
     let currentLine: PositionedMedia[] = [];
@@ -43,8 +50,8 @@ export class CollectionRowComponent {
     const gap = this.gap;
     let globalIndex = 0;
 
-    this.mediaList().forEach((media) => {
-      const ratio = media.imageWidth / media.imageHeight;
+    this.mediaLayoutData().forEach((data) => {
+      const ratio = data[1] / data[2]; // width / height
       const width = this.rowHeight() * ratio;
 
       // if that image can't fit
@@ -69,8 +76,8 @@ export class CollectionRowComponent {
       }
 
       currentLine.push({
-        uniqueKey: `${media.id}-${globalIndex++}`,
-        media,
+        uniqueKey: `${data[0]}-${globalIndex++}`,
+        id: data[0],
         width: width,
         height: this.rowHeight(),
         x: currentLineWidth,
@@ -98,9 +105,22 @@ export class CollectionRowComponent {
         height = item.height;
       return height + this.gap;
     },
+    onChange: (instance) => {
+      this.syncVisibleMedia(instance.getVirtualItems());
+    }
   }));
 
-  constructor() {
+  private syncVisibleMedia(virtualRows: VirtualItem[]) {
+    const visibleIds = virtualRows.flatMap(vRow => 
+      this.rows()[vRow.index].map(item => item.id)
+    );
+  
+    this.scrollSubject.next(visibleIds);
+  }
+
+  constructor(
+    private collectionService: CollectionService
+  ) {
     effect(() => {
       this.rows().length;
       this.containerWidth();
@@ -111,6 +131,22 @@ export class CollectionRowComponent {
             this.virtualizer.measure();
           });
         }
+      });
+    });
+
+    this.scrollSubject.pipe(
+      // wait for the scroll to be more stable
+      debounceTime(100),
+      // avoid last request if a new one is here
+      switchMap(async (ids) => {
+        const media = await this.collectionService.getMediaBatch(ids);
+        return { ids, media };
+      })
+    ).subscribe(({ media }) => {
+      this.visibleMediaMap.update(current => {
+        const next = { ...current };
+        media.forEach(m => next[m.id] = m);
+        return next;
       });
     });
   }

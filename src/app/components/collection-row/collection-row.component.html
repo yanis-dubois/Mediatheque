@@ -1,7 +1,7 @@
 @if (loading) {
   <p>Loading ...</p>
 }
-@else if (mediaList()) {
+@else if (mediaLayoutData()) {
   <section class="collection-layout">
 
     <div #scrollElement class="viewport-container">
@@ -16,7 +16,7 @@
             style="position: absolute; top: 0; left: 0; width: 100%;" 
           >
             @for (item of rows()[vRow.index]; track item.uniqueKey) {
-              
+
               <div
                 [style.width.px]="item.width"
                 [style.height.px]="item.height"
@@ -27,16 +27,21 @@
                   [style.--scale-width]="1 + (8 / item.width)"
                   [style.--scale-height]="1 + (8 / item.height)"
                 >
-                  <a [routerLink]="['/media', item.media.id]">
-                    <img 
-                      [src]="item.media.id | posterPath"
-                      [alt]="item.media.title"
-                      [style.width.px]="item.width"
-                    >
-                  </a>
+                  @if (visibleMediaMap()[item.id]; as media) {
+                    <a [routerLink]="['/media', media.id]">
+                      <img 
+                        [src]="media.id | posterPath"
+                        [alt]="media.title"
+                        [style.width.px]="item.width"
+                      >
+                    </a>
+                  } @else {
+                    <div class="skeleton-card" [style.width.px]="item.width" [style.height.px]="item.height"></div>
+                  }
                 </div>
               </div>
             }
+
           </div>
         }
       </div>

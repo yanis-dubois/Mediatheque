@@ -1,9 +1,9 @@
 use serde::{Serialize};
-use crate::models::{enums::CollectionLayout, media::Media, query::MediaOrder};
+use crate::models::{enums::CollectionLayout, query::MediaOrder};
 
 use super::enums::{CollectionType, CollectionMediaType};
 
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct Collection {
   pub id: String,
@@ -21,6 +21,4 @@ pub struct Collection {
   pub preferred_layout: CollectionLayout,
 
   pub has_image: bool,
-
-  pub media_list: Vec<Media>
 }

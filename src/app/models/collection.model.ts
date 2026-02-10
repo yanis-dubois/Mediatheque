@@ -17,8 +17,6 @@ export interface Collection {
   preferredLayout: CollectionLayout;
 
   hasImage: boolean;
-
-  mediaList: Media[];
 }
 
 export enum CollectionType {

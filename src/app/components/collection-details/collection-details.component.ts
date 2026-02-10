@@ -1,4 +1,4 @@
-import { Component, effect, input, Input, signal } from '@angular/core';
+import { Component, effect, input, Input, output, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 
@@ -9,10 +9,8 @@ import { CollectionRowComponent } from '@components/collection-row/collection-ro
 
 import { Collection, CollectionLayout, CollectionMediaType, CollectionType } from '@models/collection.model';
 import { MediaOrder } from '@models/media-query.model';
-import { Media } from '@models/media.model';
 
 import { CollectionService } from '@services/collection.service';
-
 
 @Component({
   selector: 'app-collection-details',
@@ -24,6 +22,10 @@ import { CollectionService } from '@services/collection.service';
 export class CollectionDetailsComponent {
   @Input({ required: true }) collection!: Collection;
   @Input({ required: true }) loading!: boolean;
+
+  // media data needed for virtualizing (id, width, height)
+  mediaLayoutData = input.required<[string, number, number][]>();
+  onLayoutNeedsRefresh = output<void>();
 
   protected readonly CollectionLayout = CollectionLayout;
   collectionLayoutOption = Object.values(CollectionLayout);
@@ -39,7 +41,6 @@ export class CollectionDetailsComponent {
   collectionMediaType = signal<CollectionMediaType>({type: 'ALL'}); // automatically determined
   preferredLayout = signal<CollectionLayout>(CollectionLayout.GRID);
   sortOrder = signal<MediaOrder[]>([]);
-  mediaList = signal<Media[]>([]);
 
   constructor(
     private collectionService: CollectionService
@@ -48,7 +49,7 @@ export class CollectionDetailsComponent {
       const newSort = this.sortOrder();
 
       // save only if changed
-      if (JSON.stringify(newSort) !== JSON.stringify(this.collection.sortOrder)) {
+      if (this.collection && JSON.stringify(newSort) !== JSON.stringify(this.collection.sortOrder)) {
         this.onSortOrderChange(newSort);
       }
     });
@@ -62,7 +63,6 @@ export class CollectionDetailsComponent {
     this.collectionMediaType.set(this.collection.mediaType);
     this.preferredLayout.set(this.collection.preferredLayout);
     this.sortOrder.set(this.collection.sortOrder);
-    this.mediaList.set(this.collection.mediaList);
   }
 
   async onToggleFavorite() {
@@ -135,11 +135,8 @@ export class CollectionDetailsComponent {
     this.isProcessing = true;
     try {
       await this.collectionService.updateSortOrder(this.collection.id, newSort);
-      // update media list
-      const collection = await this.collectionService.getById(this.collection.id);
-      setTimeout(() => {
-        this.mediaList.set(collection.mediaList);
-      }, 0);
+      // update media list 
+      this.onLayoutNeedsRefresh.emit();
     } catch (e) {
       console.error("Error while updating collection type", e);
     } finally {

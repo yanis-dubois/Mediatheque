@@ -27,7 +27,6 @@ export class HomeComponent {
     try {
       const ids = await this.collectionService.getAllIds();
       this.collectionIds.set(ids);
-      console.log(ids);
     } catch (err) {
       console.error("Erreur lors de la récupération des IDs :", err);
     }

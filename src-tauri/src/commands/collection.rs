@@ -1,8 +1,8 @@
-use crate::commands::media::{get_media_list, match_media_type};
+use crate::commands::media::{get_media_layout_list, match_media_type};
 use crate::db::{DbState};
-use crate::models::collection::Collection;
+use crate::models::collection::{Collection};
 use crate::models::enums::{CollectionMediaType, CollectionType, CollectionLayout};
-use crate::models::query::{MediaFilter, MediaOrder, Pagination};
+use crate::models::query::{MediaFilter, MediaOrder};
 
 // convert SQL TEXT -> Enums
 fn match_collection_type(s: &str) -> CollectionType {
@@ -48,33 +48,19 @@ fn map_row_to_collection(row: &rusqlite::Row) -> rusqlite::Result<Collection> {
     description: row.get(6)?,
     sort_order: serde_json::from_str(&sort_order_raw).unwrap_or_default(),
     preferred_layout: match_collection_view(&prefered_view_str),
-    has_image: has_image_int == 1,
-    media_list: vec![],
+    has_image: has_image_int == 1
   })
 }
 
 /* -- GET -- */
 
-#[tauri::command]
-pub fn get_collection_by_id(
-    state: tauri::State<'_, DbState>,
-    collection_id: String,
-    pagination: Pagination
-) -> Result<Collection, String> {
-
-  // retrieve data from Collection
-  let mut collection = {
-    let connection = state.connection.lock().map_err(|_| "DB Lock failed")?;
-    let mut stmt = connection.prepare("SELECT * FROM collection WHERE id = ?1")
-      .map_err(|e| e.to_string())?;
-
-    stmt.query_row([&collection_id], map_row_to_collection)
-      .map_err(|e| e.to_string())?
-  };
+fn build_filter(
+  state: tauri::State<'_, DbState>,
+  collection: Collection
+) -> Result<MediaFilter, String> {
 
   let mut filter = MediaFilter::default();
 
-  // retrieve media list
   match collection.collection_type {
     CollectionType::Dynamic => {
       // retrieve filter
@@ -82,7 +68,7 @@ pub fn get_collection_by_id(
         let connection = state.connection.lock().map_err(|_| "DB Lock failed")?;
         connection.query_row(
           "SELECT filter FROM collection_dynamic_filter WHERE collection_id = ?1",
-          [&collection_id],
+          [collection.id],
           |r| r.get(0)
         ).ok()
       };
@@ -93,13 +79,42 @@ pub fn get_collection_by_id(
         .unwrap_or_default();
     },
     CollectionType::Manual => {
-      filter.collection_id = Some(collection_id);
+      filter.collection_id = Some(collection.id);
     }
   }
 
-  collection.media_list = get_media_list(state, collection.collection_type.clone(), collection.media_type.clone(), filter, collection.sort_order.clone(), pagination)?;
+  Ok(filter)
+}
 
-  Ok(collection)
+#[tauri::command]
+pub fn get_collection_by_id(
+  state: tauri::State<'_, DbState>,
+  collection_id: String,
+) -> Result<Collection, String> {
+  let connection = state.connection.lock().map_err(|_| "DB Lock failed")?;
+
+  let mut stmt = connection.prepare("SELECT * FROM collection WHERE id = ?1")
+    .map_err(|e| e.to_string())?;
+
+  stmt.query_row([&collection_id], map_row_to_collection)
+    .map_err(|e| e.to_string())
+}
+
+#[tauri::command]
+pub fn get_collection_layout_data(
+    state: tauri::State<'_, DbState>,
+    collection_id: String
+) -> Result<Vec<(String, u16, u16)>, String> {
+
+  // retrieve data from Collection
+  let collection = get_collection_by_id(state.clone(), collection_id.clone())?;
+
+  // build filter
+  let filter = build_filter(state.clone(), collection.clone())?;
+
+  let data = get_media_layout_list(state, collection.collection_type.clone(), collection.media_type.clone(), filter, collection.sort_order)?;
+
+  Ok(data)
 }
 
 #[tauri::command]

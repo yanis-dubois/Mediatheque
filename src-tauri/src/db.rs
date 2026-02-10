@@ -609,7 +609,7 @@ pub fn seed_data(connection: &mut Connection) -> Result<()> {
 
     if c.id == 101 {
       if let Some(manual) = &mut c.collection_manual {
-        for i in 1..100000 {
+        for _ in 1..10000 {
           manual.media_ids.push(1);
         }
       }

@@ -1,4 +1,4 @@
-import { Component, Input } from '@angular/core';
+import { Component, Input, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 
@@ -26,19 +26,30 @@ export class CollectionComponent {
   loading = true;
   error?: string;
 
+  // media data needed for virtualizing (id, width, height)
+  mediaLayoutData = signal<[string, number, number][]>([]);
+
   constructor(
     private collectionService: CollectionService
   ) {}
 
   async ngOnInit() {
     try {
-      this.collection = await this.collectionService.getById(this.id);
+      this.collection = await this.collectionService.getInfo(this.id);
+      this.loadLayoutData();
+      console.log("data loaded !!!");
     } catch (e) {
       console.error(e);
       this.error = 'Collection not found 😢';
     } finally {
       this.loading = false;
     }
+  }
+
+  async loadLayoutData() {
+    this.mediaLayoutData.set(
+      await this.collectionService.getLayoutData(this.id)
+    );
   }
 
   trackByMediaId(media: any): number {

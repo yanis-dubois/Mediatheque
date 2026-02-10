@@ -16,25 +16,34 @@
         style="height: 100%; position: relative;"
       >
         @for (vItem of virtualizer.getVirtualItems(); track vItem.key) {
-          <div
-            class="line"
-            [style.width.px]="vItem.size"
-            [style.transform]="'translateX(' + vItem.start + 'px)'"
-            style="position: absolute; top: 0; left: 0; height: 100%;"
-          >
-            <div class="card"
-              [style.--scale-width]="1 + (8 / getElementWidth(vItem.index))"
-              [style.--scale-height]="1 + (8 / containerHeight())"
+          @if (getMediaLayout(vItem.index); as layout) {
+            <div
+              class="line"
+              [style.width.px]="vItem.size"
+              [style.transform]="'translateX(' + vItem.start + 'px)'"
+              style="position: absolute; top: 0; left: 0; height: 100%;"
             >
-              <a [routerLink]="['/media', mediaList()[vItem.index].id]">
-                <img 
-                  [src]="mediaList()[vItem.index].id | posterPath"
-                  [alt]="mediaList()[vItem.index].title"
-                  (load)="virtualizer.measure()" 
-                />
-              </a>  
+              <div class="card"
+                [style.--scale-width]="1 + (8 / getElementWidth(vItem.index))"
+                [style.--scale-height]="1 + (8 / containerHeight())"
+              >
+                @if (visibleMediaMap()[layout.id]; as media) {
+                  <a [routerLink]="['/media', media.id]">
+                    <img 
+                      [src]="media.id | posterPath"
+                      [alt]="media.title"
+                    />
+                  </a>
+                }
+                @else {
+                  <div class="skeleton-card" 
+                    [style.width.px]="getElementWidth(vItem.index)" 
+                    [style.height.px]="containerHeight()"
+                  ></div>
+                }
+              </div>
             </div>
-          </div>
+          }
         }
       </div>
     </div>

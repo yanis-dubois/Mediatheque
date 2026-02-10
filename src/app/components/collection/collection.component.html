@@ -7,13 +7,16 @@
       @case (CollectionDisplayMode.PREVIEW) {
         <app-collection-line
           [collection]="collection"
+          [mediaLayoutData]="mediaLayoutData()"
           [loading]="loading"
         />
       }
       @case (CollectionDisplayMode.DETAILS) {
         <app-collection-details
           [collection]="collection"
+          [mediaLayoutData]="mediaLayoutData()"
           [loading]="loading"
+          (onLayoutNeedsRefresh)="loadLayoutData()"
         />
       }
     }

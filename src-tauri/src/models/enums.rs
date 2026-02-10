@@ -51,7 +51,7 @@ pub enum CollectionMediaType {
   Specific(MediaType),
 }
 
-#[derive(Debug, Serialize, Deserialize, PartialEq)]
+#[derive(Debug, Serialize, Deserialize, PartialEq, Clone)]
 #[serde(rename_all = "SCREAMING_SNAKE_CASE")]
 #[derive(strum::Display, strum::EnumString)]
 #[strum(serialize_all = "SCREAMING_SNAKE_CASE")]
