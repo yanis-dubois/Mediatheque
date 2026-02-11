@@ -39,25 +39,44 @@ a:hover {
 
   /* variables */
   /* card size */
-  --card-width-grid: 110px;
-  --card-width-line: 100px;
+  --card-width-grid: 90px;
+  --card-width-line: 90px;
+  --card-width-list: 60px;
   /* animation */
   --scale-card-in: 0.225s;
   --scale-card-out: 0.6s;
+
+  /* colors */
+  /* primary */
+  --color-primary-bright: #D2B0FF;
+  --color-primary-light: #B09AFF;
+  --color-primary: #9683EC; /* DEFAULT */
+  --color-primary-dark: #5F61BB;
+  --color-primary-deep: #343E92;
+  /* light */
+  --color-light: #f6f6f6; /* DEFAULT */
+  --color-light-soft: #D0D0D0;
+  --color-light-dark: #808080;
+  /* dark */
+  --color-dark-soft: #333;
+  --color-dark: #1A1A1A; /* DEFAULT */
+  --color-dark-deep: #101010;
 }
 
 /* tablet */
 @media (min-width: 600px) {
   :root {
-    --card-width-grid: 130px;
-    --card-width-line: 120px;
+    --card-width-grid: 110px;
+    --card-width-line: 110px;
+    --card-width-list: 70px;
   }
 }
 
 /* desktop */
 @media (min-width: 1025px) {
   :root {
-    --card-width-grid: 140px;
-    --card-width-line: 140px;
+    --card-width-grid: 130px;
+    --card-width-line: 130px;
+    --card-width-list: 80px;
   }
 }

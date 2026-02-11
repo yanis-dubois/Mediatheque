@@ -1,0 +1,33 @@
+
+<section>
+  <div #scrollElement class="viewport-container">
+    <div
+      [style.height.px]="virtualizer.getTotalSize()"
+      style="width: 100%; position: relative;"
+    >
+      @for (vItem of virtualizer.getVirtualItems(); track vItem.key) {
+        @if (getMediaLayout(vItem.index); as layout) {
+          <div
+            class="row"
+            [style.height.px]="containerHeight() + 8" 
+            [style.width.%]="100" 
+            [style.transform]="'translateY(' + vItem.start + 'px)'"
+            style="position: absolute; top: 0; left: 0; padding: 0px 0px; box-sizing: border-box; 
+              display: flex; flex-direction: column; justify-content: center;"
+          >
+            @if (visibleMediaMap()[layout.id]; as media) {
+              <ng-container 
+                [ngTemplateOutlet]="rowTemplate" 
+                [ngTemplateOutletContext]="{ $implicit: media, width: containerWidth(), height: containerHeight() }">
+              </ng-container>
+            }
+            @else {
+              <!-- TODO -->
+              <div class="skeleton-card" [style.width.px]="containerWidth()" [style.height.px]="containerHeight()"></div>
+            }
+          </div>
+        }
+      }
+    </div>
+  </div>
+</section>

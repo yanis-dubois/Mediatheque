@@ -23,6 +23,7 @@ fn match_collection_view(s: &str) -> CollectionLayout {
     "GRID" => CollectionLayout::Grid,
     "ROW" => CollectionLayout::Row,
     "COLUMN" => CollectionLayout::Column,
+    "LIST" => CollectionLayout::List,
     _ => CollectionLayout::Grid
   }
 }
@@ -131,6 +132,27 @@ pub fn get_all_collection_ids(state: tauri::State<'_, DbState>) -> Result<Vec<St
   Ok(ids)
 }
 
+#[tauri::command]
+pub fn search_layout_data(
+  state: tauri::State<'_, DbState>,
+  query: String
+) -> Result<Vec<(String, u16, u16)>, String> {
+  println!("search_layout_data : {}", query);
+
+  let filter = MediaFilter {
+    search_query: 
+      if query == "" { None } 
+      else { Some(query) },
+    ..Default::default()
+  };
+
+  let data = get_media_layout_list(state, CollectionType::Dynamic, CollectionMediaType::All, filter, vec![])?;
+
+  println!("search_layout_data results : {}", data.len());
+
+  Ok(data)
+}
+
 /* -- UPDATE -- */
 
 #[tauri::command]
@@ -221,6 +243,57 @@ pub fn update_collection_filter(state: tauri::State<'_, DbState>, id: String, fi
     [filter_json, id],
   )
   .map_err(|e| e.to_string())?;
+
+  Ok(())
+}
+
+#[tauri::command]
+pub fn update_collection_media_type(state: tauri::State<'_, DbState>, id: String, media_type: CollectionMediaType) -> Result<(), String> {
+  println!("update_collection_media_type");
+
+  let connection = state.connection.lock().map_err(|_| "Failed to lock database")?;
+
+  connection.execute(
+    "UPDATE collection SET media_type = ?1 WHERE id = ?2",
+    [media_type.to_db_string(), id],
+  )
+  .map_err(|e| e.to_string())?;
+
+  Ok(())
+}
+
+#[tauri::command]
+pub fn add_media_batch_to_collection(state: tauri::State<'_, DbState>, id: String, media_ids: Vec<String>) -> Result<(), String> {
+  println!("add_media_batch_to_collection");
+
+  let mut connection = state.connection.lock().map_err(|_| "Failed to lock database")?;
+
+  let tx = connection.transaction().map_err(|e| e.to_string())?;
+
+  {
+    // retrieve max position
+    let mut pos_stmt = tx.prepare(
+      "SELECT COALESCE(MAX(position), 0) FROM collection_media WHERE collection_id = ?1"
+    ).map_err(|e| e.to_string())?;
+
+    let mut current_pos: i32 = pos_stmt.query_row([&id], |row| row.get(0)).unwrap_or(0);
+
+    // insert media batch (without duplicates)
+    let mut stmt = tx.prepare(
+      "INSERT INTO collection_media (collection_id, media_id, position) 
+        SELECT ?1, ?2, ?3 
+        WHERE NOT EXISTS (
+          SELECT 1 FROM collection_media WHERE collection_id = ?1 AND media_id = ?2
+        )"
+    ).map_err(|e| e.to_string())?;
+
+    for media_id in media_ids {
+      current_pos += 1;
+      stmt.execute(rusqlite::params![id, media_id, current_pos]).map_err(|e| e.to_string())?;
+    }
+  }
+
+  tx.commit().map_err(|e| e.to_string())?;
 
   Ok(())
 }

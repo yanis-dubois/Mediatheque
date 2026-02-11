@@ -1,0 +1,35 @@
+<div class="picker-container">
+  <header class="picker-header">
+    <button class="cancel-btn" (click)="onCancel.emit()">Cancel</button>
+    <div class="search-box">
+      <input 
+        type="text"
+        [ngModel]="searchQuery()" 
+        (ngModelChange)="searchQuery.set($event)"
+        placeholder="Search on the library..."
+        autoFocus
+      />
+    </div>
+    <button 
+      class="done-btn" 
+      (click)="onConfirm.emit(selectedIds())"
+    >
+      Confirm ({{ selectedIds().size }})
+    </button>
+  </header>
+
+  <div class="picker-content">
+    <app-collection-list 
+        [mediaLayoutData]="mediaResults()" 
+        [loading]="isLoading()"
+      >
+        <ng-template #rowRef let-media let-width="width" let-height="height">
+          <div (click)="toggleSelection(media.id)" class="selectable-row">
+            <app-media-row [media]="media" [width]="width" [height]="height">
+              <span action class="check-icon">{{ isSelected(media.id) ? '✅' : '⚪' }}</span>
+            </app-media-row>
+          </div>
+        </ng-template>
+      </app-collection-list>
+  </div>
+</div>

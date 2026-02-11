@@ -51,6 +51,15 @@ pub enum CollectionMediaType {
   Specific(MediaType),
 }
 
+impl CollectionMediaType {
+  pub fn to_db_string(&self) -> String {
+    match self {
+      CollectionMediaType::All => "ALL".to_string(),
+      CollectionMediaType::Specific(media) => media.to_string().to_uppercase(),
+    }
+  }
+}
+
 #[derive(Debug, Serialize, Deserialize, PartialEq, Clone)]
 #[serde(rename_all = "SCREAMING_SNAKE_CASE")]
 #[derive(strum::Display, strum::EnumString)]
@@ -60,7 +69,8 @@ pub enum CollectionLayout {
   #[default]
   Grid,
   Row,
-  Column
+  Column,
+  List
 }
 
 

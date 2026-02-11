@@ -7,17 +7,22 @@ import { FilterManagerComponent } from '@components/filter-manager/filter-manage
 import { CollectionGridComponent } from '@components/collection-grid/collection-grid.component';
 import { CollectionColumnComponent } from '@components/collection-column/collection-column.component';
 import { CollectionRowComponent } from '@components/collection-row/collection-row.component';
+import { CollectionListComponent } from "@components/collection-list/collection-list.component";
+import { MediaRowComponent } from "@components/media-row/media-row.component";
+import { MediaPickerComponent } from '@components/media-picker/media-picker.component'
 
 import { Collection, CollectionLayout, CollectionMediaType, CollectionType } from '@models/collection.model';
 import { MediaFilter, MediaOrder } from '@models/media-query.model';
 
 import { CollectionService } from '@services/collection.service';
 import { debounceTime, Subject } from 'rxjs';
+import { HumanizePipe } from "@pipe/humanize";
+import { EmojizePipe } from "@pipe/emojize";
 
 @Component({
   selector: 'app-collection-details',
   standalone: true,
-  imports: [CommonModule, RouterModule, SortManagerComponent, FilterManagerComponent, CollectionGridComponent, CollectionColumnComponent, CollectionRowComponent],
+  imports: [CommonModule, RouterModule, HumanizePipe, EmojizePipe, SortManagerComponent, FilterManagerComponent, CollectionGridComponent, CollectionColumnComponent, CollectionRowComponent, CollectionListComponent, MediaRowComponent, MediaPickerComponent],
   templateUrl: './collection-details.component.html',
   styleUrl: './collection-details.component.css'
 })
@@ -44,7 +49,11 @@ export class CollectionDetailsComponent {
   preferredLayout = signal<CollectionLayout>(CollectionLayout.GRID);
   sortOrder = signal<MediaOrder[]>([]);
 
+  // for dynamic collection
   filter = signal<MediaFilter>({});
+
+  // for manual collection
+  showPicker = signal(false);
 
   private refreshLayout$ = new Subject<void>();
 
@@ -66,6 +75,11 @@ export class CollectionDetailsComponent {
       const newFilter = this.filter();
       this.updateFilter(newFilter);
     }, { allowSignalWrites: true });
+
+    effect(() => {
+      const newMediaType = this.collectionMediaType();
+      this.collection.mediaType = newMediaType;
+    });
   }
 
   async ngOnInit() {
@@ -141,7 +155,7 @@ export class CollectionDetailsComponent {
     }
   }
 
-  async updateSort(newSort: MediaOrder[]) {
+  private async updateSort(newSort: MediaOrder[]) {
     try {
       await this.collectionService.updateSort(this.collection.id, newSort);
       this.refreshLayout$.next();
@@ -150,12 +164,41 @@ export class CollectionDetailsComponent {
     }
   }
 
-  private async updateFilter(newFilters: MediaFilter) {
+  private async updateFilter(newFilter: MediaFilter) {
+    let mediaTypeHasChanged = false;
+    if (newFilter.mediaType) {
+      this.collectionMediaType.set({
+        type: "SPECIFIC",
+        value: newFilter.mediaType
+      })
+      mediaTypeHasChanged = true;
+    }
+    else if (this.collectionMediaType().type == "SPECIFIC") {
+      this.collectionMediaType.set({
+        type: "ALL"
+      })
+      mediaTypeHasChanged = true;
+    }
+
     try {
-      await this.collectionService.updateFilter(this.collection.id, newFilters);
+      await this.collectionService.updateFilter(this.collection.id, newFilter);
+      if (mediaTypeHasChanged) {
+        await this.collectionService.updateMediaType(this.collection.id, this.collectionMediaType());
+      }
       this.refreshLayout$.next();
     } catch (e) {
       console.error("Error while updating collection filter:", e);
+    }
+  }
+
+  async addSelectedMedia(newMediaIds: Set<string>) {
+    if (newMediaIds.size < 1) return;
+
+    try {
+      await this.collectionService.addMediaBatch(this.collection.id, newMediaIds);
+      this.refreshLayout$.next();
+    } catch (e) {
+      console.error("Error while adding media to collection", e);
     }
   }
 }

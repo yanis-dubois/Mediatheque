@@ -90,7 +90,7 @@ pub fn init_db(connection: &mut Connection) -> Result<()> {
 
       sort_order TEXT, -- in JSON, ex: [{field: 'favorite', direction: 'DESC'}, {field: 'status', direction: 'ASC'}]
       preferred_layout TEXT CHECK(
-        preferred_layout IN ('GRID', 'ROW', 'COLUMN')
+        preferred_layout IN ('GRID', 'ROW', 'COLUMN', 'LIST')
       ) DEFAULT 'GRID',
 
       has_image INTEGER NOT NULL DEFAULT 0 CHECK(has_image IN (0, 1))

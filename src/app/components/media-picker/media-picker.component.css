@@ -1,0 +1,43 @@
+.picker-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1rem 1.5rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(var(--color-dark-soft), 0.8);
+  backdrop-filter: blur(10px);
+}
+
+.search-box {
+  flex: 1;
+  margin: 0 20px;
+}
+input {
+  width: 100%;
+  padding: 8px 16px;
+  border-radius: 10px;
+  border: none;
+  background: rgba(255, 255, 255, 0.1);
+  color: white;
+}
+
+.done-btn {
+  color: var(--primary-color);
+  font-weight: bold;
+  background: rgba(var(--color-dark-soft), 0.8);
+  border: none;
+  cursor: pointer;
+  &:disabled { opacity: 0.3; }
+}
+
+.picker-content {
+  flex: 1;
+  background: var(--color-dark);
+  overflow: hidden;
+  padding: 0 8px;
+}
+
+@keyframes slideUp {
+  from { transform: translateY(100%); }
+  to { transform: translateY(0); }
+}

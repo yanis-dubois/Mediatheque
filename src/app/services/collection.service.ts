@@ -2,7 +2,7 @@ import { Injectable } from '@angular/core';
 
 import { invoke } from '@tauri-apps/api/core';
 
-import { Collection, CollectionLayout } from '@models/collection.model';
+import { Collection, CollectionLayout, CollectionMediaType } from '@models/collection.model';
 import { MediaFilter, MediaOrder } from '@models/media-query.model';
 import { Media } from '@models/media.model';
 
@@ -63,6 +63,10 @@ export class CollectionService {
     });
   }
 
+  searchMedia(query: string) {
+    return invoke<[string, number, number][]>('search_layout_data', { query: query });
+  }
+
   getAllIds(): Promise<string[]> {
     return invoke('get_all_collection_ids');
   }
@@ -90,8 +94,18 @@ export class CollectionService {
     return invoke('update_collection_sort', { id, sort });
   }
 
+  updateMediaType(id: string, mediaType: CollectionMediaType) {
+    return invoke('update_collection_media_type', { id, mediaType });
+  }
+
   // dynamic
   updateFilter(id: string, filter: MediaFilter) {
     return invoke('update_collection_filter', { id, filter });
+  }
+
+  // manual
+  addMediaBatch(id: string, mediaIds: Set<string>) {
+    const mediaIdsArray = [...mediaIds];
+    return invoke('add_media_batch_to_collection', { id, mediaIds: mediaIdsArray });
   }
 }

@@ -1,0 +1,18 @@
+.viewport-container {
+  height: 100vh;
+  width: 100%;
+  overflow-y: auto;
+  overflow-x: hidden;
+  display: block;
+  position: relative;
+  padding-top: 6px;
+}
+
+.row {
+  transition: background-color 0.3s ease;
+}
+
+.row:hover {
+  background: var(--color-dark-soft);
+  transition: background-color 0.2ms ease-out;
+}

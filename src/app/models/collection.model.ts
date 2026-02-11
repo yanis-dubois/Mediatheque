@@ -32,7 +32,8 @@ export type CollectionMediaType =
 export enum CollectionLayout {
   GRID = "GRID",
   ROW = "ROW",
-  COLUMN = "COLUMN"
+  COLUMN = "COLUMN",
+  LIST = "LIST"
 }
 
 export enum CollectionDisplayMode {
