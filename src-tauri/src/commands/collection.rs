@@ -297,3 +297,21 @@ pub fn add_media_batch_to_collection(state: tauri::State<'_, DbState>, id: Strin
 
   Ok(())
 }
+
+#[tauri::command]
+pub fn remove_media_from_collection(
+  state: tauri::State<'_, DbState>, 
+  id: String, 
+  media_id: String
+) -> Result<(), String> {
+  println!("remove_media_from_collection");
+
+  let connection = state.connection.lock().map_err(|_| "DB Lock failed")?;
+  
+  connection.execute(
+    "DELETE FROM collection_media WHERE collection_id = ?1 AND media_id = ?2",
+    [&id, &media_id],
+  ).map_err(|e| e.to_string())?;
+
+  Ok(())
+}

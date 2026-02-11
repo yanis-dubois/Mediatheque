@@ -1,4 +1,6 @@
-<div class="row-content" [style.height.px]="height">
+<div class="row-content" 
+  [style.height.px]="height"
+>
   <div class="card"
     [style.--scale-width]="1 + (8 / width)"
     [style.--scale-height]="1 + (8 / height)"
@@ -18,11 +20,17 @@
       <div class="text-group">
         <h3 class="title">{{ media.title }}</h3>
         <p class="type">{{ media.mediaType | emojize }} - {{ media.status | humanize }}</p>
-        <p class="date">{{ media.releaseDate | date:'dd MMM yyyy' }}</p>
+        <p class="date">{{ media.releaseDate | date:'mediumDate' }}</p>
       </div>
   
-      <div class="icon-group">
-        <ng-content class="icon" select="[action]"></ng-content>
+      <div class="actions-right">
+        <div class="menu-slot">
+          <ng-content select="[menu]"></ng-content>
+        </div>
+
+        <div class="icon-slot">
+          <ng-content select="[icon]"></ng-content>
+        </div>
       </div>
     </div>
 

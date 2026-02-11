@@ -1,4 +1,4 @@
-import { Component, effect, input, Input, output, signal } from '@angular/core';
+import { Component, effect, HostListener, input, Input, output, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 
@@ -8,6 +8,7 @@ import { CollectionGridComponent } from '@components/collection-grid/collection-
 import { CollectionColumnComponent } from '@components/collection-column/collection-column.component';
 import { CollectionRowComponent } from '@components/collection-row/collection-row.component';
 import { CollectionListComponent } from "@components/collection-list/collection-list.component";
+import { MediaCardComponent } from '@components/media-card/media-card.component';
 import { MediaRowComponent } from "@components/media-row/media-row.component";
 import { MediaPickerComponent } from '@components/media-picker/media-picker.component'
 
@@ -22,9 +23,9 @@ import { EmojizePipe } from "@pipe/emojize";
 @Component({
   selector: 'app-collection-details',
   standalone: true,
-  imports: [CommonModule, RouterModule, HumanizePipe, EmojizePipe, SortManagerComponent, FilterManagerComponent, CollectionGridComponent, CollectionColumnComponent, CollectionRowComponent, CollectionListComponent, MediaRowComponent, MediaPickerComponent],
+  imports: [CommonModule, RouterModule, HumanizePipe, EmojizePipe, SortManagerComponent, FilterManagerComponent, CollectionGridComponent, CollectionColumnComponent, CollectionRowComponent, CollectionListComponent, MediaCardComponent, MediaRowComponent, MediaPickerComponent],
   templateUrl: './collection-details.component.html',
-  styleUrl: './collection-details.component.css'
+  styleUrl: './collection-details.component.scss'
 })
 export class CollectionDetailsComponent {
   @Input({ required: true }) collection!: Collection;
@@ -36,6 +37,8 @@ export class CollectionDetailsComponent {
 
   protected readonly CollectionLayout = CollectionLayout;
   collectionLayoutOption = Object.values(CollectionLayout);
+
+  protected readonly CollectionType = CollectionType;
 
   favorite = signal(false);
   name = signal('');
@@ -54,6 +57,10 @@ export class CollectionDetailsComponent {
 
   // for manual collection
   showPicker = signal(false);
+
+  // media menu
+  activeMediaMenuId = signal<string | null>(null);
+  mediaMenuPosition = signal({ x: 0, y: 0 });
 
   private refreshLayout$ = new Subject<void>();
 
@@ -94,6 +101,57 @@ export class CollectionDetailsComponent {
     if (this.collection.collectionType == CollectionType.DYNAMIC) {
       this.filter.set(this.collection.filter);
     }
+  }
+
+  toggleMediaMenu(id: string, event: MouseEvent) {
+    event.stopPropagation();
+    event.preventDefault();
+
+    if (this.activeMediaMenuId() === id) {
+      this.activeMediaMenuId.set(null);
+      return;
+    }
+
+    const rect = (event.currentTarget as HTMLElement).getBoundingClientRect();
+
+    // estimated menu dimension
+    const menuWidth = 200; 
+    const menuHeight = 260;
+    const padding = 5;
+
+    // make menu appear at the left of the button
+    let x = rect.right - (rect.width + padding); 
+
+    // if it's outside on the left of view port, then go to the right
+    if (x - menuWidth < padding) {
+      x = rect.left + menuWidth + rect.width + padding; 
+    }
+
+    // at the level of the buton
+    let y = rect.top;
+
+    // if it goes at the bottom of view port, then goes up
+    if (y + menuHeight > window.innerHeight - padding) {
+      let step = (y + menuHeight) - (window.innerHeight - padding);
+      y -= step;
+    }
+
+    this.mediaMenuPosition.set({ x, y });
+    this.activeMediaMenuId.set(id);
+  }
+
+  @HostListener('document:click')
+  closeMediaMenu() {
+    this.activeMediaMenuId.set(null);
+  }
+
+  isHoveringMenu = signal(false);
+  onMouseLeaveCard(id: string | undefined) {
+    setTimeout(() => {
+      if (id && this.activeMediaMenuId() === id && !this.isHoveringMenu()) {
+        this.activeMediaMenuId.set(null);
+      }
+    }, 100);
   }
 
   async onToggleFavorite() {
@@ -196,6 +254,17 @@ export class CollectionDetailsComponent {
 
     try {
       await this.collectionService.addMediaBatch(this.collection.id, newMediaIds);
+      this.refreshLayout$.next();
+    } catch (e) {
+      console.error("Error while adding media to collection", e);
+    }
+  }
+
+  async removeMediaFromCollection(mediaIds: string) {
+    if (mediaIds === "") return;
+
+    try {
+      await this.collectionService.removeMedia(this.collection.id, mediaIds);
       this.refreshLayout$.next();
     } catch (e) {
       console.error("Error while adding media to collection", e);

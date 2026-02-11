@@ -108,4 +108,8 @@ export class CollectionService {
     const mediaIdsArray = [...mediaIds];
     return invoke('add_media_batch_to_collection', { id, mediaIds: mediaIdsArray });
   }
+
+  removeMedia(id: string, mediaId: string) {
+    return invoke('remove_media_from_collection', { id, mediaId });
+  }
 }

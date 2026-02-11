@@ -1,4 +1,4 @@
-import { Component, computed, effect, ElementRef, HostListener, inject, input, Input, signal, untracked, ViewChild } from '@angular/core';
+import { Component, computed, ContentChild, effect, ElementRef, HostListener, inject, input, Input, signal, TemplateRef, untracked, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 
@@ -6,7 +6,6 @@ import { injectVirtualizer, VirtualItem } from '@tanstack/angular-virtual';
 
 import { Media } from '@models/media.model';
 
-import { PosterPathPipe } from '@pipe/image-path.pipe'
 import { CollectionService } from '@services/collection.service';
 import { debounceTime, Subject, switchMap } from 'rxjs';
 
@@ -21,13 +20,14 @@ interface PositionedMedia {
 @Component({
   selector: 'app-collection-row',
   standalone: true,
-  imports: [CommonModule, RouterModule, PosterPathPipe],
+  imports: [CommonModule, RouterModule],
   templateUrl: './collection-row.component.html',
   styleUrls: ['./collection-row.component.css']
 })
 export class CollectionRowComponent {
   @Input({ required: true }) loading!: boolean;
   @ViewChild('scrollElement') scrollElement!: ElementRef<HTMLElement>;
+  @ContentChild('itemRef') itemTemplate!: TemplateRef<any>;
 
   // all media infos (id, width, height)
   mediaLayoutData = input.required<[string, number, number][]>();

@@ -18,7 +18,7 @@
             @if (visibleMediaMap()[layout.id]; as media) {
               <ng-container 
                 [ngTemplateOutlet]="rowTemplate" 
-                [ngTemplateOutletContext]="{ $implicit: media, width: containerWidth(), height: containerHeight() }">
+                [ngTemplateOutletContext]="{ media: media, width: containerWidth(), height: containerHeight() }">
               </ng-container>
             }
             @else {

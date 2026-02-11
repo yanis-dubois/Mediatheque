@@ -31,6 +31,7 @@ pub fn run() {
       commands::collection::update_collection_filter,
       commands::collection::update_collection_media_type,
       commands::collection::add_media_batch_to_collection,
+      commands::collection::remove_media_from_collection,
     ])
     .run(tauri::generate_context!())
     .expect("error while running tauri application");

@@ -1,11 +1,18 @@
 .picker-header {
+  padding: 1rem 1.5rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  background: var(--color-dark-deep);
+}
+
+.picker-header h2 {
+  margin: 0;
+  margin-bottom: 1rem;
+}
+
+.picker-header-content {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 1rem 1.5rem;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-  background: rgba(var(--color-dark-soft), 0.8);
-  backdrop-filter: blur(10px);
 }
 
 .search-box {

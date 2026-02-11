@@ -1,10 +1,11 @@
-import { Component, effect, output, signal } from '@angular/core';
+import { Component, effect, Input, output, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 
 import { CollectionListComponent } from '@components/collection-list/collection-list.component'
 import { MediaRowComponent } from '@components/media-row/media-row.component';
 
 import { CollectionService } from '@app/services/collection.service';
+import { Collection } from '@app/models/collection.model';
 
 @Component({
   selector: 'app-media-picker',
@@ -14,6 +15,7 @@ import { CollectionService } from '@app/services/collection.service';
   styleUrl: './media-picker.component.css'
 })
 export class MediaPickerComponent {
+  @Input({ required: true }) collection!: Collection;
 
   onCancel = output<void>();
   onConfirm = output<Set<string>>();

@@ -1,4 +1,4 @@
-import { Component, computed, effect, ElementRef, HostListener, inject, input, Input, signal, ViewChild } from '@angular/core';
+import { Component, computed, ContentChild, effect, ElementRef, HostListener, inject, input, Input, signal, TemplateRef, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { debounceTime, Subject, switchMap } from 'rxjs';
@@ -7,20 +7,19 @@ import { injectVirtualizer, VirtualItem } from '@tanstack/angular-virtual';
 
 import { Media } from '@models/media.model';
 
-import { PosterPathPipe } from '@pipe/image-path.pipe'
 import { CollectionService } from '@services/collection.service';
 
 @Component({
   selector: 'app-collection-grid',
   standalone: true,
-  imports: [CommonModule, RouterModule, PosterPathPipe],
+  imports: [CommonModule, RouterModule],
   templateUrl: './collection-grid.component.html',
   styleUrls: ['./collection-grid.component.css']
 })
 export class CollectionGridComponent {
   @Input({ required: true }) loading!: boolean;
-
   @ViewChild('scrollElement') scrollElement!: ElementRef<HTMLElement>;
+  @ContentChild('itemRef') itemTemplate!: TemplateRef<any>;
 
   // all media infos (id, width, height)
   mediaLayoutData = input.required<[string, number, number][]>();

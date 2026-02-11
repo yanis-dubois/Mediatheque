@@ -1,4 +1,4 @@
-import { Component, computed, effect, ElementRef, HostListener, inject, input, Input, signal, ViewChild } from '@angular/core';
+import { Component, computed, ContentChild, effect, ElementRef, HostListener, inject, input, Input, signal, TemplateRef, untracked, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { debounceTime, Subject, switchMap } from 'rxjs';
@@ -7,19 +7,18 @@ import { injectVirtualizer, VirtualItem } from '@tanstack/angular-virtual';
 
 import { Media } from '@models/media.model';
 
-import { PosterPathPipe } from '@pipe/image-path.pipe'
 import { CollectionService } from '@services/collection.service';
 
 @Component({
   selector: 'app-collection-column',
   standalone: true,
-  imports: [CommonModule, RouterModule, PosterPathPipe],
+  imports: [CommonModule, RouterModule],
   templateUrl: './collection-column.component.html',
   styleUrls: ['./collection-column.component.css']
 })
 export class CollectionColumnComponent {
   @Input({ required: true }) loading!: boolean;
-
+  @ContentChild('itemRef') itemTemplate!: TemplateRef<any>;
   @ViewChild('scrollElement') scrollElement!: ElementRef<HTMLElement>;
 
   // all media infos (id, width, height)
@@ -106,12 +105,16 @@ export class CollectionColumnComponent {
     private collectionService: CollectionService
   ) {
     effect(() => {
-      const scrollEl = this.scrollElement?.nativeElement;
-      if (this.virtualizer && scrollEl) {
-        setTimeout(() => {
-          this.virtualizer.measure();
-        });
-      }
+      this.mediaLayoutData().length;
+      this.containerWidth();
+      
+      untracked(() => {
+        if (this.virtualizer && this.scrollElement?.nativeElement) {
+          requestAnimationFrame(() => {
+            this.virtualizer.measure();
+          });
+        }
+      });
     });
 
     this.scrollSubject.pipe(

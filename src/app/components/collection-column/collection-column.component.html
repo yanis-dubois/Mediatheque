@@ -16,22 +16,10 @@
               [style.transform]="'translateY(' + vItem.start + 'px) translateX(' + (vItem.lane * 100) + '%)'"
               style="position: absolute; top: 0; left: 0; padding: 0px 4px; box-sizing: border-box;"
             >
-              <div class="card"
-                [style.--scale-width]="1 + (8 / columnWidth())"
-                [style.--scale-height]="1 + (8 / getElementHeight(vItem.index))"
-              >
-                @if (visibleMediaMap()[layout.id]; as media) {
-                  <a [routerLink]="['/media', media.id]">
-                    <img 
-                      [src]="media.id | posterPath"
-                      [alt]="media.title"
-                      [style.width.px]="columnWidth()"
-                    >
-                  </a>
-                } @else {
-                  <div class="skeleton-card" [style.width.px]="columnWidth()" [style.height.px]="getElementHeight(vItem.index)"></div>
-                }
-              </div>
+              <ng-container 
+                [ngTemplateOutlet]="itemTemplate" 
+                [ngTemplateOutletContext]="{ media: visibleMediaMap()[layout.id], width: columnWidth(), height: getElementHeight(vItem.index)}">
+              </ng-container>
             </div>
           }
         }
