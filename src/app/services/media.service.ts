@@ -8,7 +8,9 @@ import { Movie, Series } from '@models/media-details.model';
 @Injectable({ providedIn: 'root' })
 export class MediaService {
 
+  private readonly MAX_CACHE_SIZE = 500;
   private mediaCache = new Map<string, WritableSignal<Media | null>>();
+  private cacheOrder: string[] = [];
   lastUpdate = signal<number>(Date.now());
 
   getMediaSignal(id: string): WritableSignal<Media | null> {
@@ -19,9 +21,33 @@ export class MediaService {
     return this.mediaCache.get(id)!;
   }
 
+  setMedia(m: Media) {
+    const s = this.getMediaSignal(m.id);
+    s.set(m);
+
+    // Gestion du cycle de vie du cache
+    this.updateCacheOrder(m.id);
+  }
+
+  private updateCacheOrder(id: string) {
+    // delete id if exist to make it more recent
+    this.cacheOrder = this.cacheOrder.filter(itemId => itemId !== id);
+    this.cacheOrder.push(id);
+
+    // cleaning if max size reached
+    if (this.cacheOrder.length > this.MAX_CACHE_SIZE) {
+      const oldestId = this.cacheOrder.shift();
+      if (oldestId) {
+        const s = this.mediaCache.get(oldestId);
+        if (s) s.set(null); 
+        this.mediaCache.delete(oldestId);
+      }
+    }
+  }
+
   /* get media */
 
-  getById(id: string): Promise<Media | Movie | Series> {
+  getById(id: string): Promise<Media> {
     return invoke<any>('get_media_by_id', { id });
   }
 
@@ -30,13 +56,15 @@ export class MediaService {
   async toggleFavorite(id: string, isFavorite: boolean) {
     await invoke('toggle_media_favorite', { id, isFavorite });
 
-    const mediaSignal = this.getMediaSignal(id);
-    mediaSignal.update(m => m ? { ...m, favorite: isFavorite } : null);
+    this.getMediaSignal(id).update(m => m ? { ...m, favorite: isFavorite } : null);
     this.lastUpdate.set(Date.now());
   }
 
-  updateStatus(id: string, status: MediaStatus): Promise<void> {
-    return invoke('update_media_status', { id, status });
+  async updateStatus(id: string, status: MediaStatus): Promise<void> {
+    await invoke('update_media_status', { id, status });
+
+    this.getMediaSignal(id).update(m => m ? { ...m, status: status } : null);
+    this.lastUpdate.set(Date.now());
   }
 
   updateNotes(id: string, notes: string): Promise<void> {

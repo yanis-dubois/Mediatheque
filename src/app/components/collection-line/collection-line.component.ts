@@ -89,14 +89,14 @@ export class CollectionLineComponent {
     });
 
     this.scrollSubject.pipe(
-      // wait for the scroll to be more stable
       debounceTime(100),
-      // avoid last request if a new one is here
       switchMap(async (ids) => {
-        try {
-          const missingIds = ids.filter(id => this.mediaService.getMediaSignal(id)() === null);
-          if (missingIds.length === 0) return [];
+        // only gets the missing medias
+        const missingIds = ids.filter(id => this.mediaService.getMediaSignal(id)() === null);
+        if (missingIds.length === 0) return [];
 
+        try {
+          // retrieve data
           return await this.collectionService.getMediaBatch(missingIds);
         } catch (e) {
           console.error("Batch load failed", e);
@@ -104,10 +104,8 @@ export class CollectionLineComponent {
         }
       })
     ).subscribe((medias: Media[]) => {
-      // fill the media cache 
-      medias.forEach(m => {
-        this.mediaService.getMediaSignal(m.id).set(m);
-      });
+      // fill the cache
+      medias.forEach(m => this.mediaService.setMedia(m));
     });
   }
 

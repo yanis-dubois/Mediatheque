@@ -203,7 +203,7 @@
   >
     <app-media-action 
       [mediaId]="mediaId"
-      [canDelete]="collection.collectionType === CollectionType.MANUAL"
+      [canDeleteFromCollection]="collection.collectionType === CollectionType.MANUAL"
       (deleteRequest)="activeMediaMenuId.set(null); removeMediaFromCollection($event)"
     />
   </app-dropdown>

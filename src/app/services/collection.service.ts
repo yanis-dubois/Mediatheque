@@ -9,19 +9,6 @@ import { Media } from '@models/media.model';
 @Injectable({ providedIn: 'root' })
 export class CollectionService {
 
-  // configuration
-  private readonly MAX_CACHE_SIZE = 500;
-
-  private mediaCache = new Map<string, Media>();
-
-  clearCache() {
-    this.mediaCache.clear();
-  }
-
-  getCachedMedia(id: string): Media | undefined {
-    return this.mediaCache.get(id);
-  }
-
   /* get */
 
   getInfo(id: string) {
@@ -33,34 +20,8 @@ export class CollectionService {
   }
 
   async getMediaBatch(ids: string[]): Promise<Media[]> {
-    const toFetch = ids.filter(id => !this.mediaCache.has(id));
-
-    if (toFetch.length > 0) {
-      await this.fetchMissingMedia(toFetch);
-    }
-
-    return ids.map(id => {
-      const media = this.mediaCache.get(id);
-      if (media) {
-        // delete & set to make it recent
-        this.mediaCache.delete(id);
-        this.mediaCache.set(id, media);
-      }
-      return media!;
-    });
-  }
-
-  private async fetchMissingMedia(ids: string[]): Promise<void> {
-    const newMedia = await invoke<Media[]>('get_media_batch', { mediaIds: ids });
-
-    newMedia.forEach(m => {
-      // if cache is full : delete oldest media
-      if (this.mediaCache.size >= this.MAX_CACHE_SIZE) {
-        const firstKey = this.mediaCache.keys().next().value;
-        this.mediaCache.delete(firstKey);
-      }
-      this.mediaCache.set(m.id, m);
-    });
+    if (ids.length === 0) return [];
+    return await invoke<Media[]>('get_media_batch', { mediaIds: ids });
   }
 
   searchMedia(query: string, mediaType: CollectionMediaType) {

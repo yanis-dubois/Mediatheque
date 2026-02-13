@@ -1,7 +1,16 @@
 <button (click)="toggleFavorite()" style="text-align: center;">
   {{ media()?.favorite ? '❤️' : '🩶' }}
 </button>
-@if (canDelete()) {
+<button>
+  <select 
+    (change)="onStatusChange($any($event.target).value)"
+  >
+    @for (opt of statusOptions; track opt) {
+      <option [value]="opt" [selected]="opt === media()?.status">{{ opt }}</option>
+    }
+  </select>
+</button>
+@if (canDeleteFromCollection()) {
   <button class="delete-item" (click)="onDelete()">
     Delete from collection
   </button>
