@@ -1,0 +1,19 @@
+<div class="dropdown-trigger">
+  <button class="dots-btn" (click)="toggle($event)">
+    •••
+  </button>
+</div>
+
+<ng-template #menuTemplate>
+  <div class="menu-backdrop" (click)="closeWithBackdrop($event)"></div>
+
+  <div class="fixed-menu-overlay"
+    [style.top.px]="position().y" 
+    [style.left.px]="position().x"
+    (click)="$event.stopPropagation()"
+  >
+    <div class="dropdown-menu">
+      <ng-content></ng-content>
+    </div>
+  </div>
+</ng-template>

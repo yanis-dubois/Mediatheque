@@ -1,0 +1,8 @@
+<app-action-bar></app-action-bar>
+
+<section class="container">
+  <h1> Collections </h1>
+  <div *ngFor="let id of collectionIds()">
+    <app-collection [id]="id" [view]="CollectionDisplayMode.PREVIEW"></app-collection>
+  </div>
+</section>

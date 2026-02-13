@@ -617,10 +617,7 @@ pub fn seed_data(connection: &mut Connection) -> Result<()> {
 
     // enum -> string
     let collection_type_str = c.collection_type.to_string();
-    let media_type_str = match &c.media_type {
-      CollectionMediaType::All => "ALL".to_string(),
-      CollectionMediaType::Specific(media) => media.to_string(),
-    };
+    let media_type_str = &c.media_type.to_db_string();
     let view_str = c.prefered_view.to_string();
 
     // Vec<MediaOrder> -> JSON
@@ -1577,6 +1574,17 @@ fn seed_collection() -> Vec<SeedCollection<'static>> {
     },
     SeedCollection { 
       id: 101, 
+      name: "My Movie Collection", 
+      collection_type: CollectionType::Manual, 
+      media_type: CollectionMediaType::Specific(MediaType::Movie),
+      prefered_view: CollectionLayout::Row, 
+      collection_manual: Some(SeedCollectionManual {
+        media_ids: vec![7, 5, 6, 15]
+      }),
+      ..Default::default()
+    },
+    SeedCollection { 
+      id: 110, 
       name: "My Collection", 
       collection_type: CollectionType::Manual, 
       prefered_view: CollectionLayout::Row, 

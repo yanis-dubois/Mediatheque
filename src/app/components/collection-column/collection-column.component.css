@@ -18,25 +18,3 @@
   padding-top: 6px;
   contain: strict;
 }
-
-.card img {
-  width: 100%;
-  background-color: #333;
-  border-radius: 12px;
-  object-fit: cover;
-}
-
-.card {
-  will-change: transform;
-  transition: transform var(--scale-card-out) ease;
-
-  backface-visibility: hidden;
-  transform: translateZ(0);
-  -webkit-font-smoothing: subpixel-antialiased;
-}
-
-.card:hover {
-  transition: transform var(--scale-card-in) ease-out;
-  transform: scale(var(--scale-width), var(--scale-height));
-  z-index: 10;
-}

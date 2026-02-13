@@ -8,6 +8,7 @@ import { Media } from '@models/media.model';
 
 import { CollectionService } from '@services/collection.service';
 import { debounceTime, Subject, switchMap } from 'rxjs';
+import { MediaService } from '@app/services/media.service';
 
 interface PositionedMedia {
   uniqueKey: string,
@@ -31,8 +32,6 @@ export class CollectionRowComponent {
 
   // all media infos (id, width, height)
   mediaLayoutData = input.required<[string, number, number][]>();
-  // media currently visible in the virtualizer
-  protected visibleMediaMap = signal<Record<string, Media>>({});
 
   private scrollSubject = new Subject<string[]>();
   private el = inject(ElementRef);
@@ -42,7 +41,6 @@ export class CollectionRowComponent {
   private gap = 8;
 
   rows = computed(() => {
-    const data = this.mediaLayoutData();
     const lines: PositionedMedia[][] = [];
     const containerWidth = this.containerWidth();
     let currentLine: PositionedMedia[] = [];
@@ -119,6 +117,7 @@ export class CollectionRowComponent {
   }
 
   constructor(
+    private mediaService: MediaService,
     private collectionService: CollectionService
   ) {
     effect(() => {
@@ -139,14 +138,20 @@ export class CollectionRowComponent {
       debounceTime(100),
       // avoid last request if a new one is here
       switchMap(async (ids) => {
-        const media = await this.collectionService.getMediaBatch(ids);
-        return { ids, media };
+        try {
+          const missingIds = ids.filter(id => this.mediaService.getMediaSignal(id)() === null);
+          if (missingIds.length === 0) return [];
+
+          return await this.collectionService.getMediaBatch(missingIds);
+        } catch (e) {
+          console.error("Batch load failed", e);
+          return [];
+        }
       })
-    ).subscribe(({ media }) => {
-      this.visibleMediaMap.update(current => {
-        const next = { ...current };
-        media.forEach(m => next[m.id] = m);
-        return next;
+    ).subscribe((medias: Media[]) => {
+      // fill the media cache 
+      medias.forEach(m => {
+        this.mediaService.getMediaSignal(m.id).set(m);
       });
     });
   }

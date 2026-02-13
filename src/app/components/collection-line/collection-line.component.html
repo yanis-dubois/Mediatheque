@@ -23,25 +23,11 @@
               [style.transform]="'translateX(' + vItem.start + 'px)'"
               style="position: absolute; top: 0; left: 0; height: 100%;"
             >
-              <div class="card"
-                [style.--scale-width]="1 + (8 / getElementWidth(vItem.index))"
-                [style.--scale-height]="1 + (8 / containerHeight())"
+              <ng-container 
+                [ngTemplateOutlet]="itemTemplate" 
+                [ngTemplateOutletContext]="{ mediaId: layout.id, width: getElementWidth(vItem.index), height: containerHeight()}"
               >
-                @if (visibleMediaMap()[layout.id]; as media) {
-                  <a [routerLink]="['/media', media.id]">
-                    <img 
-                      [src]="media.id | posterPath"
-                      [alt]="media.title"
-                    />
-                  </a>
-                }
-                @else {
-                  <div class="skeleton-card" 
-                    [style.width.px]="getElementWidth(vItem.index)" 
-                    [style.height.px]="containerHeight()"
-                  ></div>
-                }
-              </div>
+              </ng-container>
             </div>
           }
         }

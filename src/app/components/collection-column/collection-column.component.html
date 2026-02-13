@@ -14,11 +14,11 @@
             <div
               [style.width.%]="100 / columns()" 
               [style.transform]="'translateY(' + vItem.start + 'px) translateX(' + (vItem.lane * 100) + '%)'"
-              style="position: absolute; top: 0; left: 0; padding: 0px 4px; box-sizing: border-box;"
+              style="position: absolute; top: 0; left: 0; padding: 0px; box-sizing: border-box;"
             >
               <ng-container 
                 [ngTemplateOutlet]="itemTemplate" 
-                [ngTemplateOutletContext]="{ media: visibleMediaMap()[layout.id], width: columnWidth(), height: getElementHeight(vItem.index)}">
+                [ngTemplateOutletContext]="{ mediaId: layout.id, width: columnWidth(), height: getElementHeight(vItem.index)}">
               </ng-container>
             </div>
           }

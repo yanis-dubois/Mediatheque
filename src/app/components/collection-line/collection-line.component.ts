@@ -1,33 +1,31 @@
-import { Component, effect, ElementRef, HostListener, inject, input, Input, signal, ViewChild } from '@angular/core';
+import { Component, ContentChild, effect, ElementRef, HostListener, inject, input, Input, signal, TemplateRef, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
+import { debounceTime, Subject, switchMap } from 'rxjs';
 
 import { injectVirtualizer, VirtualItem } from '@tanstack/angular-virtual';
 
 import { Collection } from '@models/collection.model';
+import { Media } from '@models/media.model';
 
-import { PosterPathPipe } from '@pipe/image-path.pipe'
-import { Media } from '@app/models/media.model';
-import { debounceTime, Subject, switchMap } from 'rxjs';
-import { CollectionService } from '@app/services/collection.service';
+import { CollectionService } from '@services/collection.service';
+import { MediaService } from '@app/services/media.service';
 
 @Component({
   selector: 'app-collection-line',
   standalone: true,
-  imports: [CommonModule, RouterModule, PosterPathPipe],
+  imports: [CommonModule, RouterModule],
   templateUrl: './collection-line.component.html',
   styleUrl: './collection-line.component.css'
 })
 export class CollectionLineComponent {
   @Input({ required: true }) collection!: Collection;
   @Input({ required: true }) loading!: boolean;
-
+  @ContentChild('itemRef') itemTemplate!: TemplateRef<any>;
   @ViewChild('scrollElement') scrollElement!: ElementRef<HTMLElement>;
 
   // all media infos (id, width, height)
   mediaLayoutData = input.required<[string, number, number][]>();
-  // media currently visible in the virtualizer
-  protected visibleMediaMap = signal<Record<string, Media>>({});
 
   private scrollSubject = new Subject<string[]>();
   private el = inject(ElementRef);
@@ -66,30 +64,17 @@ export class CollectionLineComponent {
   private syncVisibleMedia(virtualItems: VirtualItem[]) {
     const visibleIds = virtualItems.map(vItem => this.getMediaLayout(vItem.index).id);
 
-    // load cache
-    const cachedMedia: Record<string, Media> = {};
-    let hasMissing = false;
-
-    visibleIds.forEach(id => {
-      const media = this.collectionService.getCachedMedia(id);
-      if (media) {
-        cachedMedia[id] = media;
-      } else {
-        hasMissing = true;
-      }
+    const missingIds = visibleIds.filter(id => {
+      return this.mediaService.getMediaSignal(id)() === null;
     });
 
-    if (Object.keys(cachedMedia).length > 0) {
-      this.visibleMediaMap.update(current => ({ ...current, ...cachedMedia }));
-    }
-
-    // load media that are not in cache
-    if (hasMissing) {
-      this.scrollSubject.next(visibleIds);
+    if (missingIds.length > 0) {
+      this.scrollSubject.next(missingIds);
     }
   }
 
   constructor(
+    private mediaService: MediaService,
     private collectionService: CollectionService
   ) {
     effect(() => {
@@ -105,17 +90,23 @@ export class CollectionLineComponent {
 
     this.scrollSubject.pipe(
       // wait for the scroll to be more stable
-      debounceTime(50),
+      debounceTime(100),
       // avoid last request if a new one is here
       switchMap(async (ids) => {
-        const media = await this.collectionService.getMediaBatch(ids);
-        return { ids, media };
+        try {
+          const missingIds = ids.filter(id => this.mediaService.getMediaSignal(id)() === null);
+          if (missingIds.length === 0) return [];
+
+          return await this.collectionService.getMediaBatch(missingIds);
+        } catch (e) {
+          console.error("Batch load failed", e);
+          return [];
+        }
       })
-    ).subscribe(({ media }) => {
-      this.visibleMediaMap.update(current => {
-        const next = { ...current };
-        media.forEach(m => next[m.id] = m);
-        return next;
+    ).subscribe((medias: Media[]) => {
+      // fill the media cache 
+      medias.forEach(m => {
+        this.mediaService.getMediaSignal(m.id).set(m);
       });
     });
   }
@@ -123,7 +114,7 @@ export class CollectionLineComponent {
   ngAfterViewInit() {
     this.updateDimensions();
 
-    const ro = new ResizeObserver((entries) => {
+    const ro = new ResizeObserver(() => {
       this.virtualizer.measure();
     });
 

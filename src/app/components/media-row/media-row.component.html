@@ -1,39 +1,58 @@
 <div class="row-content" 
   [style.height.px]="height"
 >
-  <div class="card"
+  @if (media(); as media) {
+    <div class="card"
     [style.--scale-width]="1 + (8 / width)"
     [style.--scale-height]="1 + (8 / height)"
-  >
-    <img 
-      [src]="media.id | posterPath"
-      [alt]="media.title"
-      [style.width.px]="width"
-      [style.height.px]="height"
     >
-  </div>
-
-  <div class="infos-container"
-    [style.height.px]="height" 
-  >
-    <div class="infos">
-      <div class="text-group">
-        <h3 class="title">{{ media.title }}</h3>
-        <p class="type">{{ media.mediaType | emojize }} - {{ media.status | humanize }}</p>
-        <p class="date">{{ media.releaseDate | date:'mediumDate' }}</p>
-      </div>
-  
-      <div class="actions-right">
-        <div class="menu-slot">
-          <ng-content select="[menu]"></ng-content>
-        </div>
-
-        <div class="icon-slot">
-          <ng-content select="[icon]"></ng-content>
-        </div>
-      </div>
+      <img 
+        [src]="media.id | posterPath"
+        [alt]="media.title"
+        [style.width.px]="width"
+        [style.height.px]="height"
+      >
     </div>
 
-    <hr class="separator"/>
-  </div>
+    <div class="infos-container"
+      [style.height.px]="height" 
+    >
+      <div class="infos">
+        <div class="text-group">
+          <h3 class="title">{{ media.title }}</h3>
+          <p class="type">{{ media.mediaType | emojize }} - {{ media.status | humanize }}</p>
+          <p class="date">{{ media.releaseDate | date:'mediumDate' }}</p>
+        </div>
+    
+        <div class="actions-right">
+          <div class="menu-slot">
+            <ng-content select="[menu]"></ng-content>
+          </div>
+
+          <div class="icon-slot">
+            <ng-content select="[icon]"></ng-content>
+          </div>
+        </div>
+      </div>
+
+      <hr class="separator"/>
+    </div>
+  }
+  @else {
+    <div class="skeleton-card" 
+      [style.width.px]="width" 
+      [style.height.px]="height">
+    </div>
+
+    <div class="infos-container" [style.height.px]="height">
+      <div class="infos">
+        <div class="text-group">
+          <div class="skeleton-text title"></div>
+          <div class="skeleton-text type"></div>
+          <div class="skeleton-text date"></div>
+        </div>
+      </div>
+      <hr class="separator"/>
+    </div>
+  }
 </div>

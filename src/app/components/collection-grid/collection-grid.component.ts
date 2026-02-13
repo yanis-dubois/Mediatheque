@@ -8,6 +8,7 @@ import { injectVirtualizer, VirtualItem } from '@tanstack/angular-virtual';
 import { Media } from '@models/media.model';
 
 import { CollectionService } from '@services/collection.service';
+import { MediaService } from '@app/services/media.service';
 
 @Component({
   selector: 'app-collection-grid',
@@ -23,8 +24,6 @@ export class CollectionGridComponent {
 
   // all media infos (id, width, height)
   mediaLayoutData = input.required<[string, number, number][]>();
-  // media currently visible in the virtualizer
-  protected visibleMediaMap = signal<Record<string, Media>>({});
 
   private scrollSubject = new Subject<string[]>();
   private el = inject(ElementRef);
@@ -72,30 +71,17 @@ export class CollectionGridComponent {
   private syncVisibleMedia(virtualItems: VirtualItem[]) {
     const visibleIds = virtualItems.map(vItem => this.getMediaLayout(vItem.index).id);
 
-    // load cache
-    const cachedMedia: Record<string, Media> = {};
-    let hasMissing = false;
-
-    visibleIds.forEach(id => {
-      const media = this.collectionService.getCachedMedia(id);
-      if (media) {
-        cachedMedia[id] = media;
-      } else {
-        hasMissing = true;
-      }
+    const missingIds = visibleIds.filter(id => {
+      return this.mediaService.getMediaSignal(id)() === null;
     });
 
-    if (Object.keys(cachedMedia).length > 0) {
-      this.visibleMediaMap.update(current => ({ ...current, ...cachedMedia }));
-    }
-
-    // load media that are not in cache
-    if (hasMissing) {
-      this.scrollSubject.next(visibleIds);
+    if (missingIds.length > 0) {
+      this.scrollSubject.next(missingIds);
     }
   }
 
   constructor(
+    private mediaService: MediaService,
     private collectionService: CollectionService
   ) {
     effect(() => {
@@ -113,14 +99,20 @@ export class CollectionGridComponent {
       debounceTime(100),
       // avoid last request if a new one is here
       switchMap(async (ids) => {
-        const media = await this.collectionService.getMediaBatch(ids);
-        return { ids, media };
+        try {
+          const missingIds = ids.filter(id => this.mediaService.getMediaSignal(id)() === null);
+          if (missingIds.length === 0) return [];
+
+          return await this.collectionService.getMediaBatch(missingIds);
+        } catch (e) {
+          console.error("Batch load failed", e);
+          return [];
+        }
       })
-    ).subscribe(({ media }) => {
-      this.visibleMediaMap.update(current => {
-        const next = { ...current };
-        media.forEach(m => next[m.id] = m);
-        return next;
+    ).subscribe((medias: Media[]) => {
+      // fill the media cache 
+      medias.forEach(m => {
+        this.mediaService.getMediaSignal(m.id).set(m);
       });
     });
   }

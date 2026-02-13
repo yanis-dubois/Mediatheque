@@ -1,3 +1,14 @@
+.collection-layout {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  overflow: hidden;
+}
+
+.collection-header {
+  padding: 5px;
+}
+
 .viewport-container {
   height: 100vh;
   overflow-y: auto;
@@ -5,27 +16,5 @@
   display: block;
   position: relative;
   padding-top: 6px;
-}
-
-.card img {
-  width: 100%;
-  aspect-ratio: 2 / 3;
-  background-color: #333;
-  border-radius: 12px;
-  object-fit: cover;
-}
-
-.card {
-  will-change: transform;
-  transition: transform var(--scale-card-out) ease;
-
-  backface-visibility: hidden;
-  transform: translateZ(0);
-  -webkit-font-smoothing: subpixel-antialiased;
-}
-
-.card:hover {
-  transition: transform var(--scale-card-in) ease-out;
-  transform: scale(var(--scale-width), var(--scale-height));
-  z-index: 10;
+  contain: strict;
 }

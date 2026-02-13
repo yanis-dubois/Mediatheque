@@ -1,0 +1,8 @@
+<button (click)="toggleFavorite()" style="text-align: center;">
+  {{ media()?.favorite ? '❤️' : '🩶' }}
+</button>
+@if (canDelete()) {
+  <button class="delete-item" (click)="onDelete()">
+    Delete from collection
+  </button>
+}

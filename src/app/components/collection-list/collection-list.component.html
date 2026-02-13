@@ -15,16 +15,10 @@
             style="position: absolute; top: 0; left: 0; padding: 0px 0px; box-sizing: border-box; 
               display: flex; flex-direction: column; justify-content: center;"
           >
-            @if (visibleMediaMap()[layout.id]; as media) {
-              <ng-container 
-                [ngTemplateOutlet]="rowTemplate" 
-                [ngTemplateOutletContext]="{ media: media, width: containerWidth(), height: containerHeight() }">
-              </ng-container>
-            }
-            @else {
-              <!-- TODO -->
-              <div class="skeleton-card" [style.width.px]="containerWidth()" [style.height.px]="containerHeight()"></div>
-            }
+            <ng-container 
+              [ngTemplateOutlet]="rowTemplate" 
+              [ngTemplateOutletContext]="{ mediaId: layout.id, width: containerWidth(), height: containerHeight() }">
+            </ng-container>
           </div>
         }
       }

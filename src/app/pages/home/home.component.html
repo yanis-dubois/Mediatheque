@@ -11,7 +11,14 @@
   </div>
   <p>Click on the logos to learn more about the frameworks</p>
 
-  <div *ngFor="let id of collectionIds()">
+  <!-- <div *ngFor="let id of collectionIds()">
     <app-collection [id]="id" [view]="CollectionDisplayMode.PREVIEW"></app-collection>
-  </div>
+  </div> -->
+
+  <a [routerLink]="['/collections']">
+    <h2>
+      Collections
+      <img src="assets/icons/chevron.svg"/>
+    </h2>
+  </a>
 </main>

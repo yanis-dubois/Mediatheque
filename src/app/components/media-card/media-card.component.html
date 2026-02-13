@@ -2,6 +2,8 @@
   [class.is-menu-open]="isMenuOpen()"
   [style.--scale-width]="1 + (8 / width)"
   [style.--scale-height]="1 + (8 / height)"
+  [style.width.px]="width" 
+  [style.height.px]="height"
 >
   @if (media(); as media) {
   <a 
@@ -19,7 +21,8 @@
   <div class="menu-slot">
     <ng-content select="[menu]"></ng-content>
   </div>
-  } @else {
+  } 
+  @else {
     <div class="skeleton-card" 
       [style.width.px]="width" 
       [style.height.px]="height">

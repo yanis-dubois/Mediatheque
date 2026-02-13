@@ -63,8 +63,8 @@ export class CollectionService {
     });
   }
 
-  searchMedia(query: string) {
-    return invoke<[string, number, number][]>('search_layout_data', { query: query });
+  searchMedia(query: string, mediaType: CollectionMediaType) {
+    return invoke<[string, number, number][]>('search_layout_data', { query: query, mediaType: mediaType });
   }
 
   getAllIds(): Promise<string[]> {

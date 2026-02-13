@@ -1,24 +1,210 @@
 @if (error) {
-    <p>Error : {{ error }}</p>
+  <p>Error : {{ error }}</p>
 } 
 @else if (collection) {
   <section>
+
     @switch (view) {
       @case (CollectionDisplayMode.PREVIEW) {
         <app-collection-line
           [collection]="collection"
           [mediaLayoutData]="mediaLayoutData()"
           [loading]="loading"
-        />
+        >
+          <ng-template #itemRef let-mediaId="mediaId" let-width="width" let-height="height">
+            <app-media-card 
+              [mediaId]="mediaId" [width]="width" [height]="height"
+              [isMenuOpen]="isMenuOpen(mediaId)"
+            >
+              <div menu (click)="$event.preventDefault(); $event.stopPropagation()">
+                <ng-container *ngTemplateOutlet="itemMenu; context: { mediaId: mediaId }"></ng-container>
+              </div>
+            </app-media-card>
+          </ng-template>
+        </app-collection-line>
       }
       @case (CollectionDisplayMode.DETAILS) {
-        <app-collection-details
-          [collection]="collection"
-          [mediaLayoutData]="mediaLayoutData()"
-          [loading]="loading"
-          (onLayoutNeedsRefresh)="loadLayoutData()"
-        />
+        <div class="collection-header">
+          <h1 
+            contenteditable="true"
+            #nameInput
+            (focus)="isEditingName.set(true)"
+            (blur)="onNameBlur(nameInput.innerText)"
+            (keydown.enter)="$event.preventDefault(); nameInput.blur()"
+            (keydown.escape)="nameInput.innerText = name(); nameInput.blur()"
+            [class.editing]="isEditingName()"
+            class="editable-title"
+          >
+            {{ name() }}
+          </h1>
+      
+          <div style="display: flex; justify-content:space-around;">
+            <p> {{collection.collectionType}} </p>
+      
+            <p> 
+              @if (collection.mediaType.type === 'ALL') {
+                <span>All</span>
+              }
+              @else {
+                <span>{{ collection.mediaType.value | humanize }}</span>
+              }
+            </p>
+      
+            <p> {{collection.addedDate}} </p>
+      
+            <div>
+              <button (click)="onToggleFavorite()" [class.is-favorite]="favorite()">
+                @if (favorite()) {
+                  ❤️
+                } @else {
+                  🩶
+                }
+              </button>
+            </div>
+      
+            <p> {{collection.hasImage}} </p>
+      
+            <div class="collection-layout-box">
+              <select 
+                [value]="preferredLayout()" 
+                (change)="onLayoutChange($any($event.target).value)"
+              >
+                @for (opt of collectionLayoutOption; track opt) {
+                  <option [value]="opt" [selected]="opt === preferredLayout()">{{ opt }}</option>
+                }
+              </select>
+            </div>
+
+            <app-sort-manager 
+              [(sortOrder)]="sortOrder" 
+              (sortOrderChange)="onSortChanged()"
+            />
+
+            @if (collection.collectionType === 'DYNAMIC') {
+              <app-filter-manager 
+                [(filter)]="filter" 
+                (filterChange)="onFilterChanged()"
+              />
+            }
+            @else if (collection.collectionType === CollectionType.MANUAL) {
+              <button class="plus-btn" (click)="showPicker.set(true)">
+                <span class="icon">＋</span> Ajouter des médias
+              </button>
+            }
+      
+            <div class="fieldset-container">
+              <label class="fieldset-label">Description</label>
+              <textarea 
+                #descriptionArea
+                [value]="description()"
+                (focus)="isEditingDescription.set(true)"
+                (blur)="onDescriptionBlur(descriptionArea.value)"
+                (keydown.escape)="descriptionArea.value = description(); descriptionArea.blur()"
+                placeholder="Description..."
+                [class.editing]="isEditingDescription()"
+              ></textarea>
+            </div>
+      
+          </div>
+        </div>
+      
+        @switch (preferredLayout()) {
+          @case (CollectionLayout.GRID) {
+            <app-collection-grid
+              [mediaLayoutData]="mediaLayoutData()"
+              [loading]="loading"
+            >
+              <ng-template #itemRef let-mediaId="mediaId" let-width="width" let-height="height">
+                <app-media-card 
+                  [mediaId]="mediaId" [width]="width" [height]="height"
+                  [isMenuOpen]="isMenuOpen(mediaId)"
+                >
+                  <div menu (click)="$event.preventDefault(); $event.stopPropagation()">
+                    <ng-container *ngTemplateOutlet="itemMenu; context: { mediaId: mediaId }"></ng-container>
+                  </div>
+                </app-media-card>
+              </ng-template>
+            </app-collection-grid>
+          }
+          @case (CollectionLayout.ROW) {
+            <app-collection-row
+              [mediaLayoutData]="mediaLayoutData()"
+              [loading]="loading"
+            >
+              <ng-template #itemRef let-mediaId="mediaId" let-width="width" let-height="height">
+                <app-media-card 
+                  [mediaId]="mediaId" [width]="width" [height]="height"
+                  [isMenuOpen]="isMenuOpen(mediaId)"
+                >
+                  <div menu (click)="$event.preventDefault(); $event.stopPropagation()">
+                    <ng-container *ngTemplateOutlet="itemMenu; context: { mediaId: mediaId }"></ng-container>
+                  </div>
+                </app-media-card>
+              </ng-template>
+            </app-collection-row>
+          }
+          @case (CollectionLayout.COLUMN) {
+            <app-collection-column
+              [mediaLayoutData]="mediaLayoutData()"
+              [loading]="loading"
+            >
+              <ng-template #itemRef let-mediaId="mediaId" let-width="width" let-height="height">
+                <app-media-card 
+                  [mediaId]="mediaId" [width]="width" [height]="height"
+                  [isMenuOpen]="isMenuOpen(mediaId)"
+                >
+                  <div menu (click)="$event.preventDefault(); $event.stopPropagation()">
+                    <ng-container *ngTemplateOutlet="itemMenu; context: { mediaId: mediaId }"></ng-container>
+                  </div>
+                </app-media-card>
+              </ng-template>
+            </app-collection-column>
+          }
+          @case (CollectionLayout.LIST) {
+            <app-collection-list 
+              [mediaLayoutData]="mediaLayoutData()" 
+              [loading]="loading"
+            >
+              <ng-template #rowRef let-mediaId="mediaId" let-width="width" let-height="height">
+                <a [routerLink]="['/media', mediaId]" style="text-decoration: none; color: inherit;">
+                  <app-media-row 
+                    [mediaId]="mediaId" [width]="width" [height]="height"
+                  >
+                    <!-- TODO <span icon class="favorite-icon">{{ media.favorite | emojize }}</span> -->
+                    <div menu (click)="$event.preventDefault(); $event.stopPropagation()">
+                      <ng-container *ngTemplateOutlet="itemMenu; context: { mediaId: mediaId }"></ng-container>
+                    </div>
+                  </app-media-row>
+                </a>
+              </ng-template>
+            </app-collection-list>
+          }
+        }
+
+        @if (showPicker()) {
+          <div class="picker-overlay" [@slideInUp]>
+            <app-media-picker 
+              [collection]="collection"
+              (onCancel)="showPicker.set(false)"
+              (onConfirm)="showPicker.set(false); addSelectedMedia($event)"
+            />
+          </div>
+        }
       }
     }
   </section>
 }
+
+<ng-template #itemMenu let-mediaId="mediaId">
+  <app-dropdown variant="overlay"
+    [isOpenExternal]="activeMediaMenuId() === mediaId"
+    (opened)="activeMediaMenuId.set(mediaId)"
+    (closed)="activeMediaMenuId.set(null)"
+  >
+    <app-media-action 
+      [mediaId]="mediaId"
+      [canDelete]="collection.collectionType === CollectionType.MANUAL"
+      (deleteRequest)="activeMediaMenuId.set(null); removeMediaFromCollection($event)"
+    />
+  </app-dropdown>
+</ng-template>

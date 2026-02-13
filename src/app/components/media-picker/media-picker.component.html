@@ -10,7 +10,6 @@
           [ngModel]="searchQuery()" 
           (ngModelChange)="searchQuery.set($event)"
           placeholder="Search on the library..."
-          autoFocus
         />
       </div>
       <button 
@@ -27,10 +26,10 @@
         [mediaLayoutData]="mediaResults()" 
         [loading]="isLoading()"
       >
-        <ng-template #rowRef let-media="media" let-width="width" let-height="height">
-          <div (click)="toggleSelection(media.id)" class="selectable-row">
-            <app-media-row [media]="media" [width]="width" [height]="height">
-              <span icon class="check-icon">{{ isSelected(media.id) ? '✅' : '⚪' }}</span>
+        <ng-template #rowRef let-mediaId="mediaId" let-width="width" let-height="height">
+          <div (click)="toggleSelection(mediaId)" class="selectable-row">
+            <app-media-row [mediaId]="mediaId" [width]="width" [height]="height">
+              <span icon class="check-icon">{{ isSelected(mediaId) ? '✅' : '⚪' }}</span>
             </app-media-row>
           </div>
         </ng-template>

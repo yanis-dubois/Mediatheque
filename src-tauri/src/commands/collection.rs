@@ -1,7 +1,7 @@
 use crate::commands::media::{get_media_layout_list, match_media_type};
 use crate::db::{DbState};
 use crate::models::collection::{Collection};
-use crate::models::enums::{CollectionMediaType, CollectionType, CollectionLayout};
+use crate::models::enums::{CollectionLayout, CollectionMediaType, CollectionType};
 use crate::models::query::{MediaFilter, MediaOrder};
 
 // convert SQL TEXT -> Enums
@@ -135,7 +135,8 @@ pub fn get_all_collection_ids(state: tauri::State<'_, DbState>) -> Result<Vec<St
 #[tauri::command]
 pub fn search_layout_data(
   state: tauri::State<'_, DbState>,
-  query: String
+  query: String,
+  media_type: CollectionMediaType
 ) -> Result<Vec<(String, u16, u16)>, String> {
   println!("search_layout_data : {}", query);
 
@@ -143,6 +144,10 @@ pub fn search_layout_data(
     search_query: 
       if query == "" { None } 
       else { Some(query) },
+    media_type: match media_type {
+      CollectionMediaType::All => None,
+      CollectionMediaType::Specific(mt) => Some(mt),
+    },
     ..Default::default()
   };
 

@@ -84,3 +84,24 @@
   --dots-hover: rgba(255, 255, 255, 0.2);
   --dots-blur: none;
 }
+
+.skeleton-text {
+  border-radius: 4px;
+
+  &.title {
+    height: 1.5rem;
+    width: 60%;
+    margin-bottom: 8px;
+  }
+
+  &.type {
+    height: 1rem;
+    width: 40%;
+    margin-bottom: 4px;
+  }
+
+  &.date {
+    height: 0.9rem;
+    width: 25%;
+  }
+}

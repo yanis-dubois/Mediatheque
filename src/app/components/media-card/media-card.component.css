@@ -32,8 +32,8 @@
 
 .menu-slot {
   position: absolute;
-  top: 8px;
-  right: 0px;
+  top: 6px;
+  right: 6px;
   z-index: 20;
 
   opacity: 0;

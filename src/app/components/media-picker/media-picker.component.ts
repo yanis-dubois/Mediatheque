@@ -5,7 +5,7 @@ import { CollectionListComponent } from '@components/collection-list/collection-
 import { MediaRowComponent } from '@components/media-row/media-row.component';
 
 import { CollectionService } from '@app/services/collection.service';
-import { Collection } from '@app/models/collection.model';
+import { Collection, CollectionMediaType } from '@app/models/collection.model';
 
 @Component({
   selector: 'app-media-picker',
@@ -25,12 +25,18 @@ export class MediaPickerComponent {
   selectedIds = signal<Set<string>>(new Set());
   searchQuery = signal('');
 
+  mediaType = signal<CollectionMediaType>({type: "ALL"});
+
   constructor(
     private collectionService: CollectionService
   ) {
     effect(async () => {
       await this.onSearch(this.searchQuery());
     }, { allowSignalWrites: true });
+  }
+
+  ngOnInit() {
+    this.mediaType.set(this.collection.mediaType);
   }
 
   ngAfterViewInit() {
@@ -42,7 +48,7 @@ export class MediaPickerComponent {
     this.isLoading.set(true);
     try {
       this.mediaResults.set(
-        await this.collectionService.searchMedia(query)
+        await this.collectionService.searchMedia(query, this.mediaType())
       );
       setTimeout(() => window.dispatchEvent(new Event('resize')), 0);
     } finally {
