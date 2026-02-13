@@ -1,13 +1,49 @@
-import { Injectable } from '@angular/core';
+import { Injectable, signal, WritableSignal } from '@angular/core';
 
 import { invoke } from '@tauri-apps/api/core';
 
 import { Collection, CollectionLayout, CollectionMediaType } from '@models/collection.model';
 import { MediaFilter, MediaOrder } from '@models/media-query.model';
-import { Media } from '@models/media.model';
 
 @Injectable({ providedIn: 'root' })
 export class CollectionService {
+
+  /* cache */
+
+  private readonly MAX_CACHE_SIZE = 500;
+  private collectionCache = new Map<string, WritableSignal<Collection | null>>();
+  private cacheOrder: string[] = [];
+  lastUpdate = signal<number>(Date.now());
+
+  getCollectionSignal(id: string): WritableSignal<Collection | null> {
+    if (!this.collectionCache.has(id)) {
+      this.collectionCache.set(id, signal<Collection | null>(null));
+    }
+
+    return this.collectionCache.get(id)!;
+  }
+
+  setCollection(collection: Collection) {
+    const s = this.getCollectionSignal(collection.id);
+    s.set(collection);
+    this.updateCacheOrder(collection.id);
+  }
+
+  private updateCacheOrder(id: string) {
+    // delete id if exist to make it more recent
+    this.cacheOrder = this.cacheOrder.filter(itemId => itemId !== id);
+    this.cacheOrder.push(id);
+
+    // cleaning if max size reached
+    if (this.cacheOrder.length > this.MAX_CACHE_SIZE) {
+      const oldestId = this.cacheOrder.shift();
+      if (oldestId) {
+        const s = this.collectionCache.get(oldestId);
+        if (s) s.set(null); 
+        this.collectionCache.delete(oldestId);
+      }
+    }
+  }
 
   /* get */
 
@@ -19,9 +55,9 @@ export class CollectionService {
     return invoke<[string, number, number][]>('get_collection_layout_data', { collectionId: id });
   }
 
-  async getMediaBatch(ids: string[]): Promise<Media[]> {
+  async getCollectionBatch(ids: string[]): Promise<Collection[]> {
     if (ids.length === 0) return [];
-    return await invoke<Media[]>('get_media_batch', { mediaIds: ids });
+    return await invoke<Collection[]>('get_collection_batch', { ids });
   }
 
   searchMedia(query: string, mediaType: CollectionMediaType) {
@@ -35,8 +71,11 @@ export class CollectionService {
   /* update */
 
   // generic 
-  toggleFavorite(id: string, isFavorite: boolean): Promise<void> {
-    return invoke('toggle_collection_favorite', { id, isFavorite });
+  async toggleFavorite(id: string, isFavorite: boolean): Promise<void> {
+    await invoke('toggle_collection_favorite', { id, isFavorite });
+
+    this.getCollectionSignal(id).update(c => c ? { ...c, favorite: isFavorite } : null);
+    this.lastUpdate.set(Date.now());
   }
 
   updateName(id: string, name: string): Promise<void> {
@@ -72,5 +111,22 @@ export class CollectionService {
 
   removeMedia(id: string, mediaId: string) {
     return invoke('remove_media_from_collection', { id, mediaId });
+  }
+
+  /* delete */
+
+  async delete(id: string) {
+    await invoke('delete_collection', { id });
+
+    // 1. On vide la valeur du signal pour forcer un état "null" (Skeleton)
+    const s = this.collectionCache.get(id);
+    if (s) s.set(null);
+
+    // 2. On supprime l'ID du cache
+    this.collectionCache.delete(id);
+    this.cacheOrder = this.cacheOrder.filter(itemId => itemId !== id);
+
+    // 3. On notifie du changement global
+    this.lastUpdate.set(Date.now());
   }
 }

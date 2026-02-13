@@ -44,7 +44,6 @@ export class MediaDetailsComponent {
       this.media = await this.mediaService.getById(this.id);
       this.favorite.set(this.media.favorite);
       this.notes.set(this.media.notes);
-      console.log("Status reçu du backend :", this.media.status);
       this.status.set(this.media.status);
     } catch (e) {
       console.error(e);

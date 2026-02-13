@@ -24,7 +24,6 @@
   <div class="picker-content">
     <app-collection-list 
         [mediaLayoutData]="mediaResults()" 
-        [loading]="isLoading()"
       >
         <ng-template #rowRef let-mediaId="mediaId" let-width="width" let-height="height">
           <div (click)="toggleSelection(mediaId)" class="selectable-row">

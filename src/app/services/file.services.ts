@@ -17,9 +17,8 @@ export class FileService {
       const appDataDirPath = await appDataDir();
       const path = await join(appDataDirPath, `posters`);
       this.postersDirectory.set(path);
-      console.log("📂 Dossier posters détecté :", path);
     } catch (err) {
-      console.error("Impossible de récupérer le chemin des posters", err);
+      console.error("Unable to find /posters folder", err);
     }
   }
 

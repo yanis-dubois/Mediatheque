@@ -21,6 +21,7 @@ pub fn run() {
       commands::media::add_media_to_library,
       commands::collection::search_layout_data,
       commands::collection::get_collection_by_id,
+      commands::collection::get_collection_batch,
       commands::collection::get_collection_layout_data,
       commands::collection::get_all_collection_ids,
       commands::collection::toggle_collection_favorite,
@@ -32,6 +33,7 @@ pub fn run() {
       commands::collection::update_collection_media_type,
       commands::collection::add_media_batch_to_collection,
       commands::collection::remove_media_from_collection,
+      commands::collection::delete_collection,
     ])
     .run(tauri::generate_context!())
     .expect("error while running tauri application");

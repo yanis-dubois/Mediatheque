@@ -1,9 +1,6 @@
-@if (loading) {
-  <p>Loading ...</p>
-}
-@else if (collection) {
-  <section>
+<section>
 
+  <div class="header">
     <a [routerLink]="['/collection', collection.id]">
       <h2 class="title">
         {{collection.name}} 
@@ -11,28 +8,33 @@
       </h2>
     </a>
 
-    <div #scrollElement class="viewport-container">
-      <div
-        style="height: 100%; position: relative;"
-      >
-        @for (vItem of virtualizer.getVirtualItems(); track vItem.key) {
-          @if (getMediaLayout(vItem.index); as layout) {
-            <div
-              class="line"
-              [style.width.px]="vItem.size"
-              [style.transform]="'translateX(' + vItem.start + 'px)'"
-              style="position: absolute; top: 0; left: 0; height: 100%;"
-            >
-              <ng-container 
-                [ngTemplateOutlet]="itemTemplate" 
-                [ngTemplateOutletContext]="{ mediaId: layout.id, width: getElementWidth(vItem.index), height: containerHeight()}"
-              >
-              </ng-container>
-            </div>
-          }
-        }
-      </div>
+    <div class="menu-slot">
+      <ng-content select="[collectionMenu]"></ng-content>
     </div>
+  </div>
 
-  </section>
-}
+  <div #scrollElement class="viewport-container">
+    <div
+      class="scroll-container"
+      style="height: 100%; position: relative;"
+    >
+      @for (vItem of virtualizer.getVirtualItems(); track vItem.key) {
+        @if (getMediaLayout(vItem.index); as layout) {
+          <div
+            class="line"
+            [style.width.px]="vItem.size"
+            [style.transform]="'translateX(' + vItem.start + 'px)'"
+            style="position: absolute; top: 0; left: 0; height: 100%;"
+          >
+            <ng-container 
+              [ngTemplateOutlet]="itemTemplate" 
+              [ngTemplateOutletContext]="{ mediaId: layout.id, width: getElementWidth(vItem.index), height: containerHeight()}"
+            >
+            </ng-container>
+          </div>
+        }
+      }
+    </div>
+  </div>
+
+</section>

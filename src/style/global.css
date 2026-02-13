@@ -79,7 +79,7 @@ h1 {
 @media (min-width: 600px) {
   :root {
     --card-width-grid: 110px;
-    --card-width-line: 110px;
+    --card-width-line: 105px;
     --card-width-list: 70px;
   }
 }
@@ -88,7 +88,7 @@ h1 {
 @media (min-width: 1025px) {
   :root {
     --card-width-grid: 130px;
-    --card-width-line: 130px;
+    --card-width-line: 120px;
     --card-width-list: 80px;
   }
 }

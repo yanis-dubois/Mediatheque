@@ -158,6 +158,26 @@ pub fn search_layout_data(
   Ok(data)
 }
 
+#[tauri::command]
+pub fn get_collection_batch(
+    state: tauri::State<'_, DbState>,
+    ids: Vec<String>,
+) -> Result<Vec<Collection>, String> {
+  let connection = state.connection.lock().map_err(|_| "Lock failed")?;
+
+  let placeholders: String = ids.iter().map(|_| "?").collect::<Vec<_>>().join(",");
+  let sql = format!("SELECT * FROM collection WHERE id IN ({})", placeholders);
+
+  let mut stmt = connection.prepare(&sql).map_err(|e| e.to_string())?;
+
+  let list = stmt.query_map(rusqlite::params_from_iter(ids), map_row_to_collection)
+    .map_err(|e| e.to_string())?
+    .collect::<rusqlite::Result<Vec<_>>>()
+    .map_err(|e| e.to_string())?;
+
+  Ok(list)
+}
+
 /* -- UPDATE -- */
 
 #[tauri::command]
@@ -316,6 +336,25 @@ pub fn remove_media_from_collection(
   connection.execute(
     "DELETE FROM collection_media WHERE collection_id = ?1 AND media_id = ?2",
     [&id, &media_id],
+  ).map_err(|e| e.to_string())?;
+
+  Ok(())
+}
+
+/* delete */
+
+#[tauri::command]
+pub fn delete_collection(
+  state: tauri::State<'_, DbState>, 
+  id: String
+) -> Result<(), String> {
+  println!("delete_collection");
+
+  let connection = state.connection.lock().map_err(|_| "DB Lock failed")?;
+  
+  connection.execute(
+    "DELETE FROM collection WHERE id = ?1",
+    [&id],
   ).map_err(|e| e.to_string())?;
 
   Ok(())

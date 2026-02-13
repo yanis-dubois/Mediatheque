@@ -1,6 +1,7 @@
-import { Component, effect, Input, output, signal, untracked } from '@angular/core';
+import { Component, computed, effect, input, Input, output, signal, untracked } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
+import { debounceTime, Subject } from 'rxjs';
 
 import { DropdownComponent } from '@components/dropdown/dropdown.component'
 import { SortManagerComponent } from '@components/sort-manager/sort-manager.component';
@@ -13,27 +14,25 @@ import { CollectionLineComponent } from '@components/collection-line/collection-
 import { MediaCardComponent } from '@components/media-card/media-card.component';
 import { MediaRowComponent } from "@components/media-row/media-row.component";
 import { MediaPickerComponent } from '@components/media-picker/media-picker.component'
+import { MediaActionComponent } from "@components/media-action/media-action.component";
 
 import { Collection, CollectionDisplayMode, CollectionLayout, CollectionMediaType, CollectionType } from '@models/collection.model';
 import { MediaFilter, MediaOrder } from '@models/media-query.model';
 
-import { CollectionService } from '@services/collection.service';
-import { debounceTime, Subject } from 'rxjs';
 import { HumanizePipe } from "@pipe/humanize";
-import { EmojizePipe } from "@pipe/emojize";
-import { MediaActionComponent } from "../media-action/media-action.component";
-import { MediaService } from '@app/services/media.service';
+import { CollectionService } from '@services/collection.service';
+import { MediaService } from '@services/media.service';
 
 @Component({
   selector: 'app-collection',
   standalone: true,
-  imports: [CommonModule, RouterModule, HumanizePipe, EmojizePipe, SortManagerComponent, FilterManagerComponent, CollectionLineComponent, CollectionGridComponent, CollectionColumnComponent, CollectionRowComponent, CollectionListComponent, MediaCardComponent, MediaRowComponent, MediaPickerComponent, DropdownComponent, MediaActionComponent],
+  imports: [CommonModule, RouterModule, HumanizePipe, SortManagerComponent, FilterManagerComponent, CollectionLineComponent, CollectionGridComponent, CollectionColumnComponent, CollectionRowComponent, CollectionListComponent, MediaCardComponent, MediaRowComponent, MediaPickerComponent, DropdownComponent, MediaActionComponent],
   templateUrl: './collection.component.html',
   styleUrl: './collection.component.scss'
 })
 export class CollectionComponent {
-  @Input({ required: true }) id!: string;
   @Input({ required: true }) view!: CollectionDisplayMode;
+  id = input.required<string>();
 
   // media data needed for virtualizing (id, width, height)
   mediaLayoutData = signal<[string, number, number][]>([]);
@@ -45,9 +44,9 @@ export class CollectionComponent {
   protected readonly CollectionType = CollectionType;
   collectionLayoutOption = Object.values(CollectionLayout);
 
-  collection!: Collection;
-  loading = true;
-  error?: string;
+  collection = computed(() => {
+    return this.collectionService.getCollectionSignal(this.id())();
+  });
 
   favorite = signal(false);
   name = signal('');
@@ -71,16 +70,22 @@ export class CollectionComponent {
   activeMediaMenuId = signal<string | null>(null);
 
   private refreshLayout$ = new Subject<void>();
-  private isInitialized = false;
 
   constructor(
     private mediaService: MediaService,
     private collectionService: CollectionService
   ) {
     this.refreshLayout$.pipe(
-      debounceTime(200)
+      debounceTime(50)
     ).subscribe(() => {
       this.loadLayoutData();
+    });
+
+    effect(() => {
+      this.id();
+      untracked(() => {
+        this.refreshLayout$.next();
+      });
     });
 
     // update layout on media change for dynamic collection
@@ -95,38 +100,29 @@ export class CollectionComponent {
     });
   }
 
-  async ngOnInit() {
-    try {
-      this.collection = await this.collectionService.getInfo(this.id);
-      this.loadLayoutData();
+  ngOnInit() {
+    const collection = this.collection();
+    this.loadLayoutData();
 
-      // setup signals
-      if (this.collection) {
-        this.name.set(this.collection.name);
-        this.description.set(this.collection.description);
-        this.favorite.set(this.collection.favorite);
-        this.collectionType.set(this.collection.collectionType);
-        this.collectionMediaType.set(this.collection.mediaType);
-        this.preferredLayout.set(this.collection.preferredLayout);
-        this.sortOrder.set(this.collection.sortOrder);
+    // setup signals
+    if (collection) {
+      this.name.set(collection.name);
+      this.description.set(collection.description);
+      this.favorite.set(collection.favorite);
+      this.collectionType.set(collection.collectionType);
+      this.collectionMediaType.set(collection.mediaType);
+      this.preferredLayout.set(collection.preferredLayout);
+      this.sortOrder.set(collection.sortOrder);
 
-        if (this.collection.collectionType == CollectionType.DYNAMIC) {
-          this.filter.set(this.collection.filter);
-        }
-
-        this.isInitialized = true;
+      if (collection.collectionType == CollectionType.DYNAMIC) {
+        this.filter.set(collection.filter);
       }
-    } catch (e) {
-      console.error(e);
-      this.error = 'Collection not found 😢';
-    } finally {
-      this.loading = false;
     }
   }
 
   async loadLayoutData() {
     this.mediaLayoutData.set(
-      await this.collectionService.getLayoutData(this.id)
+      await this.collectionService.getLayoutData(this.id())
     );
   }
 
@@ -134,7 +130,7 @@ export class CollectionComponent {
     const isFavorite = !this.favorite();
 
     try {
-      await this.collectionService.toggleFavorite(this.id, isFavorite);
+      await this.collectionService.toggleFavorite(this.id(), isFavorite);
       this.favorite.set(isFavorite);
     } catch (e) {
       console.error("Error while updating favorite", e);
@@ -148,7 +144,7 @@ export class CollectionComponent {
     if (newName !== this.name()) {
       this.isSavingName.set(true);
       try {
-        await this.collectionService.updateName(this.id, newName);
+        await this.collectionService.updateName(this.id(), newName);
         this.name.set(newName);
       } catch (e) {
         console.error("Failed to save name :", e);
@@ -166,7 +162,7 @@ export class CollectionComponent {
     if (newDescription !== this.name()) {
       this.isSavingDescription.set(true);
       try {
-        await this.collectionService.updateDescription(this.id, newDescription);
+        await this.collectionService.updateDescription(this.id(), newDescription);
         this.description.set(newDescription);
       } catch (e) {
         console.error("Failed to save description :", e);
@@ -181,7 +177,7 @@ export class CollectionComponent {
     const view = newLayout as CollectionLayout;
 
     try {
-      await this.collectionService.updatePreferredLayout(this.id, view);
+      await this.collectionService.updatePreferredLayout(this.id(), view);
       this.preferredLayout.set(view);
     } catch (e) {
       console.error("Error while updating collection type", e);
@@ -190,7 +186,7 @@ export class CollectionComponent {
 
   async onSortChanged() {
     try {
-      await this.collectionService.updateSort(this.id, this.sortOrder());
+      await this.collectionService.updateSort(this.id(), this.sortOrder());
       this.refreshLayout$.next();
     } catch (e) {
       console.error("Error while updating collection type", e);
@@ -217,9 +213,9 @@ export class CollectionComponent {
     }
 
     try {
-      await this.collectionService.updateFilter(this.id, newFilter);
+      await this.collectionService.updateFilter(this.id(), newFilter);
       if (mediaTypeHasChanged) {
-        await this.collectionService.updateMediaType(this.id, this.collectionMediaType());
+        await this.collectionService.updateMediaType(this.id(), this.collectionMediaType());
       }
       this.refreshLayout$.next();
     } catch (e) {
@@ -231,7 +227,7 @@ export class CollectionComponent {
     if (newMediaIds.size < 1) return;
 
     try {
-      await this.collectionService.addMediaBatch(this.id, newMediaIds);
+      await this.collectionService.addMediaBatch(this.id(), newMediaIds);
       this.refreshLayout$.next();
     } catch (e) {
       console.error("Error while adding media to collection", e);
@@ -243,7 +239,7 @@ export class CollectionComponent {
     console.log("remove request : " + mediaId);
 
     try {
-      await this.collectionService.removeMedia(this.id, mediaId);
+      await this.collectionService.removeMedia(this.id(), mediaId);
       this.refreshLayout$.next();
     } catch (e) {
       console.error("Error while adding media to collection", e);

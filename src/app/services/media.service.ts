@@ -8,6 +8,8 @@ import { Movie, Series } from '@models/media-details.model';
 @Injectable({ providedIn: 'root' })
 export class MediaService {
 
+  /* cache */
+
   private readonly MAX_CACHE_SIZE = 500;
   private mediaCache = new Map<string, WritableSignal<Media | null>>();
   private cacheOrder: string[] = [];
@@ -21,12 +23,10 @@ export class MediaService {
     return this.mediaCache.get(id)!;
   }
 
-  setMedia(m: Media) {
-    const s = this.getMediaSignal(m.id);
-    s.set(m);
-
-    // Gestion du cycle de vie du cache
-    this.updateCacheOrder(m.id);
+  setMedia(media: Media) {
+    const s = this.getMediaSignal(media.id);
+    s.set(media);
+    this.updateCacheOrder(media.id);
   }
 
   private updateCacheOrder(id: string) {
@@ -49,6 +49,11 @@ export class MediaService {
 
   getById(id: string): Promise<Media> {
     return invoke<any>('get_media_by_id', { id });
+  }
+
+  async getMediaBatch(ids: string[]): Promise<Media[]> {
+    if (ids.length === 0) return [];
+    return await invoke<Media[]>('get_media_batch', { ids });
   }
 
   /* update media */

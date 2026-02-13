@@ -387,16 +387,16 @@ pub fn get_media_layout_list(
 #[tauri::command]
 pub fn get_media_batch(
     state: tauri::State<'_, DbState>,
-    media_ids: Vec<String>,
+    ids: Vec<String>,
 ) -> Result<Vec<Media>, String> {
   let connection = state.connection.lock().map_err(|_| "Lock failed")?;
-  
-  let placeholders: String = media_ids.iter().map(|_| "?").collect::<Vec<_>>().join(",");
+
+  let placeholders: String = ids.iter().map(|_| "?").collect::<Vec<_>>().join(",");
   let sql = format!("SELECT * FROM media WHERE id IN ({})", placeholders);
 
   let mut stmt = connection.prepare(&sql).map_err(|e| e.to_string())?;
-  
-  let list = stmt.query_map(rusqlite::params_from_iter(media_ids), map_row_to_media)
+
+  let list = stmt.query_map(rusqlite::params_from_iter(ids), map_row_to_media)
     .map_err(|e| e.to_string())?
     .collect::<rusqlite::Result<Vec<_>>>()
     .map_err(|e| e.to_string())?;

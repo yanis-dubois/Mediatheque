@@ -1,7 +1,4 @@
-@if (error) {
-  <p>Error : {{ error }}</p>
-} 
-@else if (collection) {
+@if (collection(); as collection) {
   <section>
 
     @switch (view) {
@@ -9,14 +6,14 @@
         <app-collection-line
           [collection]="collection"
           [mediaLayoutData]="mediaLayoutData()"
-          [loading]="loading"
         >
+          <ng-content collectionMenu select="[collectionMenu]"></ng-content>
           <ng-template #itemRef let-mediaId="mediaId" let-width="width" let-height="height">
             <app-media-card 
               [mediaId]="mediaId" [width]="width" [height]="height"
               [isMenuOpen]="isMenuOpen(mediaId)"
             >
-              <div menu (click)="$event.preventDefault(); $event.stopPropagation()">
+              <div mediaMenu (click)="$event.preventDefault(); $event.stopPropagation()">
                 <ng-container *ngTemplateOutlet="itemMenu; context: { mediaId: mediaId }"></ng-container>
               </div>
             </app-media-card>
@@ -107,19 +104,18 @@
       
           </div>
         </div>
-      
+
         @switch (preferredLayout()) {
           @case (CollectionLayout.GRID) {
             <app-collection-grid
               [mediaLayoutData]="mediaLayoutData()"
-              [loading]="loading"
             >
               <ng-template #itemRef let-mediaId="mediaId" let-width="width" let-height="height">
                 <app-media-card 
                   [mediaId]="mediaId" [width]="width" [height]="height"
                   [isMenuOpen]="isMenuOpen(mediaId)"
                 >
-                  <div menu (click)="$event.preventDefault(); $event.stopPropagation()">
+                  <div mediaMenu (click)="$event.preventDefault(); $event.stopPropagation()">
                     <ng-container *ngTemplateOutlet="itemMenu; context: { mediaId: mediaId }"></ng-container>
                   </div>
                 </app-media-card>
@@ -129,14 +125,13 @@
           @case (CollectionLayout.ROW) {
             <app-collection-row
               [mediaLayoutData]="mediaLayoutData()"
-              [loading]="loading"
             >
               <ng-template #itemRef let-mediaId="mediaId" let-width="width" let-height="height">
                 <app-media-card 
                   [mediaId]="mediaId" [width]="width" [height]="height"
                   [isMenuOpen]="isMenuOpen(mediaId)"
                 >
-                  <div menu (click)="$event.preventDefault(); $event.stopPropagation()">
+                  <div mediaMenu (click)="$event.preventDefault(); $event.stopPropagation()">
                     <ng-container *ngTemplateOutlet="itemMenu; context: { mediaId: mediaId }"></ng-container>
                   </div>
                 </app-media-card>
@@ -146,14 +141,13 @@
           @case (CollectionLayout.COLUMN) {
             <app-collection-column
               [mediaLayoutData]="mediaLayoutData()"
-              [loading]="loading"
             >
               <ng-template #itemRef let-mediaId="mediaId" let-width="width" let-height="height">
                 <app-media-card 
                   [mediaId]="mediaId" [width]="width" [height]="height"
                   [isMenuOpen]="isMenuOpen(mediaId)"
                 >
-                  <div menu (click)="$event.preventDefault(); $event.stopPropagation()">
+                  <div mediaMenu (click)="$event.preventDefault(); $event.stopPropagation()">
                     <ng-container *ngTemplateOutlet="itemMenu; context: { mediaId: mediaId }"></ng-container>
                   </div>
                 </app-media-card>
@@ -163,15 +157,13 @@
           @case (CollectionLayout.LIST) {
             <app-collection-list 
               [mediaLayoutData]="mediaLayoutData()" 
-              [loading]="loading"
             >
               <ng-template #rowRef let-mediaId="mediaId" let-width="width" let-height="height">
                 <a [routerLink]="['/media', mediaId]" style="text-decoration: none; color: inherit;">
                   <app-media-row 
                     [mediaId]="mediaId" [width]="width" [height]="height"
                   >
-                    <!-- TODO <span icon class="favorite-icon">{{ media.favorite | emojize }}</span> -->
-                    <div menu (click)="$event.preventDefault(); $event.stopPropagation()">
+                    <div mediaMenu (click)="$event.preventDefault(); $event.stopPropagation()">
                       <ng-container *ngTemplateOutlet="itemMenu; context: { mediaId: mediaId }"></ng-container>
                     </div>
                   </app-media-row>
@@ -193,18 +185,18 @@
       }
     }
   </section>
-}
 
-<ng-template #itemMenu let-mediaId="mediaId">
-  <app-dropdown variant="overlay"
-    [isOpenExternal]="activeMediaMenuId() === mediaId"
-    (opened)="activeMediaMenuId.set(mediaId)"
-    (closed)="activeMediaMenuId.set(null)"
-  >
-    <app-media-action 
-      [mediaId]="mediaId"
-      [canDeleteFromCollection]="collection.collectionType === CollectionType.MANUAL"
-      (deleteRequest)="activeMediaMenuId.set(null); removeMediaFromCollection($event)"
-    />
-  </app-dropdown>
-</ng-template>
+  <ng-template #itemMenu let-mediaId="mediaId">
+    <app-dropdown
+      [isOpenExternal]="activeMediaMenuId() === mediaId"
+      (opened)="activeMediaMenuId.set(mediaId)"
+      (closed)="activeMediaMenuId.set(null)"
+    >
+      <app-media-action 
+        [mediaId]="mediaId"
+        [canDeleteFromCollection]="collection.collectionType === CollectionType.MANUAL"
+        (deleteRequest)="activeMediaMenuId.set(null); removeMediaFromCollection($event)"
+      />
+    </app-dropdown>
+  </ng-template>
+}

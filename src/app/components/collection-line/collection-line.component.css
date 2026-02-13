@@ -1,6 +1,7 @@
 .title {
   text-align: left;
   margin-bottom: 0px;
+  margin: 0;
 }
 
 .viewport-container {
@@ -27,25 +28,17 @@
   margin-right: 4px;
 }
 
-.card {
-  height: calc(var(--card-width-line) * 1.5);
-  will-change: transform;
-  transition: transform var(--scale-card-out) ease;
-
-  backface-visibility: hidden;
-  transform: translateZ(0);
-  -webkit-font-smoothing: subpixel-antialiased;
-}
-.card:hover {
-  transition: transform var(--scale-card-in) ease-out;
-  transform: scale(var(--scale-width), var(--scale-height));
-  z-index: 10;
+.header {
+  display: flex;
+  justify-content: space-between;
 }
 
-.card img {
-  height: calc(var(--card-width-line) * 1.5);
-  width: auto;
-  background-color: #333;
-  border-radius: 12px;
-  object-fit: cover;
+.menu-slot {
+  margin-right: 4px;
+}
+
+:host {
+  --dots-bg: none;
+  --dots-hover: rgba(255, 255, 255, 0.2);
+  --dots-blur: none;
 }

@@ -1,39 +1,34 @@
-@if (loading) {
-  <p>Loading ...</p>
-}
-@else if (mediaLayoutData()) {
-  <section class="collection-layout">
+<section class="collection-layout">
 
-    <div #scrollElement class="viewport-container">
-      <div
-        [style.height.px]="virtualizer.getTotalSize()"
-        style="width: 100%; position: relative;"
-      >
-        @for (vRow of virtualizer.getVirtualItems(); track vRow.key) {
-          <div
-            [style.height.px]="rowHeight()"
-            [style.transform]="'translateY(' + vRow.start + 'px)'"
-            style="position: absolute; top: 0; left: 0; width: 100%;" 
-          >
-            @for (item of rows()[vRow.index]; track item.uniqueKey) {
+  <div #scrollElement class="viewport-container">
+    <div
+      [style.height.px]="virtualizer.getTotalSize()"
+      style="width: 100%; position: relative;"
+    >
+      @for (vRow of virtualizer.getVirtualItems(); track vRow.key) {
+        <div
+          [style.height.px]="rowHeight()"
+          [style.transform]="'translateY(' + vRow.start + 'px)'"
+          style="position: absolute; top: 0; left: 0; width: 100%;" 
+        >
+          @for (item of rows()[vRow.index]; track item.uniqueKey) {
 
-              <div
-                [style.width.px]="item.width"
-                [style.height.px]="item.height"
-                [style.transform]="'translateX(' + item.x + 'px)'"
-                style="position: absolute; top: 0; left: 0;" 
-              >
-                <ng-container 
-                  [ngTemplateOutlet]="itemTemplate" 
-                  [ngTemplateOutletContext]="{ mediaId: item.id, width: item.width, height: item.height}">
-                </ng-container>
-              </div>
-            }
+            <div
+              [style.width.px]="item.width"
+              [style.height.px]="item.height"
+              [style.transform]="'translateX(' + item.x + 'px)'"
+              style="position: absolute; top: 0; left: 0;" 
+            >
+              <ng-container 
+                [ngTemplateOutlet]="itemTemplate" 
+                [ngTemplateOutletContext]="{ mediaId: item.id, width: item.width, height: item.height}">
+              </ng-container>
+            </div>
+          }
 
-          </div>
-        }
-      </div>
+        </div>
+      }
     </div>
+  </div>
 
-  </section>
-}
+</section>

@@ -1,28 +1,23 @@
-@if (loading) {
-  <p>Loading ...</p>
-}
-@else if (mediaLayoutData()) {
-  <section>
-    <div #scrollElement class="viewport-container">
-      <div
-        [style.height.px]="virtualizer.getTotalSize()"
-        style="width: 100%; position: relative;"
-      >
-        @for (vItem of virtualizer.getVirtualItems(); track vItem.key) {
-          @if (getMediaLayout(vItem.index); as layout) {
-            <div
-              [style.width.%]="100 / columns()" 
-              [style.transform]="'translateY(' + vItem.start + 'px) translateX(' + (vItem.lane * 100) + '%)'"
-              style="position: absolute; top: 0; left: 0; padding: 0px; box-sizing: border-box;"
-            >
-              <ng-container 
-                [ngTemplateOutlet]="itemTemplate" 
-                [ngTemplateOutletContext]="{ mediaId: layout.id, width: columnWidth(), height: (columnWidth() * 1.5)}">
-              </ng-container>
-            </div>
-          }
+<section>
+  <div #scrollElement class="viewport-container">
+    <div
+      [style.height.px]="virtualizer.getTotalSize()"
+      style="width: 100%; position: relative;"
+    >
+      @for (vItem of virtualizer.getVirtualItems(); track vItem.key) {
+        @if (getMediaLayout(vItem.index); as layout) {
+          <div
+            [style.width.%]="100 / columns()" 
+            [style.transform]="'translateY(' + vItem.start + 'px) translateX(' + (vItem.lane * 100) + '%)'"
+            style="position: absolute; top: 0; left: 0; padding: 0px; box-sizing: border-box;"
+          >
+            <ng-container 
+              [ngTemplateOutlet]="itemTemplate" 
+              [ngTemplateOutletContext]="{ mediaId: layout.id, width: columnWidth(), height: (columnWidth() * 1.5)}">
+            </ng-container>
+          </div>
         }
-      </div>
+      }
     </div>
-  </section>
-}
+  </div>
+</section>

@@ -20,7 +20,6 @@ import { MediaService } from '@app/services/media.service';
 })
 export class CollectionLineComponent {
   @Input({ required: true }) collection!: Collection;
-  @Input({ required: true }) loading!: boolean;
   @ContentChild('itemRef') itemTemplate!: TemplateRef<any>;
   @ViewChild('scrollElement') scrollElement!: ElementRef<HTMLElement>;
 
@@ -75,7 +74,6 @@ export class CollectionLineComponent {
 
   constructor(
     private mediaService: MediaService,
-    private collectionService: CollectionService
   ) {
     effect(() => {
       const data = this.mediaLayoutData();
@@ -97,7 +95,7 @@ export class CollectionLineComponent {
 
         try {
           // retrieve data
-          return await this.collectionService.getMediaBatch(missingIds);
+          return await this.mediaService.getMediaBatch(missingIds);
         } catch (e) {
           console.error("Batch load failed", e);
           return [];

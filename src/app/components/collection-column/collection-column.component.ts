@@ -18,7 +18,6 @@ import { MediaService } from '@app/services/media.service';
   styleUrls: ['./collection-column.component.css']
 })
 export class CollectionColumnComponent {
-  @Input({ required: true }) loading!: boolean;
   @ContentChild('itemRef') itemTemplate!: TemplateRef<any>;
   @ViewChild('scrollElement') scrollElement!: ElementRef<HTMLElement>;
 
@@ -87,7 +86,6 @@ export class CollectionColumnComponent {
   }
 
   constructor(
-    private collectionService: CollectionService,
     private mediaService: MediaService
   ) {
     effect(() => {
@@ -112,7 +110,7 @@ export class CollectionColumnComponent {
 
         try {
           // retrieve data
-          return await this.collectionService.getMediaBatch(missingIds);
+          return await this.mediaService.getMediaBatch(missingIds);
         } catch (e) {
           console.error("Batch load failed", e);
           return [];

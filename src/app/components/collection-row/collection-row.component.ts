@@ -26,7 +26,6 @@ interface PositionedMedia {
   styleUrls: ['./collection-row.component.css']
 })
 export class CollectionRowComponent {
-  @Input({ required: true }) loading!: boolean;
   @ViewChild('scrollElement') scrollElement!: ElementRef<HTMLElement>;
   @ContentChild('itemRef') itemTemplate!: TemplateRef<any>;
 
@@ -118,7 +117,6 @@ export class CollectionRowComponent {
 
   constructor(
     private mediaService: MediaService,
-    private collectionService: CollectionService
   ) {
     effect(() => {
       this.rows().length;
@@ -142,7 +140,7 @@ export class CollectionRowComponent {
 
         try {
           // retrieve data
-          return await this.collectionService.getMediaBatch(missingIds);
+          return await this.mediaService.getMediaBatch(missingIds);
         } catch (e) {
           console.error("Batch load failed", e);
           return [];

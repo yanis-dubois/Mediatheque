@@ -18,8 +18,6 @@ import { MediaService } from '@app/services/media.service';
   styleUrls: ['./collection-list.component.css']
 })
 export class CollectionListComponent {
-  @Input({ required: true }) loading!: boolean;
-  @Input() selectionMode = false;
   @ViewChild('scrollElement') scrollElement!: ElementRef<HTMLElement>;
   @ContentChild('rowRef') rowTemplate!: TemplateRef<any>;
 
@@ -65,7 +63,6 @@ export class CollectionListComponent {
 
   constructor(
     private mediaService: MediaService,
-    private collectionService: CollectionService
   ) {
     effect(() => {
       const scrollEl = this.scrollElement?.nativeElement;
@@ -95,7 +92,7 @@ export class CollectionListComponent {
 
         try {
           // retrieve data
-          return await this.collectionService.getMediaBatch(missingIds);
+          return await this.mediaService.getMediaBatch(missingIds);
         } catch (e) {
           console.error("Batch load failed", e);
           return [];

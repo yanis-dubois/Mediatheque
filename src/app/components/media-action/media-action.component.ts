@@ -47,7 +47,7 @@ export class MediaActionComponent {
     }
   }
 
-  onDelete() {
+  onDeleteFromCollection() {
     this.deleteRequest.emit(this.mediaId());
   }
 

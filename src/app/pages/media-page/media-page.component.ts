@@ -22,7 +22,6 @@ export class MediaPageComponent {
 
   ngOnInit() {
     const id = this.route.snapshot.paramMap.get('id');
-    console.info(id);
 
     if (!id) {
       this.error = 'Required id not specified';

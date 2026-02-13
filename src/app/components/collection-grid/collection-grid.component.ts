@@ -18,7 +18,6 @@ import { MediaService } from '@app/services/media.service';
   styleUrls: ['./collection-grid.component.css']
 })
 export class CollectionGridComponent {
-  @Input({ required: true }) loading!: boolean;
   @ViewChild('scrollElement') scrollElement!: ElementRef<HTMLElement>;
   @ContentChild('itemRef') itemTemplate!: TemplateRef<any>;
 
@@ -82,18 +81,7 @@ export class CollectionGridComponent {
 
   constructor(
     private mediaService: MediaService,
-    private collectionService: CollectionService
   ) {
-    effect(() => {
-      const cols = this.columns();
-      const scrollEl = this.scrollElement?.nativeElement;
-      if (this.virtualizer && scrollEl) {
-        setTimeout(() => {
-          this.virtualizer.measure();
-        });
-      }
-    });
-
     this.scrollSubject.pipe(
       debounceTime(100),
       switchMap(async (ids) => {
@@ -103,7 +91,7 @@ export class CollectionGridComponent {
 
         try {
           // retrieve data
-          return await this.collectionService.getMediaBatch(missingIds);
+          return await this.mediaService.getMediaBatch(missingIds);
         } catch (e) {
           console.error("Batch load failed", e);
           return [];
