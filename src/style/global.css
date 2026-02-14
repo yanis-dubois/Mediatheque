@@ -13,6 +13,15 @@ h1 {
   text-align: center;
 }
 
+.input-search {
+  width: 100%;
+  padding: 8px 16px;
+  border-radius: 10px;
+  border: none;
+  background: rgba(255, 255, 255, 0.1);
+  color: white;
+}
+
 .skeleton-card, .skeleton-text {
   width: 100%; 
   height: 100%; 

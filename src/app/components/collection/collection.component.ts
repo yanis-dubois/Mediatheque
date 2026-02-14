@@ -16,7 +16,7 @@ import { MediaRowComponent } from "@components/media-row/media-row.component";
 import { MediaPickerComponent } from '@components/media-picker/media-picker.component'
 import { MediaActionComponent } from "@components/media-action/media-action.component";
 
-import { Collection, CollectionDisplayMode, CollectionLayout, CollectionMediaType, CollectionType } from '@models/collection.model';
+import { CollectionDisplayMode, CollectionLayout, CollectionMediaType, CollectionType } from '@models/collection.model';
 import { MediaFilter, MediaOrder } from '@models/media-query.model';
 
 import { HumanizePipe } from "@pipe/humanize";
@@ -69,6 +69,8 @@ export class CollectionComponent {
   // media menu
   activeMediaMenuId = signal<string | null>(null);
 
+  searchQuery = signal<string>('');
+
   private refreshLayout$ = new Subject<void>();
 
   constructor(
@@ -98,11 +100,15 @@ export class CollectionComponent {
         }
       });
     });
+
+    effect(async () => {
+      this.searchQuery()
+      this.refreshLayout$.next();
+    });
   }
 
   ngOnInit() {
     const collection = this.collection();
-    this.loadLayoutData();
 
     // setup signals
     if (collection) {
@@ -122,7 +128,7 @@ export class CollectionComponent {
 
   async loadLayoutData() {
     this.mediaLayoutData.set(
-      await this.collectionService.getLayoutData(this.id())
+      await this.collectionService.getLayoutData(this.id(),  this.searchQuery())
     );
   }
 

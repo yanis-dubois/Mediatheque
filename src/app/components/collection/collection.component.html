@@ -34,7 +34,17 @@
           >
             {{ name() }}
           </h1>
-      
+
+          <div class="search-box">
+            <input 
+              class="input-search"
+              type="text"
+              placeholder="Search on the collection..."
+              [value]="searchQuery()"
+              (input)="searchQuery.set($any($event.target).value)"
+            />
+          </div>
+
           <div style="display: flex; justify-content:space-around;">
             <p> {{collection.collectionType}} </p>
       

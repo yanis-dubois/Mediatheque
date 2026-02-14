@@ -19,6 +19,8 @@ export class CollectionsComponent {
 
   private refreshLayout$ = new Subject<void>();
 
+  searchQuery = signal<string>('');
+
   constructor(
     private collectionService: CollectionService
   ) {
@@ -26,6 +28,7 @@ export class CollectionsComponent {
       debounceTime(100)
     ).subscribe(() => {
       this.loadLayoutData();
+      console.log("blip :"+this.collectionIds.length);
     });
 
     effect(() => {
@@ -34,6 +37,11 @@ export class CollectionsComponent {
       untracked(() => {
         this.refreshLayout$.next();
       });
+    });
+
+    effect(async () => {
+      this.searchQuery()
+      this.refreshLayout$.next();
     });
   }
 
@@ -44,7 +52,7 @@ export class CollectionsComponent {
   async loadLayoutData() {
     try {
       this.collectionIds.set(
-        await this.collectionService.getAllIds()
+        await this.collectionService.getCollectionsData(this.searchQuery())
       );
     } catch (e) {
       console.error(e);

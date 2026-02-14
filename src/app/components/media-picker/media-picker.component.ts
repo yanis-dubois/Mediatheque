@@ -20,7 +20,6 @@ export class MediaPickerComponent {
   onCancel = output<void>();
   onConfirm = output<Set<string>>();
 
-  isLoading = signal(false);
   mediaResults = signal<[string, number, number][]>([]);
   selectedIds = signal<Set<string>>(new Set());
   searchQuery = signal('');
@@ -44,15 +43,12 @@ export class MediaPickerComponent {
   }
 
   async onSearch(query: string) {
-
-    this.isLoading.set(true);
     try {
       this.mediaResults.set(
         await this.collectionService.searchMedia(query, this.mediaType())
       );
-      setTimeout(() => window.dispatchEvent(new Event('resize')), 0);
-    } finally {
-      this.isLoading.set(false);
+    } catch (e) {
+      console.error("Error while searching", e);
     }
   }
 

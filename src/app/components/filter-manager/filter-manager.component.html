@@ -6,7 +6,7 @@
 
   @if (isOpen()) {
     <div class="filter-menu" (clickOutside)="isOpen.set(false)">
-      <div class="filter-group">
+      <!-- <div class="filter-group">
         <label>Search</label>
         <input 
           type="text" 
@@ -14,7 +14,7 @@
           (input)="updateFilter('searchQuery', $any($event.target).value)"
           placeholder="Title, person, ..."
         />
-      </div>
+      </div> -->
 
       <div class="filter-group">
         <label>Type</label>
@@ -50,7 +50,7 @@
         <label for="favOnly">Favorite</label>
       </div>
 
-      <br> <!-- TODO: media specific filter -->
+      <hr> <!-- TODO: media specific filter -->
 
       <button (click)="resetFilter()" class="reset-btn">Réinitialiser</button>
     </div>

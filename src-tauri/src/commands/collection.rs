@@ -105,8 +105,8 @@ pub fn get_collection_by_id(
 
 #[tauri::command]
 pub fn get_collection_layout_data(
-    state: tauri::State<'_, DbState>,
-    collection_id: String
+  state: tauri::State<'_, DbState>,
+  collection_id: String
 ) -> Result<Vec<(String, u16, u16)>, String> {
 
   // retrieve data from Collection
@@ -120,11 +120,38 @@ pub fn get_collection_layout_data(
 #[tauri::command]
 pub fn get_all_collection_ids(state: tauri::State<'_, DbState>) -> Result<Vec<String>, String> {
   let connection = state.connection.lock().map_err(|_| "DB Lock failed")?;
+
   let mut stmt = connection
     .prepare("SELECT id FROM collection ORDER BY favorite DESC, added_date DESC")
     .map_err(|e| e.to_string())?;
 
   let ids = stmt.query_map([], |row| row.get(0))
+    .map_err(|e| e.to_string())?
+    .collect::<rusqlite::Result<Vec<String>>>()
+    .map_err(|e| e.to_string())?;
+
+  Ok(ids)
+}
+
+#[tauri::command]
+pub fn search_in_collections(
+  state: tauri::State<'_, DbState>,
+  search_query: String
+) -> Result<Vec<String>, String> {
+  let connection = state.connection.lock().map_err(|_| "DB Lock failed")?;
+
+  let pattern = 
+    if search_query.trim().is_empty() {
+      "%".to_string()
+    } else {
+      format!("%{}%", search_query.trim())
+    };
+
+  let mut stmt = connection
+    .prepare("SELECT id FROM collection WHERE name LIKE ?1 ORDER BY favorite DESC, added_date DESC")
+    .map_err(|e| e.to_string())?;
+
+  let ids = stmt.query_map([pattern], |row| row.get(0))
     .map_err(|e| e.to_string())?
     .collect::<rusqlite::Result<Vec<String>>>()
     .map_err(|e| e.to_string())?;
@@ -153,7 +180,24 @@ pub fn search_layout_data(
 
   let data = get_media_layout_list(state, CollectionType::Dynamic, CollectionMediaType::All, filter, vec![])?;
 
-  println!("search_layout_data results : {}", data.len());
+  Ok(data)
+}
+
+#[tauri::command]
+pub fn search_in_collection(
+  state: tauri::State<'_, DbState>,
+  collection_id: String,
+  search_query: String
+) -> Result<Vec<(String, u16, u16)>, String> {
+  println!("search_in_collection : {}", search_query);
+
+  let mut collection = get_collection_by_id(state.clone(), collection_id.clone())?;
+
+  collection.filter.search_query = 
+    if search_query == "" { None } 
+    else { Some(search_query) };
+
+  let data = get_media_layout_list(state, collection.collection_type.clone(), collection.media_type.clone(), collection.filter, collection.sort_order)?;
 
   Ok(data)
 }

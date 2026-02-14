@@ -6,6 +6,7 @@
       <button class="cancel-btn" (click)="onCancel.emit()">Cancel</button>
       <div class="search-box">
         <input 
+          class="input-search"
           type="text"
           [ngModel]="searchQuery()" 
           (ngModelChange)="searchQuery.set($event)"

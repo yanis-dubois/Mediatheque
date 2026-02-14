@@ -51,8 +51,12 @@ export class CollectionService {
     return invoke<Collection>('get_collection_by_id', { collectionId: id });
   }
 
-  getLayoutData(id: string) {
-    return invoke<[string, number, number][]>('get_collection_layout_data', { collectionId: id });
+  getLayoutData(id: string, search: string) {
+    return invoke<[string, number, number][]>('search_in_collection', { collectionId: id, searchQuery: search });
+  }
+
+  getCollectionsData(search: string) {
+    return invoke<string[]>('search_in_collections', { searchQuery: search });
   }
 
   async getCollectionBatch(ids: string[]): Promise<Collection[]> {
@@ -118,15 +122,15 @@ export class CollectionService {
   async delete(id: string) {
     await invoke('delete_collection', { id });
 
-    // 1. On vide la valeur du signal pour forcer un état "null" (Skeleton)
+    // empty the signal
     const s = this.collectionCache.get(id);
     if (s) s.set(null);
 
-    // 2. On supprime l'ID du cache
+    // delete from cache
     this.collectionCache.delete(id);
     this.cacheOrder = this.cacheOrder.filter(itemId => itemId !== id);
 
-    // 3. On notifie du changement global
+    // update
     this.lastUpdate.set(Date.now());
   }
 }
