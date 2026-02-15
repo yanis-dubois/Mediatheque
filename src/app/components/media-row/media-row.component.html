@@ -14,29 +14,26 @@
       >
     </div>
 
-    <div class="infos-container"
-      [style.height.px]="height" 
-    >
       <div class="infos">
         <div class="text-group">
           <h3 class="title">{{ media.title }}</h3>
           <p class="type">{{ media.mediaType | emojize }} - {{ media.status | humanize }}</p>
           <p class="date">{{ media.releaseDate | date:'mediumDate' }}</p>
-        </div>
-    
-        <div class="actions-right">
-          <div class="menu-slot">
-            <ng-content select="[mediaMenu]"></ng-content>
-          </div>
+        </div>          
 
-          <div class="icon-slot">
-            <ng-content select="[icon]"></ng-content>
-          </div>
+        <div class="icon-slot">
+          <ng-content select="[icon]"></ng-content>
+          @if (!customIcon()) {
+            <span class="fav-icon">{{ media.favorite | emojize }}</span>
+          }
         </div>
       </div>
 
+      <div class="menu-slot">
+        <ng-content select="[mediaMenu]"></ng-content>
+      </div>
+
       <hr class="separator"/>
-    </div>
   }
   @else {
     <div class="skeleton-card" 

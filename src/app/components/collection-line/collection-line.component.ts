@@ -40,7 +40,8 @@ export class CollectionLineComponent {
     const { width, height } = this.getMediaLayout(index);
     const lineHeight = this.containerHeight();
 
-    if (!height || height === 0) return 200; // Fallback
+    // avoid dividing by 0
+    if (!height || height === 0) return 200; 
 
     return (width * lineHeight) / height;
   }

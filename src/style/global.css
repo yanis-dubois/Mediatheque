@@ -1,16 +1,42 @@
 @import "@angular/cdk/overlay-prebuilt.css";
 
+body {
+  margin: 0;
+}
+
 a {
   font-weight: 500;
-  color: #f6f6f6;
+  color: var(--color-light);
   text-decoration: inherit;
 }
 a:hover {
-  color: #f6f6f6;
+  color: var(--color-light-soft);
 }
 
 h1 {
   text-align: center;
+}
+
+/* action button (top of the screen) */
+.action-button {
+  color: var(--color-light);
+  background: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(8px);
+  border-radius: 100%;
+  border: none;
+  width: 2.6rem;
+  height: 2.6rem;
+  cursor: pointer;
+  font-size: 1.2rem;
+  font-weight: 1000;
+  z-index: 100;
+  margin: 0 8px;
+
+  justify-content: center;
+  align-content: center;
+}
+.action-button:hover {
+  background: rgba(255, 255, 255, 0.1);
 }
 
 .input-search {
@@ -19,9 +45,10 @@ h1 {
   border-radius: 10px;
   border: none;
   background: rgba(255, 255, 255, 0.1);
-  color: white;
+  color: var(--color-light);
 }
 
+/* skeleton display */
 .skeleton-card, .skeleton-text {
   width: 100%; 
   height: 100%; 
@@ -32,6 +59,37 @@ h1 {
 @keyframes pulse {
   0%, 100% { opacity: 1; }
   50% { opacity: 0.25; }
+}
+
+/* page with virtualization layout */
+.page-container {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  overflow: hidden;
+}
+.page-header {
+  flex-shrink: 0;
+}
+.virtual-host {
+  flex-grow: 1;
+  min-height: 0;
+  position: relative;
+  padding: 4px;
+}
+.virtual-host-list {
+  padding: 0;
+}
+.viewport-container {
+  overflow-y: auto;
+  overflow-x: hidden;
+  display: block;
+  position: relative;
+  contain: strict;
+  padding: 4px 0;
+}
+.viewport-container-list {
+  padding: 0;
 }
 
 /* phone */

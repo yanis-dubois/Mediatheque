@@ -7,6 +7,7 @@
 .picker-header h2 {
   margin: 0;
   margin-bottom: 1rem;
+  text-align: center;
 }
 
 .picker-header-content {
@@ -33,7 +34,6 @@
   flex: 1;
   background: var(--color-dark);
   overflow: hidden;
-  padding: 0 8px;
 }
 
 @keyframes slideUp {

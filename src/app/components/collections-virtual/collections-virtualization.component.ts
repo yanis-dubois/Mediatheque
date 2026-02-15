@@ -67,7 +67,6 @@ export class CollectionsVirtualizationComponent {
       const scrollEl = this.scrollElement?.nativeElement;
       if (data.length > 0 && this.virtualizer && scrollEl) {
         untracked(() => {
-          console.log("reload : "+data.length);
           this.virtualizer.measure();
           this.syncVisibleCollection(this.virtualizer.getVirtualItems());
         });
@@ -117,7 +116,7 @@ export class CollectionsVirtualizationComponent {
     const cssWidth = style.getPropertyValue('--card-width-line').trim();
   
     if (cssWidth) {
-      this.containerHeight.set(parseInt(cssWidth, 10) * 1.5 + 60);
+      this.containerHeight.set(parseInt(cssWidth, 10) * 1.5 + 48);
     }
   }
 

@@ -1,7 +1,9 @@
-<header class="action-bar">
-  <button class="back-button" (click)="goToPreviousPage()">
+<div class="action action-left">
+  <button class="action-button" (click)="goToPreviousPage()">
     <img class="chevron" src="assets/icons/chevron.svg"/>
   </button>
+</div>
 
+<div class="action action-right">
   <ng-content></ng-content>
-</header>
+</div>

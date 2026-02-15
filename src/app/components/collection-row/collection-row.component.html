@@ -1,6 +1,13 @@
-<section class="collection-layout">
-
-  <div #scrollElement class="viewport-container">
+<section 
+  class="collection-layout"
+  [style.height]="'100%'"
+  [style.width]="'100%'"
+>
+  <div #scrollElement 
+    class="viewport-container"
+    [style.height]="'100%'"
+    [style.width]="'100%'"
+  >
     <div
       [style.height.px]="virtualizer.getTotalSize()"
       style="width: 100%; position: relative;"
@@ -30,5 +37,4 @@
       }
     </div>
   </div>
-
 </section>

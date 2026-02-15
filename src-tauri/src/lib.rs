@@ -24,7 +24,6 @@ pub fn run() {
       commands::collection::get_collection_by_id,
       commands::collection::get_collection_batch,
       commands::collection::get_collection_layout_data,
-      commands::collection::get_all_collection_ids,
       commands::collection::search_in_collections,
       commands::collection::toggle_collection_favorite,
       commands::collection::update_collection_name,

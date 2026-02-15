@@ -35,11 +35,12 @@ fn map_row_to_collection(row: &rusqlite::Row) -> rusqlite::Result<Collection> {
   let collection_type_str: String = row.get(2)?;
   let collection_media_type_str: String = row.get(3)?;
   let fav_int: i32 = row.get(5)?;
-  let sort_order_raw: String = row.get(7)?;
-  let prefered_view_str: String = row.get(8)?;
-  let has_image_int: i32 = row.get(9)?;
+  let prefered_view_str: String = row.get(7)?;
+  let sort_order_raw: String = row.get(8)?;
+  let filter_raw: Option<String> = row.get(9)?;
+  let has_image_int: i32 = row.get(10)?;
 
-  Ok(Collection {
+  let mut collection = Collection {
     id: row.get(0)?,
     name: row.get(1)?,
     collection_type: match_collection_type(&collection_type_str),
@@ -47,43 +48,30 @@ fn map_row_to_collection(row: &rusqlite::Row) -> rusqlite::Result<Collection> {
     added_date: row.get(4)?,
     favorite: fav_int == 1,
     description: row.get(6)?,
-    sort_order: serde_json::from_str(&sort_order_raw).unwrap_or_default(),
     preferred_layout: match_collection_view(&prefered_view_str),
+    sort_order: serde_json::from_str(&sort_order_raw).unwrap_or_default(),
+    
     has_image: has_image_int == 1,
     filter: MediaFilter { ..Default::default() }
-  })
-}
+  };
 
-/* -- GET -- */
-
-fn build_filter(
-  connection: &rusqlite::Connection,
-  collection: Collection
-) -> Result<MediaFilter, String> {
-
-  let mut filter = MediaFilter::default();
-
+  // set filter
   match collection.collection_type {
     CollectionType::Dynamic => {
-      // retrieve filter
-      let filter_json: Option<String> = connection.query_row(
-          "SELECT filter FROM collection_dynamic_filter WHERE collection_id = ?1",
-          [&collection.id],
-          |r| r.get(0)
-        ).ok();
-
       // JSON -> MediaFilter
-      filter = filter_json
+      collection.filter = filter_raw
         .and_then(|json| serde_json::from_str(&json).ok())
         .unwrap_or_default();
     },
     CollectionType::Manual => {
-      filter.collection_id = Some(collection.id.clone());
+      collection.filter.collection_id = Some(collection.id.clone());
     }
   }
 
-  Ok(filter)
+  Ok(collection)
 }
+
+/* -- GET -- */
 
 #[tauri::command]
 pub fn get_collection_by_id(
@@ -95,12 +83,30 @@ pub fn get_collection_by_id(
   let mut stmt = connection.prepare("SELECT * FROM collection WHERE id = ?1")
     .map_err(|e| e.to_string())?;
 
-  let mut collection = stmt.query_row([&collection_id], map_row_to_collection)
+  let collection = stmt.query_row([&collection_id], map_row_to_collection)
     .map_err(|e| e.to_string())?;
 
-  collection.filter = build_filter(&connection, collection.clone())?;
-
   Ok(collection)
+}
+
+#[tauri::command]
+pub fn get_collection_batch(
+    state: tauri::State<'_, DbState>,
+    ids: Vec<String>,
+) -> Result<Vec<Collection>, String> {
+  let connection = state.connection.lock().map_err(|_| "Lock failed")?;
+
+  let placeholders: String = ids.iter().map(|_| "?").collect::<Vec<_>>().join(",");
+  let sql = format!("SELECT * FROM collection WHERE id IN ({})", placeholders);
+
+  let mut stmt = connection.prepare(&sql).map_err(|e| e.to_string())?;
+
+  let list = stmt.query_map(rusqlite::params_from_iter(ids), map_row_to_collection)
+    .map_err(|e| e.to_string())?
+    .collect::<rusqlite::Result<Vec<_>>>()
+    .map_err(|e| e.to_string())?;
+
+  Ok(list)
 }
 
 #[tauri::command]
@@ -118,22 +124,6 @@ pub fn get_collection_layout_data(
 }
 
 #[tauri::command]
-pub fn get_all_collection_ids(state: tauri::State<'_, DbState>) -> Result<Vec<String>, String> {
-  let connection = state.connection.lock().map_err(|_| "DB Lock failed")?;
-
-  let mut stmt = connection
-    .prepare("SELECT id FROM collection ORDER BY favorite DESC, added_date DESC")
-    .map_err(|e| e.to_string())?;
-
-  let ids = stmt.query_map([], |row| row.get(0))
-    .map_err(|e| e.to_string())?
-    .collect::<rusqlite::Result<Vec<String>>>()
-    .map_err(|e| e.to_string())?;
-
-  Ok(ids)
-}
-
-#[tauri::command]
 pub fn search_in_collections(
   state: tauri::State<'_, DbState>,
   search_query: String
@@ -148,7 +138,7 @@ pub fn search_in_collections(
     };
 
   let mut stmt = connection
-    .prepare("SELECT id FROM collection WHERE name LIKE ?1 ORDER BY favorite DESC, added_date DESC")
+    .prepare("SELECT id FROM collection WHERE name LIKE ?1 ORDER BY favorite DESC, name ASC")
     .map_err(|e| e.to_string())?;
 
   let ids = stmt.query_map([pattern], |row| row.get(0))
@@ -200,26 +190,6 @@ pub fn search_in_collection(
   let data = get_media_layout_list(state, collection.collection_type.clone(), collection.media_type.clone(), collection.filter, collection.sort_order)?;
 
   Ok(data)
-}
-
-#[tauri::command]
-pub fn get_collection_batch(
-    state: tauri::State<'_, DbState>,
-    ids: Vec<String>,
-) -> Result<Vec<Collection>, String> {
-  let connection = state.connection.lock().map_err(|_| "Lock failed")?;
-
-  let placeholders: String = ids.iter().map(|_| "?").collect::<Vec<_>>().join(",");
-  let sql = format!("SELECT * FROM collection WHERE id IN ({})", placeholders);
-
-  let mut stmt = connection.prepare(&sql).map_err(|e| e.to_string())?;
-
-  let list = stmt.query_map(rusqlite::params_from_iter(ids), map_row_to_collection)
-    .map_err(|e| e.to_string())?
-    .collect::<rusqlite::Result<Vec<_>>>()
-    .map_err(|e| e.to_string())?;
-
-  Ok(list)
 }
 
 /* -- UPDATE -- */
@@ -306,9 +276,7 @@ pub fn update_collection_filter(state: tauri::State<'_, DbState>, id: String, fi
     .map_err(|e| e.to_string())?;
 
   connection.execute(
-    "INSERT INTO collection_dynamic_filter (collection_id, filter) 
-    VALUES (?2, ?1) 
-    ON CONFLICT(collection_id) DO UPDATE SET filter = excluded.filter",
+    "UPDATE collection SET filter = ?1 WHERE id = ?2",
     [filter_json, id],
   )
   .map_err(|e| e.to_string())?;

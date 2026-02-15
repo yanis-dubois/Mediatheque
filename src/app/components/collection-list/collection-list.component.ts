@@ -77,7 +77,6 @@ export class CollectionListComponent {
       this.mediaLayoutData();
       untracked(() => {
         if (this.virtualizer) {
-          this.virtualizer.scrollToOffset(0); 
           this.virtualizer.measure();
         }
       });

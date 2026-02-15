@@ -13,9 +13,9 @@ export interface Collection {
   favorite: boolean;
   description: string;
 
+  preferredLayout: CollectionLayout;
   sortOrder: MediaOrder[];
   filter: MediaFilter;
-  preferredLayout: CollectionLayout;
 
   hasImage: boolean;
 }

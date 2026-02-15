@@ -1,7 +1,7 @@
 .title {
   text-align: left;
-  margin-bottom: 0px;
   margin: 0;
+  margin-left: 4px;
 }
 
 .viewport-container {
@@ -10,6 +10,8 @@
   overflow-x: auto;
   overflow-y: hidden;
   contain: strict;
+
+  /* scroll-snap-type: x mandatory; doesn't work with virtualization */
 
   /* remove scrollbar */
   /* Firefox */
@@ -25,16 +27,19 @@
 .line {
   display: flex;
   align-items: center;
-  margin-right: 4px;
+  /* scroll-snap-align: start; doesn't work with virtualization */
 }
 
-.header {
+.line-header {
   display: flex;
   justify-content: space-between;
+  margin-top: 8px;
 }
 
 .menu-slot {
   margin-right: 4px;
+  margin-bottom: 4px;
+  scale: 1.2;
 }
 
 :host {

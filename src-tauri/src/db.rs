@@ -88,10 +88,11 @@ pub fn init_db(connection: &mut Connection) -> Result<()> {
       favorite INTEGER NOT NULL DEFAULT 0 CHECK(favorite IN (0, 1)),
       description TEXT NOT NULL DEFAULT '',
 
-      sort_order TEXT, -- in JSON, ex: [{field: 'favorite', direction: 'DESC'}, {field: 'status', direction: 'ASC'}]
       preferred_layout TEXT CHECK(
         preferred_layout IN ('GRID', 'ROW', 'COLUMN', 'LIST')
       ) DEFAULT 'GRID',
+      sort_order TEXT, -- in JSON, ex: [{field: 'favorite', direction: 'DESC'}, {field: 'status', direction: 'ASC'}]
+      filter TEXT, -- for dynamic colection - in JSON, ex: [{media_type: 'MOVIE'}, {favorite: 'true'}]
 
       has_image INTEGER NOT NULL DEFAULT 0 CHECK(has_image IN (0, 1))
     );
@@ -107,14 +108,6 @@ pub fn init_db(connection: &mut Connection) -> Result<()> {
 
       FOREIGN KEY (collection_id) REFERENCES collection(id) ON DELETE CASCADE,
       FOREIGN KEY (media_id) REFERENCES media(id) ON DELETE CASCADE
-    );
-
-    -- Dynamic Collection
-    CREATE TABLE collection_dynamic_filter (
-      collection_id TEXT PRIMARY KEY,
-      filter TEXT, -- in JSON, ex: [{media_type: 'MOVIE'}, {favorite: 'true'}]
-
-      FOREIGN KEY (collection_id) REFERENCES collection(id) ON DELETE CASCADE
     );
 
 
@@ -624,10 +617,20 @@ pub fn seed_data(connection: &mut Connection) -> Result<()> {
     let sort_order_json = serde_json::to_string(&c.sort_order)
       .map_err(|e| rusqlite::Error::ToSqlConversionFailure(Box::new(e)))?;
 
+    // MediaFilter -> JSON
+    let mut filter_json = "".to_string();
+    if let Some(dynamic) = c.collection_dynamic {
+      if let Some(filter_obj) = dynamic.filter {
+        // MediaFilter -> JSON
+        filter_json = serde_json::to_string(&filter_obj)
+          .map_err(|e| rusqlite::Error::ToSqlConversionFailure(Box::new(e)))?;
+      }
+    }
+
     // insert in parent table Collection
     tx.execute(
-      "INSERT INTO collection (id, name, type, media_type, added_date, favorite, description, sort_order, preferred_layout, has_image)
-       VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10)",
+      "INSERT INTO collection (id, name, type, media_type, added_date, favorite, description, preferred_layout, sort_order, filter, has_image)
+       VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11)",
       params![
         c.id.to_string(),
         c.name,
@@ -636,8 +639,9 @@ pub fn seed_data(connection: &mut Connection) -> Result<()> {
         c.added_date,
         c.favorite,
         c.description,
-        sort_order_json,
         view_str,
+        sort_order_json,
+        filter_json,
         c.has_image,
       ],
     )?;
@@ -651,21 +655,6 @@ pub fn seed_data(connection: &mut Connection) -> Result<()> {
           "INSERT INTO collection_media (collection_id, media_id, position)
            VALUES (?1, ?2, ?3)",
           params![c.id.to_string(), m_id.to_string(), pos as i32],
-        )?;
-      }
-    }
-
-    // dynamic collection
-    else if let Some(dynamic) = c.collection_dynamic {
-      if let Some(filter_obj) = dynamic.filter {
-        // MediaFilter -> JSON
-        let filter_json = serde_json::to_string(&filter_obj)
-            .map_err(|e| rusqlite::Error::ToSqlConversionFailure(Box::new(e)))?;
-
-        tx.execute(
-          "INSERT INTO collection_dynamic_filter (collection_id, filter)
-           VALUES (?1, ?2)",
-          params![c.id.to_string(), filter_json],
         )?;
       }
     }
@@ -1294,7 +1283,7 @@ fn seed_media() -> Vec<SeedMedia<'static>> {
       media_type: MediaType::TabletopGame,
       image_width: 1714,
       image_height: 1200,
-      title: "Root",
+      title: "Seti",
       description: "In SETI: Search for Extraterrestrial Intelligence, you lead a scientific institution tasked with searching for traces of life beyond planet Earth. The game draws inspiration from current or emerging technologies and efforts in space exploration.Players will explore nearby planets and their moons by launching probes from Earth while taking advantage of ever-shifting planetary positions. Decide whether to land on their surface to collect valuable samples, or stay in orbit for a broader survey.",
       tabletop_game_details: Some(SeedTabletopGame {
           designers: vec!["Tomáš Holek"],

@@ -1,5 +1,5 @@
 import { DOCUMENT, isPlatformBrowser } from '@angular/common';
-import { Component, ContentChildren, effect, inject, input, output, PLATFORM_ID, QueryList, Renderer2, signal, TemplateRef, untracked, ViewChild, ViewContainerRef } from '@angular/core';
+import { Component, effect, inject, input, output, PLATFORM_ID, Renderer2, signal, TemplateRef, untracked, ViewChild, ViewContainerRef } from '@angular/core';
 
 @Component({
   selector: 'app-dropdown',
@@ -19,6 +19,7 @@ export class DropdownComponent {
 
   private embeddedView: any = null;
 
+  customClass = input<string>('dots-btn');
   isOpenExternal = input.required<boolean>();
   isOpen = signal(false);
   position = signal({ x: 0, y: 0 });

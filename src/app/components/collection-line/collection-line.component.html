@@ -1,6 +1,6 @@
 <section>
 
-  <div class="header">
+  <div class="line-header">
     <a [routerLink]="['/collection', collection.id]">
       <h2 class="title">
         {{collection.name}} 
@@ -24,7 +24,7 @@
             class="line"
             [style.width.px]="vItem.size"
             [style.transform]="'translateX(' + vItem.start + 'px)'"
-            style="position: absolute; top: 0; left: 0; height: 100%;"
+            style="position: absolute; top: 0; left: 0;"
           >
             <ng-container 
               [ngTemplateOutlet]="itemTemplate" 

@@ -1,4 +1,4 @@
-import { Component, computed, inject, input, Input } from '@angular/core';
+import { Component, computed, contentChild, ElementRef, inject, input, Input } from '@angular/core';
 import { CommonModule } from '@angular/common';
 
 import { PosterPathPipe } from '@pipe/image-path.pipe';
@@ -17,6 +17,8 @@ export class MediaRowComponent {
   @Input({ required: true }) width! : number;
   @Input({ required: true }) height! : number;
   mediaId = input.required<string>();
+
+  customIcon = contentChild<ElementRef>('icon');
 
   private mediaService = inject(MediaService);
 

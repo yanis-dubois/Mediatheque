@@ -1,4 +1,4 @@
-import { Component, model, signal } from '@angular/core';
+import { Component, effect, input, model, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 
 import { MediaFilter } from '@models/media-query.model';
@@ -14,11 +14,18 @@ import { MediaStatus, MediaType } from '@app/models/media.model';
   styleUrl: './filter-manager.component.css'
 })
 export class FilterManagerComponent {
+
   filter = model.required<MediaFilter>();
   isOpen = signal(false);
 
   mediaTypeOptions = Object.values(MediaType);
   statusOptions = Object.values(MediaStatus);
+
+  constructor() {
+    effect(() => {
+      console.log("FilterManager reçu :", this.filter());
+    });
+  }
 
   updateFilter(key: keyof MediaFilter, value: any) {
     this.filter.update(f => ({

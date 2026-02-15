@@ -1,13 +1,27 @@
-<h1> Collections </h1>
+<app-action-bar>
+  <button class="action-button" (click)="addCollection()">
+    +
+  </button>
+</app-action-bar>
 
-<div class="search-box">
-  <input 
-    class="input-search"
-    type="text"
-    placeholder="Search on the collection..."
-    [value]="searchQuery()"
-    (input)="searchQuery.set($any($event.target).value)"
-  />
-</div>
+<section class="page-container">
+  <div class="page-header">
+    <h1> Collections </h1>
 
-<app-collections-virtualization [collectionIds]="collectionIds()"></app-collections-virtualization>
+    <div class="search-box">
+      <input 
+        class="input-search"
+        type="text"
+        placeholder="Search a collection..."
+        [value]="searchQuery()"
+        (input)="searchQuery.set($any($event.target).value)"
+      />
+    </div>
+  </div>
+
+  <app-collections-virtualization 
+    class="virtual-host"
+    [collectionIds]="collectionIds()"
+  >
+  </app-collections-virtualization>
+</section>

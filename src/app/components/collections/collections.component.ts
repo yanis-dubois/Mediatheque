@@ -3,13 +3,14 @@ import { CommonModule } from '@angular/common';
 import { debounceTime, Subject } from 'rxjs';
 
 import { CollectionsVirtualizationComponent } from "@components/collections-virtual/collections-virtualization.component";
+import { ActionBarComponent } from "@components/action-bar/action-bar.component";
 
 import { CollectionService } from '@services/collection.service';
 
 @Component({
   selector: 'app-collections',
   standalone: true,
-  imports: [CommonModule, CollectionsVirtualizationComponent],
+  imports: [CommonModule, CollectionsVirtualizationComponent, ActionBarComponent],
   templateUrl: './collections.component.html',
   styleUrls: ['./collections.component.scss']
 })
@@ -28,7 +29,6 @@ export class CollectionsComponent {
       debounceTime(100)
     ).subscribe(() => {
       this.loadLayoutData();
-      console.log("blip :"+this.collectionIds.length);
     });
 
     effect(() => {
@@ -52,10 +52,14 @@ export class CollectionsComponent {
   async loadLayoutData() {
     try {
       this.collectionIds.set(
-        await this.collectionService.getCollectionsData(this.searchQuery())
+        await this.collectionService.getCollectionsIds(this.searchQuery())
       );
     } catch (e) {
       console.error(e);
     }
+  }
+
+  addCollection () {
+    // TODO
   }
 }

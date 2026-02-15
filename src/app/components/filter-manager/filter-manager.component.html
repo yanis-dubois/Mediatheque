@@ -45,9 +45,8 @@
           type="checkbox" 
           [checked]="filter().favoriteOnly" 
           (change)="updateFilter('favoriteOnly', $any($event.target).checked)"
-          id="favOnly"
         />
-        <label for="favOnly">Favorite</label>
+        <label>Favorite</label>
       </div>
 
       <hr> <!-- TODO: media specific filter -->

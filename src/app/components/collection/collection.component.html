@@ -1,35 +1,41 @@
 @if (collection(); as collection) {
-  <section>
 
-    @switch (view) {
-      @case (CollectionDisplayMode.PREVIEW) {
-        <app-collection-line
-          [collection]="collection"
-          [mediaLayoutData]="mediaLayoutData()"
-        >
-          <ng-content collectionMenu select="[collectionMenu]"></ng-content>
-          <ng-template #itemRef let-mediaId="mediaId" let-width="width" let-height="height">
-            <app-media-card 
-              [mediaId]="mediaId" [width]="width" [height]="height"
-              [isMenuOpen]="isMenuOpen(mediaId)"
-            >
-              <div mediaMenu (click)="$event.preventDefault(); $event.stopPropagation()">
-                <ng-container *ngTemplateOutlet="itemMenu; context: { mediaId: mediaId }"></ng-container>
-              </div>
-            </app-media-card>
-          </ng-template>
-        </app-collection-line>
-      }
-      @case (CollectionDisplayMode.DETAILS) {
-        <div class="collection-header">
+  @switch (view) {
+    @case (CollectionDisplayMode.PREVIEW) {
+      <app-collection-line
+        [collection]="collection"
+        [mediaLayoutData]="mediaLayoutData()"
+      >
+        <ng-content collectionMenu select="[collectionMenu]"></ng-content>
+        <ng-template #itemRef let-mediaId="mediaId" let-width="width" let-height="height">
+          <app-media-card 
+            [mediaId]="mediaId" [width]="width" [height]="height"
+            [isMenuOpen]="isMenuOpen(mediaId)"
+          >
+            <div mediaMenu (click)="$event.preventDefault(); $event.stopPropagation()">
+              <ng-container *ngTemplateOutlet="itemMenu; context: { mediaId: mediaId }"></ng-container>
+            </div>
+          </app-media-card>
+        </ng-template>
+      </app-collection-line>
+    }
+    @case (CollectionDisplayMode.DETAILS) {
+      <app-action-bar>
+        <app-dropdown 
+          [customClass]="'action-button'"
+          [isOpenExternal]="false">
+        </app-dropdown>
+      </app-action-bar>
+
+      <section class="page-container">
+
+        <div class="page-header">
           <h1 
             contenteditable="true"
             #nameInput
-            (focus)="isEditingName.set(true)"
             (blur)="onNameBlur(nameInput.innerText)"
             (keydown.enter)="$event.preventDefault(); nameInput.blur()"
             (keydown.escape)="nameInput.innerText = name(); nameInput.blur()"
-            [class.editing]="isEditingName()"
             class="editable-title"
           >
             {{ name() }}
@@ -83,14 +89,14 @@
             </div>
 
             <app-sort-manager 
-              [(sortOrder)]="sortOrder" 
-              (sortOrderChange)="onSortChanged()"
+              [sortOrder]="sortOrder()" 
+              (sortOrderChange)="onSortChanged($event)"
             />
 
             @if (collection.collectionType === 'DYNAMIC') {
               <app-filter-manager 
-                [(filter)]="filter" 
-                (filterChange)="onFilterChanged()"
+                [filter]="filter()" 
+                (filterChange)="onFilterChanged($event)"
               />
             }
             @else if (collection.collectionType === CollectionType.MANUAL) {
@@ -104,20 +110,20 @@
               <textarea 
                 #descriptionArea
                 [value]="description()"
-                (focus)="isEditingDescription.set(true)"
                 (blur)="onDescriptionBlur(descriptionArea.value)"
                 (keydown.escape)="descriptionArea.value = description(); descriptionArea.blur()"
                 placeholder="Description..."
-                [class.editing]="isEditingDescription()"
               ></textarea>
             </div>
       
           </div>
         </div>
 
+
         @switch (preferredLayout()) {
           @case (CollectionLayout.GRID) {
             <app-collection-grid
+              class="virtual-host"
               [mediaLayoutData]="mediaLayoutData()"
             >
               <ng-template #itemRef let-mediaId="mediaId" let-width="width" let-height="height">
@@ -134,6 +140,7 @@
           }
           @case (CollectionLayout.ROW) {
             <app-collection-row
+              class="virtual-host"
               [mediaLayoutData]="mediaLayoutData()"
             >
               <ng-template #itemRef let-mediaId="mediaId" let-width="width" let-height="height">
@@ -150,6 +157,7 @@
           }
           @case (CollectionLayout.COLUMN) {
             <app-collection-column
+              class="virtual-host"
               [mediaLayoutData]="mediaLayoutData()"
             >
               <ng-template #itemRef let-mediaId="mediaId" let-width="width" let-height="height">
@@ -166,6 +174,7 @@
           }
           @case (CollectionLayout.LIST) {
             <app-collection-list 
+              class="virtual-host virtual-host-list"
               [mediaLayoutData]="mediaLayoutData()" 
             >
               <ng-template #rowRef let-mediaId="mediaId" let-width="width" let-height="height">
@@ -192,9 +201,9 @@
             />
           </div>
         }
-      }
+      </section>
     }
-  </section>
+  }
 
   <ng-template #itemMenu let-mediaId="mediaId">
     <app-dropdown

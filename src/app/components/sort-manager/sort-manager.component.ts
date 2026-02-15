@@ -1,4 +1,4 @@
-import { Component, computed, model, signal } from '@angular/core';
+import { Component, computed, effect, model, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { CdkDragDrop, moveItemInArray, CdkDropList, CdkDrag, CdkDragHandle, CdkDragPlaceholder } from '@angular/cdk/drag-drop';
 
@@ -26,6 +26,12 @@ export class SortManagerComponent {
     const used = this.sortOrder().map(o => o.field);
     return this.ALL_FIELDS.filter(f => !used.includes(f));
   });
+
+  constructor() {
+    effect(() => {
+      console.log("SortManager reçu :", this.sortOrder());
+    });
+  }
 
   getFieldsForIndex(index: number): MediaOrderField[] {
     const currentField = this.sortOrder()[index].field;

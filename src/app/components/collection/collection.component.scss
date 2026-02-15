@@ -1,3 +1,10 @@
+.search-box {
+  display: flex;
+  justify-content: center;
+  padding: 0 10vw;
+  margin-bottom: 8px;
+}
+
 .picker-overlay {
   position: fixed;
   top: 0;
@@ -9,10 +16,4 @@
   display: flex;
   flex-direction: column;
   animation: slideUp 0.4s cubic-bezier(0.25, 1, 0.5, 1);
-}
-
-.search-box {
-  display: flex;
-  justify-content: center;
-  padding: 0 10vw;
 }

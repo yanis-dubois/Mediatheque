@@ -1,5 +1,5 @@
-<div class="picker-container">
-  <header class="picker-header">
+<div class="page-container picker-container">
+  <header class="page-header picker-header">
     <h2>Add to {{ collection.name }}</h2>
 
     <div class="picker-header-content">
@@ -22,17 +22,16 @@
     </div>
   </header>
 
-  <div class="picker-content">
-    <app-collection-list 
-        [mediaLayoutData]="mediaResults()" 
-      >
-        <ng-template #rowRef let-mediaId="mediaId" let-width="width" let-height="height">
-          <div (click)="toggleSelection(mediaId)" class="selectable-row">
-            <app-media-row [mediaId]="mediaId" [width]="width" [height]="height">
-              <span icon class="check-icon">{{ isSelected(mediaId) ? '✅' : '⚪' }}</span>
-            </app-media-row>
-          </div>
-        </ng-template>
-      </app-collection-list>
-  </div>
+  <app-collection-list 
+    class="virtual-host virtual-host-list picker-content"
+    [mediaLayoutData]="mediaResults()" 
+  >
+    <ng-template #rowRef let-mediaId="mediaId" let-width="width" let-height="height">
+      <div (click)="toggleSelection(mediaId)" class="selectable-row">
+        <app-media-row [mediaId]="mediaId" [width]="width" [height]="height">
+          <span #icon icon class="check-icon">{{ isSelected(mediaId) ? '✅' : '⚪' }}</span>
+        </app-media-row>
+      </div>
+    </ng-template>
+  </app-collection-list>
 </div>

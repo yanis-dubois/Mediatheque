@@ -18,6 +18,7 @@ export class CollectionService {
   getCollectionSignal(id: string): WritableSignal<Collection | null> {
     if (!this.collectionCache.has(id)) {
       this.collectionCache.set(id, signal<Collection | null>(null));
+      // TODO: call get_by_id ??
     }
 
     return this.collectionCache.get(id)!;
@@ -55,7 +56,7 @@ export class CollectionService {
     return invoke<[string, number, number][]>('search_in_collection', { collectionId: id, searchQuery: search });
   }
 
-  getCollectionsData(search: string) {
+  getCollectionsIds(search: string) {
     return invoke<string[]>('search_in_collections', { searchQuery: search });
   }
 
@@ -74,37 +75,62 @@ export class CollectionService {
 
   /* update */
 
-  // generic 
-  async toggleFavorite(id: string, isFavorite: boolean): Promise<void> {
-    await invoke('toggle_collection_favorite', { id, isFavorite });
-
-    this.getCollectionSignal(id).update(c => c ? { ...c, favorite: isFavorite } : null);
+  updateCache(id: string, partial: Partial<Collection>) {
+    this.getCollectionSignal(id).update(c => c ? { ...c, ...partial } : null);
     this.lastUpdate.set(Date.now());
   }
 
-  updateName(id: string, name: string): Promise<void> {
-    return invoke('update_collection_name', { id, name });
+  // generic 
+  async toggleFavorite(id: string, isFavorite: boolean): Promise<void> {
+    await invoke('toggle_collection_favorite', { id, isFavorite });
+    this.updateCache(id, { favorite: isFavorite });
   }
 
-  updateDescription(id: string, description: string): Promise<void> {
-    return invoke('update_collection_description', { id, description });
+  async updateName(id: string, name: string): Promise<void> {
+    await invoke('update_collection_name', { id, name });
+    this.updateCache(id, { name: name });
   }
 
-  updatePreferredLayout(id: string, layout: CollectionLayout): Promise<void> {
-    return invoke('update_collection_preferred_layout', { id, layout });
+  async updateDescription(id: string, description: string): Promise<void> {
+    await invoke('update_collection_description', { id, description });
+    this.updateCache(id, { description: description });
   }
 
-  updateSort(id: string, sort: MediaOrder[]) {
-    return invoke('update_collection_sort', { id, sort });
+  async updatePreferredLayout(id: string, layout: CollectionLayout): Promise<void> {
+    await invoke('update_collection_preferred_layout', { id, layout });
+    this.updateCache(id, { preferredLayout: layout });
   }
 
-  updateMediaType(id: string, mediaType: CollectionMediaType) {
-    return invoke('update_collection_media_type', { id, mediaType });
+  async updateMediaType(id: string, mediaType: CollectionMediaType) {
+    await invoke('update_collection_media_type', { id, mediaType });
+    this.updateCache(id, { mediaType: mediaType });
+  }
+
+  async updateSort(id: string, sort: MediaOrder[]) {
+    await invoke('update_collection_sort', { id, sort });
+    this.updateCache(id, { sortOrder: sort });
   }
 
   // dynamic
-  updateFilter(id: string, filter: MediaFilter) {
-    return invoke('update_collection_filter', { id, filter });
+  async updateFilter(id: string, filter: MediaFilter) {
+    await invoke('update_collection_filter', { id, filter });
+    this.updateCache(id, { filter: filter });
+
+    // determine new media type
+    let newMediaType: CollectionMediaType | undefined = undefined;
+    const mediaType = this.getCollectionSignal(id)()?.mediaType;
+    if (filter.mediaType && mediaType?.type == "ALL") {
+      newMediaType = { type: "SPECIFIC", value: filter.mediaType };
+    }
+    else if (filter.mediaType && mediaType?.type == "SPECIFIC" && filter.mediaType !== mediaType.value) {
+      newMediaType = { type: "SPECIFIC", value: filter.mediaType };
+    }
+    else if (!filter.mediaType && mediaType?.type == "SPECIFIC") {
+      newMediaType = { type: "ALL" };
+    }
+
+    // apply it
+    if (newMediaType) this.updateMediaType(id, newMediaType);
   }
 
   // manual
