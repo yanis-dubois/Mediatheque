@@ -34,6 +34,7 @@ pub fn run() {
       commands::collection::update_collection_media_type,
       commands::collection::add_media_batch_to_collection,
       commands::collection::remove_media_from_collection,
+      commands::collection::create_collection,
       commands::collection::delete_collection,
     ])
     .run(tauri::generate_context!())

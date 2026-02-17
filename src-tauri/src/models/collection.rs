@@ -1,4 +1,4 @@
-use serde::{Serialize};
+use serde::{Deserialize, Serialize};
 use crate::models::{enums::CollectionLayout, query::{MediaFilter, MediaOrder}};
 
 use super::enums::{CollectionType, CollectionMediaType};
@@ -22,4 +22,11 @@ pub struct Collection {
   pub preferred_layout: CollectionLayout,
 
   pub has_image: bool,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct ExternalCollection {
+  pub collection_type: CollectionType,
+  pub media_type: CollectionMediaType,
 }

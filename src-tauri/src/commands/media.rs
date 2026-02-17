@@ -309,7 +309,7 @@ fn build_media_query_parts(
         format!("ORDER BY cm.position ASC")
       }
       else {
-        format!("ORDER BY title ASC")
+        format!("ORDER BY title COLLATE NOCASE ASC")
       }
     }
     else {
@@ -514,7 +514,7 @@ pub fn insert_external_media(
 pub async fn add_media_to_library(app: tauri::AppHandle, data: ExternalMediaRequest) -> Result<(), String> {
   println!("add_media_to_library");
 
-  // 1. Extraire les infos communes et spécifiques selon le type
+  // extract basic infos
   let base = data.base();
   let image_url = &base.image_url;
 

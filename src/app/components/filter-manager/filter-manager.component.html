@@ -1,20 +1,11 @@
 <div class="filter-container" appClickOutside (clickOutside)="isOpen.set(false)">
 
-  <button (click)="isOpen.set(!isOpen())" class="filter-trigger">
-    🔍 Filtres
+  <button (click)="isOpen.set(!isOpen())" class="action-button">
+    <img class="filter" src="assets/icons/filter.svg"/>
   </button>
 
   @if (isOpen()) {
     <div class="filter-menu" (clickOutside)="isOpen.set(false)">
-      <!-- <div class="filter-group">
-        <label>Search</label>
-        <input 
-          type="text" 
-          [value]="filter().searchQuery || ''" 
-          (input)="updateFilter('searchQuery', $any($event.target).value)"
-          placeholder="Title, person, ..."
-        />
-      </div> -->
 
       <div class="filter-group">
         <label>Type</label>

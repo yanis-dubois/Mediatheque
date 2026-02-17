@@ -1,7 +1,9 @@
+use rusqlite::params;
+
 use crate::commands::media::{get_media_layout_list, match_media_type};
 use crate::db::{DbState};
-use crate::models::collection::{Collection};
-use crate::models::enums::{CollectionLayout, CollectionMediaType, CollectionType};
+use crate::models::collection::{Collection, ExternalCollection};
+use crate::models::enums::{CollectionLayout, CollectionMediaType, CollectionType, MediaType};
 use crate::models::query::{MediaFilter, MediaOrder};
 
 // convert SQL TEXT -> Enums
@@ -138,7 +140,7 @@ pub fn search_in_collections(
     };
 
   let mut stmt = connection
-    .prepare("SELECT id FROM collection WHERE name LIKE ?1 ORDER BY favorite DESC, name ASC")
+    .prepare("SELECT id FROM collection WHERE name LIKE ?1 ORDER BY favorite DESC, name COLLATE NOCASE ASC")
     .map_err(|e| e.to_string())?;
 
   let ids = stmt.query_map([pattern], |row| row.get(0))
@@ -353,6 +355,56 @@ pub fn remove_media_from_collection(
   Ok(())
 }
 
+/* create */
+
+#[tauri::command]
+pub fn create_collection(
+  state: tauri::State<'_, DbState>, 
+  data: ExternalCollection
+) -> Result<String, String> {
+  println!("create_collection");
+
+  let connection = state.connection.lock().map_err(|_| "DB Lock failed")?;
+
+  // retrieve data
+  let collection_type_str = data.collection_type.to_string();
+  let media_type_str = &data.media_type.to_db_string();
+
+  // create missing data
+  let collection_uuid = uuid::Uuid::new_v4().to_string();
+  let added_date = chrono::Utc::now().to_rfc3339();
+  let prefered_view = match data.media_type {
+    CollectionMediaType::Specific(MediaType::Book) => CollectionLayout::Column,
+    CollectionMediaType::Specific(MediaType::Movie) => CollectionLayout::Grid,
+    CollectionMediaType::Specific(MediaType::Series) => CollectionLayout::Grid,
+    CollectionMediaType::Specific(MediaType::VideoGame) => CollectionLayout::Grid,
+    _ => CollectionLayout::Row
+  };
+  let view_str = prefered_view.to_string();
+
+  // insert in parent table Collection
+  connection.execute(
+    "INSERT INTO collection (id, name, type, media_type, added_date, favorite, description, preferred_layout, sort_order, filter, has_image)
+     VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11)",
+    params![
+      collection_uuid,
+      "New Collection",
+      collection_type_str,
+      media_type_str,
+      added_date,
+      0,
+      "",
+      view_str,
+      "[]",
+      "{}",
+      false,
+    ],
+  ).map_err(|e| e.to_string())?;
+
+  println!("collection created !");
+  Ok(collection_uuid)
+}
+
 /* delete */
 
 #[tauri::command]
@@ -363,7 +415,7 @@ pub fn delete_collection(
   println!("delete_collection");
 
   let connection = state.connection.lock().map_err(|_| "DB Lock failed")?;
-  
+
   connection.execute(
     "DELETE FROM collection WHERE id = ?1",
     [&id],

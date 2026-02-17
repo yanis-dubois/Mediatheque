@@ -1,6 +1,6 @@
-import { Component, computed, effect, input, Input, output, signal, untracked } from '@angular/core';
+import { Component, computed, effect, ElementRef, inject, input, Input, output, signal, untracked, viewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { RouterModule } from '@angular/router';
+import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { debounceTime, Subject } from 'rxjs';
 
 import { DropdownComponent } from '@components/dropdown/dropdown.component';
@@ -24,7 +24,6 @@ import { HumanizePipe } from "@pipe/humanize";
 import { CollectionService } from '@services/collection.service';
 import { MediaService } from '@services/media.service';
 
-
 @Component({
   selector: 'app-collection',
   standalone: true,
@@ -35,6 +34,11 @@ import { MediaService } from '@services/media.service';
 export class CollectionComponent {
   @Input({ required: true }) view!: CollectionDisplayMode;
   id = input.required<string>();
+
+  nameInput = viewChild<ElementRef<HTMLHeadingElement>>('nameInput');
+  private route = inject(ActivatedRoute);
+  private router = inject(Router);
+  private hasFocused = false;
 
   // media data needed for virtualizing (id, width, height)
   mediaLayoutData = signal<[string, number, number][]>([]);
@@ -47,7 +51,7 @@ export class CollectionComponent {
   collectionLayoutOption = Object.values(CollectionLayout);
 
   collection = computed(() => {
-    return this.collectionService.getCollectionSignal(this.id())();
+    return this.collectionService.getCollectionSignal(this.id(), true)();
   });
   name = computed(() => this.collection()?.name ?? '');
   favorite = computed(() => this.collection()?.favorite ?? false);
@@ -106,6 +110,47 @@ export class CollectionComponent {
       this.searchQuery()
       this.refreshLayout$.next();
     });
+
+    // effect to select name editing when creating a new collection
+    effect(() => {
+      const input = this.nameInput();
+      const isEditMode = this.route.snapshot.queryParamMap.get('edit') === 'true';
+
+      if (input && isEditMode && !this.hasFocused && this.name()) {
+        this.hasFocused = true;
+
+        setTimeout(() => {
+          this.focusAndSelectText(input.nativeElement);
+
+          // clean url
+          this.router.navigate([], {
+            relativeTo: this.route,
+            queryParams: { edit: null },
+            queryParamsHandling: 'merge',
+            replaceUrl: true 
+          });
+        }, 100);
+      }
+    });
+  }
+
+  private focusAndSelectText(el: HTMLElement) {
+    el.focus();
+    const range = document.createRange();
+    range.selectNodeContents(el);
+    const sel = window.getSelection();
+    if (sel) {
+      sel.removeAllRanges();
+      sel.addRange(range);
+    }
+  }
+  validateName(el: HTMLElement) {
+    el.blur();
+
+    const selection = window.getSelection();
+    if (selection) {
+      selection.removeAllRanges();
+    }
   }
 
   async loadLayoutData() {

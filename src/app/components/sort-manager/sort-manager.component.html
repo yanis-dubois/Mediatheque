@@ -1,7 +1,7 @@
 <div class="sort-container" appClickOutside (clickOutside)="isOpen.set(false)">
 
-  <button (click)="toggleMenu($event)" class="btn-sort">
-    <i class="icon-sort"></i> Trier ({{ sortOrder().length }})
+  <button (click)="toggleMenu($event)" class="action-button">
+    ⇅
   </button>
 
   @if (isOpen()) {

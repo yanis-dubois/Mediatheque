@@ -21,21 +21,44 @@
     }
     @case (CollectionDisplayMode.DETAILS) {
       <app-action-bar>
-        <app-dropdown 
-          [customClass]="'action-button'"
-          [isOpenExternal]="false">
-        </app-dropdown>
+        <select 
+          class="action-button"
+          [value]="preferredLayout()" 
+          (change)="onLayoutChange($any($event.target).value)"
+        >
+          @for (opt of collectionLayoutOption; track opt) {
+            <option [value]="opt" [selected]="opt === preferredLayout()">{{ opt }}</option>
+          }
+        </select>
+
+        <app-sort-manager 
+          [sortOrder]="sortOrder()" 
+          (sortOrderChange)="onSortChanged($event)"
+        />
+
+        @if (collection.collectionType === 'DYNAMIC') {
+          <app-filter-manager 
+            [filter]="filter()" 
+            (filterChange)="onFilterChanged($event)"
+          />
+        }
+        @else if (collection.collectionType === CollectionType.MANUAL) {
+          <button class="plus-btn" (click)="showPicker.set(true)">
+            <span class="icon">＋</span> Ajouter des médias
+          </button>
+        }
       </app-action-bar>
 
       <section class="page-container">
+        
 
         <div class="page-header">
           <h1 
             contenteditable="true"
             #nameInput
             (blur)="onNameBlur(nameInput.innerText)"
-            (keydown.enter)="$event.preventDefault(); nameInput.blur()"
-            (keydown.escape)="nameInput.innerText = name(); nameInput.blur()"
+            (keydown.enter)="$event.preventDefault(); validateName(nameInput)"
+            (keydown.escape)="nameInput.innerText = name(); validateName(nameInput)"
             class="editable-title"
           >
             {{ name() }}
@@ -53,7 +76,7 @@
 
           <div style="display: flex; justify-content:space-around;">
             <p> {{collection.collectionType}} </p>
-      
+
             <p> 
               @if (collection.mediaType.type === 'ALL') {
                 <span>All</span>
@@ -62,9 +85,9 @@
                 <span>{{ collection.mediaType.value | humanize }}</span>
               }
             </p>
-      
+
             <p> {{collection.addedDate}} </p>
-      
+
             <div>
               <button (click)="onToggleFavorite()" [class.is-favorite]="favorite()">
                 @if (favorite()) {
@@ -74,37 +97,9 @@
                 }
               </button>
             </div>
-      
+
             <p> {{collection.hasImage}} </p>
-      
-            <div class="collection-layout-box">
-              <select 
-                [value]="preferredLayout()" 
-                (change)="onLayoutChange($any($event.target).value)"
-              >
-                @for (opt of collectionLayoutOption; track opt) {
-                  <option [value]="opt" [selected]="opt === preferredLayout()">{{ opt }}</option>
-                }
-              </select>
-            </div>
 
-            <app-sort-manager 
-              [sortOrder]="sortOrder()" 
-              (sortOrderChange)="onSortChanged($event)"
-            />
-
-            @if (collection.collectionType === 'DYNAMIC') {
-              <app-filter-manager 
-                [filter]="filter()" 
-                (filterChange)="onFilterChanged($event)"
-              />
-            }
-            @else if (collection.collectionType === CollectionType.MANUAL) {
-              <button class="plus-btn" (click)="showPicker.set(true)">
-                <span class="icon">＋</span> Ajouter des médias
-              </button>
-            }
-      
             <div class="fieldset-container">
               <label class="fieldset-label">Description</label>
               <textarea 
@@ -115,7 +110,7 @@
                 placeholder="Description..."
               ></textarea>
             </div>
-      
+
           </div>
         </div>
 

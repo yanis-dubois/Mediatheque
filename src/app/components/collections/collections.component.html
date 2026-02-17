@@ -1,7 +1,15 @@
 <app-action-bar>
-  <button class="action-button" (click)="addCollection()">
-    +
-  </button>
+  <app-dropdown
+    [customClass]="'action-button'"
+    [isOpenExternal]="true"
+  >
+    <button (click)="addCollection()">
+      + Create collection
+    </button>
+    <button (click)="addCollection(true)">
+      + Create dynamic collection
+    </button>
+  </app-dropdown>
 </app-action-bar>
 
 <section class="page-container">

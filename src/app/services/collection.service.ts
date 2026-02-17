@@ -2,7 +2,7 @@ import { Injectable, signal, WritableSignal } from '@angular/core';
 
 import { invoke } from '@tauri-apps/api/core';
 
-import { Collection, CollectionLayout, CollectionMediaType } from '@models/collection.model';
+import { Collection, CollectionLayout, CollectionMediaType, ExternalCollection } from '@models/collection.model';
 import { MediaFilter, MediaOrder } from '@models/media-query.model';
 
 @Injectable({ providedIn: 'root' })
@@ -15,10 +15,15 @@ export class CollectionService {
   private cacheOrder: string[] = [];
   lastUpdate = signal<number>(Date.now());
 
-  getCollectionSignal(id: string): WritableSignal<Collection | null> {
+  getCollectionSignal(id: string, forceLoad = false): WritableSignal<Collection | null> {
     if (!this.collectionCache.has(id)) {
       this.collectionCache.set(id, signal<Collection | null>(null));
-      // TODO: call get_by_id ??
+    }
+
+    // 
+    if (forceLoad && (!this.collectionCache.has(id) || this.collectionCache.get(id)!() === null)) {
+      this.loadCollectionIntoCache(id);
+      this.updateCacheOrder(id);
     }
 
     return this.collectionCache.get(id)!;
@@ -46,6 +51,11 @@ export class CollectionService {
     }
   }
 
+  private async loadCollectionIntoCache(id: string) {
+    // Optionnel : ajouter un check pour éviter de charger 2 fois le même ID en même temps
+    this.setCollection(await this.getInfo(id));
+  }
+
   /* get */
 
   getInfo(id: string) {
@@ -67,10 +77,6 @@ export class CollectionService {
 
   searchMedia(query: string, mediaType: CollectionMediaType) {
     return invoke<[string, number, number][]>('search_layout_data', { query: query, mediaType: mediaType });
-  }
-
-  getAllIds(): Promise<string[]> {
-    return invoke('get_all_collection_ids');
   }
 
   /* update */
@@ -141,6 +147,12 @@ export class CollectionService {
 
   removeMedia(id: string, mediaId: string) {
     return invoke('remove_media_from_collection', { id, mediaId });
+  }
+
+  /* create */
+
+  createCollection(collection: ExternalCollection): Promise<string> {
+    return invoke('create_collection', { data: collection });
   }
 
   /* delete */

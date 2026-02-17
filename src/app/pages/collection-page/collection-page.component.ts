@@ -2,7 +2,6 @@ import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute } from '@angular/router';
 
-import { ActionBarComponent } from '@components/action-bar/action-bar.component';
 import { CollectionComponent } from '@components/collection/collection.component';
 
 import { CollectionDisplayMode } from '@models/collection.model'
@@ -10,7 +9,7 @@ import { CollectionDisplayMode } from '@models/collection.model'
 @Component({
   selector: 'app-collection-page',
   standalone: true,
-  imports: [CommonModule, ActionBarComponent, CollectionComponent],
+  imports: [CommonModule, CollectionComponent],
   templateUrl: './collection-page.component.html',
   styleUrl: './collection-page.component.css'
 })

@@ -23,13 +23,4 @@ export class HomeComponent {
     private collectionService: CollectionService
   ) {}
 
-  async ngOnInit() {
-    try {
-      const ids = await this.collectionService.getAllIds();
-      this.collectionIds.set(ids);
-    } catch (err) {
-      console.error("Erreur lors de la récupération des IDs :", err);
-    }
-  }
-
 }

@@ -20,6 +20,11 @@ export interface Collection {
   hasImage: boolean;
 }
 
+export interface ExternalCollection {
+  collectionType: CollectionType;
+  mediaType: CollectionMediaType;
+}
+
 export enum CollectionType {
   MANUAL = "MANUAL",
   DYNAMIC = "DYNAMIC"
