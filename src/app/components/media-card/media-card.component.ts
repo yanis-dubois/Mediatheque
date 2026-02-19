@@ -16,9 +16,9 @@ export class MediaCardComponent {
   @Input({ required: true }) width! : number;
   @Input({ required: true }) height! : number;
   mediaId = input.required<string>();
+  isMenuOpen = input.required<boolean>();
 
   private mediaService = inject(MediaService);
 
   media = computed(() => this.mediaService.getMediaSignal(this.mediaId())());
-  isMenuOpen = input.required<boolean>();
 }

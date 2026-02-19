@@ -1,48 +1,54 @@
-<div class="filter-container" appClickOutside (clickOutside)="isOpen.set(false)">
+<button 
+  [minWidth]="180"
+  [appDropdownTrigger]="dotsMenu"
+  class="action-button" 
+  [isOpenExternal]="true"
+>
+  <img class="filter" src="assets/icons/filter.svg"/>
+</button>
 
-  <button (click)="isOpen.set(!isOpen())" class="action-button">
-    <img class="filter" src="assets/icons/filter.svg"/>
-  </button>
+<ng-template #dotsMenu>
+  <div class="dropdown-menu">
 
-  @if (isOpen()) {
-    <div class="filter-menu" (clickOutside)="isOpen.set(false)">
+    <button class="dropdown-button">
+      <label>Type : </label>
+      <select [value]="filter().mediaType || ''" (change)="updateFilter('mediaType', $any($event.target).value)">
+        <option value="">All</option>
+        @for (type of mediaTypeOptions; track type) {
+          <option [value]="type" [selected]="type === filter().mediaType">
+            {{ type | humanize }}
+          </option>
+        }
+      </select>
+    </button>
 
-      <div class="filter-group">
-        <label>Type</label>
-        <select [value]="filter().mediaType || ''" (change)="updateFilter('mediaType', $any($event.target).value)">
-          <option value="">All</option>
-          @for (type of mediaTypeOptions; track type) {
-            <option [value]="type" [selected]="type === filter().mediaType">
-              {{ type | humanize }}
-            </option>
-          }
-        </select>
-      </div>
+    <button class="dropdown-button">
+      <label>Status : </label>
+      <select [value]="filter().status || ''" (change)="updateFilter('status', $any($event.target).value)">
+        <option value="">All</option>
+        @for (status of statusOptions; track status) {
+          <option [value]="status" [selected]="status === filter().status">
+            {{ status | humanize }}
+          </option>
+        }
+      </select>
+    </button>
 
-      <div class="filter-group">
-        <label>Status</label>
-        <select [value]="filter().status || ''" (change)="updateFilter('status', $any($event.target).value)">
-          <option value="">All</option>
-          @for (status of statusOptions; track status) {
-            <option [value]="status" [selected]="status === filter().status">
-              {{ status | humanize }}
-            </option>
-          }
-        </select>
-      </div>
+    <button
+      class="dropdown-button"
+      (click)="toggleFavorite($event)"
+    >
+      <input 
+        type="checkbox" 
+        [checked]="filter().favoriteOnly" 
+        (change)="updateFilter('favoriteOnly', $any($event.target).checked)"
+      />
+      <label>Favorite only</label>
+    </button>
 
-      <div class="filter-group checkbox">
-        <input 
-          type="checkbox" 
-          [checked]="filter().favoriteOnly" 
-          (change)="updateFilter('favoriteOnly', $any($event.target).checked)"
-        />
-        <label>Favorite</label>
-      </div>
+    <hr> <!-- TODO: media specific filter -->
 
-      <hr> <!-- TODO: media specific filter -->
+    <button (click)="resetFilter()" class="dropdown-button">Reset filter</button>
 
-      <button (click)="resetFilter()" class="reset-btn">Réinitialiser</button>
-    </div>
-  }
-</div>
+  </div>
+</ng-template>

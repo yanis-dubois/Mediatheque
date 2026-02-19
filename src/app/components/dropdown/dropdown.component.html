@@ -1,19 +1,16 @@
-<div class="dropdown-trigger">
-  <button [class]="customClass()" (click)="toggle($event)">
-    •••
-  </button>
-</div>
+<button 
+  [minWidth]="180"
+  [appDropdownTrigger]="dotsMenu" 
+  [class]="customClass()"
+  [isOpenExternal]="isOpenExternal()"
+  (opened)="opened.emit()"
+  (closed)="closed.emit()"
+>
+  •••
+</button>
 
-<ng-template #menuTemplate>
-  <div class="menu-backdrop" (click)="closeWithBackdrop($event)"></div>
-
-  <div class="fixed-menu-overlay"
-    [style.top.px]="position().y" 
-    [style.left.px]="position().x"
-    (click)="$event.stopPropagation()"
-  >
-    <div class="dropdown-menu">
-      <ng-content></ng-content>
-    </div>
+<ng-template #dotsMenu>
+  <div class="dropdown-menu">
+    <ng-content></ng-content> 
   </div>
 </ng-template>

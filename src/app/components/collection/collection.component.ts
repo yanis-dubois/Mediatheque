@@ -23,11 +23,12 @@ import { MediaFilter, MediaOrder } from '@models/media-query.model';
 import { HumanizePipe } from "@pipe/humanize";
 import { CollectionService } from '@services/collection.service';
 import { MediaService } from '@services/media.service';
+import { CollectionActionComponent } from "../collection-action/collection-action.component";
 
 @Component({
   selector: 'app-collection',
   standalone: true,
-  imports: [CommonModule, RouterModule, HumanizePipe, SortManagerComponent, FilterManagerComponent, CollectionLineComponent, CollectionGridComponent, CollectionColumnComponent, CollectionRowComponent, CollectionListComponent, MediaCardComponent, MediaRowComponent, MediaPickerComponent, DropdownComponent, MediaActionComponent, ActionBarComponent],
+  imports: [CommonModule, RouterModule, HumanizePipe, SortManagerComponent, FilterManagerComponent, CollectionLineComponent, CollectionGridComponent, CollectionColumnComponent, CollectionRowComponent, CollectionListComponent, MediaCardComponent, MediaRowComponent, MediaPickerComponent, DropdownComponent, MediaActionComponent, ActionBarComponent, CollectionActionComponent],
   templateUrl: './collection.component.html',
   styleUrl: './collection.component.scss'
 })

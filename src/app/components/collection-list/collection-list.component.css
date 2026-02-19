@@ -1,8 +1,0 @@
-.row {
-  transition: background-color 0.3s ease;
-}
-
-.row:hover {
-  background: var(--color-dark-soft);
-  transition: background-color 0.2ms ease-out;
-}

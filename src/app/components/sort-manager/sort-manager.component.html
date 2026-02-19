@@ -1,46 +1,58 @@
-<div class="sort-container" appClickOutside (clickOutside)="isOpen.set(false)">
+<button 
+  [minWidth]="260"
+  [appDropdownTrigger]="dotsMenu"
+  class="action-button" 
+  [isOpenExternal]="true"
+>
+  ⇅
+</button>
 
-  <button (click)="toggleMenu($event)" class="action-button">
-    ⇅
-  </button>
+<ng-template #dotsMenu>
+  <div class="dropdown-menu">
+    <div
+      cdkDropList 
+      (cdkDropListDropped)="drop($event)"
+      class="sort-list"
+    >
 
-  @if (isOpen()) {
-    <div class="sort-dropdown" (clickOutside)="isOpen.set(false)">
+      @for (order of sortOrder(); track order.field) {
+        <div class="dropdown-button sort-item" cdkDrag>
 
-      <div class="sort-list" 
-        cdkDropList 
-        (cdkDropListDropped)="drop($event)">
-
-        @for (order of sortOrder(); track order.field) {
-          <div class="sort-item" cdkDrag>
-
-            <div class="drag-handle" cdkDragHandle>
-              ⋮⋮
-            </div>
-
-            <select [value]="order.field" (change)="updateField($index, $any($event.target).value)">
-              @for (field of getFieldsForIndex($index); track field) {
-                <option [value]="field" [selected]="field === order.field">
-                  {{ field | humanize }}
-                </option>
-              }
-            </select>
-
-            <button (click)="toggleDirection($index)" class="btn-direction">
-              {{ order.direction === 'ASC' ? '↑' : '↓' }}
-            </button>
-
-            <button (click)="$event.stopPropagation(); removeSort($index)" class="btn-remove">×</button>
-
-            <div *cdkDragPlaceholder class="sort-placeholder"></div>
+          <div class="drag-handle" cdkDragHandle>
+            ⋮⋮
           </div>
-          }
+
+          <select [value]="order.field" (change)="updateField($index, $any($event.target).value)">
+            @for (field of getFieldsForIndex($index); track field) {
+              <option [value]="field" [selected]="field === order.field">
+                {{ field | humanize }}
+              </option>
+            }
+          </select>
+
+          <button (click)="toggleDirection($index)" class="btn-direction">
+            {{ order.direction === 'ASC' ? '↑' : '↓' }}
+          </button>
+
+          <button (click)="$event.stopPropagation(); removeSort($index)" class="delete-item btn-remove">×</button>
+
+          <div *cdkDragPlaceholder class="sort-placeholder"></div>
         </div>
-
-      @if (canAddSort()) {
-        <button (click)="$event.stopPropagation(); addSort()" class="btn-add">+ Ajouter un critère</button>
       }
-    </div>
-  }
 
-</div>
+    </div>
+
+    @if (canAddSort() && sortOrder().length > 0) {
+      <hr>
+    }
+
+    @if (canAddSort()) {
+      <button 
+        class="dropdown-button"
+        (click)="$event.stopPropagation(); addSort()" 
+      >
+        + Ajouter un critère
+      </button>
+    }
+  </div>
+</ng-template>

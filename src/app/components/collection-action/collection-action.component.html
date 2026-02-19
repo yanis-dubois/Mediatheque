@@ -1,6 +1,6 @@
-<button (click)="toggleFavorite()" style="text-align: center;">
+<button class="dropdown-button" (click)="toggleFavorite()" style="text-align: center;">
   {{ collection()?.favorite ? '❤️' : '🩶' }}
 </button>
-<button class="delete-item" (click)="onDelete()">
+<button class="dropdown-button delete-item" (click)="onDelete()">
   Delete
 </button>

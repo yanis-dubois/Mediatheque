@@ -1,17 +1,17 @@
-<button (click)="toggleFavorite()" style="text-align: center;">
+<button class="dropdown-button" (click)="toggleFavorite()" style="text-align: center;">
   {{ media()?.favorite ? '❤️' : '🩶' }}
 </button>
-<button>
+<button class="dropdown-button">
   <select 
     (change)="onStatusChange($any($event.target).value)"
   >
     @for (opt of statusOptions; track opt) {
-      <option [value]="opt" [selected]="opt === media()?.status">{{ opt }}</option>
+      <option [value]="opt" [selected]="opt === media()?.status">{{ opt | humanize }}</option>
     }
   </select>
 </button>
 @if (canDeleteFromCollection()) {
-  <button class="delete-item" (click)="onDeleteFromCollection()">
+  <button class="dropdown-button delete-item" (click)="onDeleteFromCollection()">
     Delete from collection
   </button>
 }

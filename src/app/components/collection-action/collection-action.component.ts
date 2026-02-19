@@ -1,4 +1,5 @@
 import { Component, computed, inject, input, output } from '@angular/core';
+import { Router } from '@angular/router';
 import { CollectionService } from '@app/services/collection.service';
 
 @Component({
@@ -11,6 +12,7 @@ import { CollectionService } from '@app/services/collection.service';
 export class CollectionActionComponent {
 
   collectionId = input.required<string>();
+  private router = inject(Router);
 
   deleteRequest = output<string>();
 
@@ -31,8 +33,20 @@ export class CollectionActionComponent {
     }
   }
 
-  onDelete() {
-    this.collectionService.delete(this.collectionId());
+  async onDelete() {
+    const id = this.collectionId();
+    const isCurrentPage = this.router.url.includes(`/collection/${id}`);
+
+    try {
+      await this.collectionService.delete(id);
+
+      // if on collection page -> redirect back
+      if (isCurrentPage) {
+        this.router.navigate(['/collections'], { replaceUrl: true });
+      }
+    } catch (e) {
+      console.error("Error during collection deletion", e);
+    }
   }
 
 }

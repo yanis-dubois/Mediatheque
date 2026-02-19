@@ -28,7 +28,10 @@
   >
     <ng-template #rowRef let-mediaId="mediaId" let-width="width" let-height="height">
       <div (click)="toggleSelection(mediaId)" class="selectable-row">
-        <app-media-row [mediaId]="mediaId" [width]="width" [height]="height">
+        <app-media-row
+          [mediaId]="mediaId" [width]="width" [height]="height"
+          [isMenuOpen]="false"
+        >
           <span #icon icon class="check-icon">{{ isSelected(mediaId) ? '✅' : '⚪' }}</span>
         </app-media-row>
       </div>

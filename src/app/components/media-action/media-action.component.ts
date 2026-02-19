@@ -1,11 +1,12 @@
 import { Component, computed, inject, input, output } from '@angular/core';
 import { MediaStatus } from '@app/models/media.model';
 import { MediaService } from '@app/services/media.service';
+import { HumanizePipe } from "../../pipe/humanize";
 
 @Component({
   selector: 'app-media-action',
   standalone: true,
-  imports: [],
+  imports: [HumanizePipe],
   templateUrl: './media-action.component.html',
   styleUrl: './media-action.component.css'
 })

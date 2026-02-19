@@ -21,15 +21,33 @@
     }
     @case (CollectionDisplayMode.DETAILS) {
       <app-action-bar>
-        <select 
-          class="action-button"
-          [value]="preferredLayout()" 
-          (change)="onLayoutChange($any($event.target).value)"
-        >
-          @for (opt of collectionLayoutOption; track opt) {
-            <option [value]="opt" [selected]="opt === preferredLayout()">{{ opt }}</option>
+
+        <div class="action-button layout-selector">
+          @switch (preferredLayout()) {
+            @case (CollectionLayout.GRID) {
+              <img src="assets/icons/layout_grid.svg" alt="Grid" class="layout-icon" />
+            }
+            @case (CollectionLayout.ROW) {
+              <img src="assets/icons/layout_row.svg" alt="Row" class="layout-icon" />
+            }
+            @case (CollectionLayout.COLUMN) {
+              <img src="assets/icons/layout_row.svg" alt="Column" class="layout-icon" style="transform: scaleX(-1) rotate(90deg);"/>
+            }
+            @case (CollectionLayout.LIST) {
+              <img src="assets/icons/layout_list.svg" alt="List" class="layout-icon" />
+            }
           }
-        </select>
+
+          <select 
+            [value]="preferredLayout()" 
+            (change)="onLayoutChange($any($event.target).value)"
+            style="appearance: none;"
+          >
+            @for (opt of collectionLayoutOption; track opt) {
+              <option [value]="opt" [selected]="opt === preferredLayout()">{{ opt | humanize }}</option>
+            }
+          </select>
+        </div>
 
         <app-sort-manager 
           [sortOrder]="sortOrder()" 
@@ -43,14 +61,18 @@
           />
         }
         @else if (collection.collectionType === CollectionType.MANUAL) {
-          <button class="plus-btn" (click)="showPicker.set(true)">
-            <span class="icon">＋</span> Ajouter des médias
+          <button class="action-button" (click)="showPicker.set(true)">
+            <img src="assets/icons/plus.svg" alt="Plus"/>
           </button>
         }
+
+        <app-dropdown [customClass]="'action-button'" [isOpenExternal]="true">
+          <app-collection-action [collectionId]="id()"/>
+        </app-dropdown>
+        
       </app-action-bar>
 
       <section class="page-container">
-        
 
         <div class="page-header">
           <h1 
@@ -114,7 +136,6 @@
           </div>
         </div>
 
-
         @switch (preferredLayout()) {
           @case (CollectionLayout.GRID) {
             <app-collection-grid
@@ -176,6 +197,7 @@
                 <a [routerLink]="['/media', mediaId]" style="text-decoration: none; color: inherit;">
                   <app-media-row 
                     [mediaId]="mediaId" [width]="width" [height]="height"
+                    [isMenuOpen]="isMenuOpen(mediaId)"
                   >
                     <div mediaMenu (click)="$event.preventDefault(); $event.stopPropagation()">
                       <ng-container *ngTemplateOutlet="itemMenu; context: { mediaId: mediaId }"></ng-container>
@@ -188,7 +210,7 @@
         }
 
         @if (showPicker()) {
-          <div class="picker-overlay" [@slideInUp]>
+          <div class="picker-overlay">
             <app-media-picker 
               [collection]="collection"
               (onCancel)="showPicker.set(false)"
@@ -202,6 +224,7 @@
 
   <ng-template #itemMenu let-mediaId="mediaId">
     <app-dropdown
+      (click)="$event.preventDefault(); $event.stopPropagation()"
       [isOpenExternal]="activeMediaMenuId() === mediaId"
       (opened)="activeMediaMenuId.set(mediaId)"
       (closed)="activeMediaMenuId.set(null)"

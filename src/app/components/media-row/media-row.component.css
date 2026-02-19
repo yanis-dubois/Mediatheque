@@ -4,6 +4,19 @@
   padding: 0 4px;
 }
 
+.row-content {
+  transition: background-color 0.3s ease;
+}
+.row-content:hover,
+.is-menu-open  {
+  background: var(--color-dark-soft);
+  transition: background-color 0.2ms ease-out;
+}
+
+.card {
+  display: flex;
+  align-items: center;
+}
 .card img {
   border-radius: 6px;
   object-fit: cover;

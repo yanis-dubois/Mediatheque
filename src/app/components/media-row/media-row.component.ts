@@ -17,6 +17,7 @@ export class MediaRowComponent {
   @Input({ required: true }) width! : number;
   @Input({ required: true }) height! : number;
   mediaId = input.required<string>();
+  isMenuOpen = input.required<boolean>();
 
   customIcon = contentChild<ElementRef>('icon');
 

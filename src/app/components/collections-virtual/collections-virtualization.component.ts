@@ -31,15 +31,14 @@ export class CollectionsVirtualizationComponent {
   loading = signal(true);
   activeMenuId = signal<string | null>(null);
 
-  containerHeight = signal(220);
+  containerHeight = signal(228);
 
   virtualizer = injectVirtualizer(() => ({
     count: this.collectionIds().length,
     scrollElement: undefined, 
     getScrollElement: () => this.scrollElement?.nativeElement || null,
     estimateSize: () => {
-      const gap = 8;
-      return this.containerHeight() + gap;
+      return this.containerHeight();
     },
     overscan: 5,
     onChange: (instance) => {
@@ -116,7 +115,7 @@ export class CollectionsVirtualizationComponent {
     const cssWidth = style.getPropertyValue('--card-width-line').trim();
   
     if (cssWidth) {
-      this.containerHeight.set(parseInt(cssWidth, 10) * 1.5 + 48);
+      this.containerHeight.set(parseInt(cssWidth, 10) * 1.5 + 56);
     }
   }
 

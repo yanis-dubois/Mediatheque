@@ -4,14 +4,13 @@ import { CdkDragDrop, moveItemInArray, CdkDropList, CdkDrag, CdkDragHandle, CdkD
 
 import { MediaOrder, MediaOrderDirection, MediaOrderField } from '@models/media-query.model';
 
+import { DropdownTriggerDirective } from '@app/directive/dropdown.directive'
 import { HumanizePipe } from '@app/pipe/humanize';
-import { ClickOutsideDirective } from '@app/directive/click-outside.directive';
 
 @Component({
   selector: 'app-sort-manager',
   standalone: true,
-  imports: [CommonModule, HumanizePipe, ClickOutsideDirective,
-    CdkDropList, CdkDrag, CdkDragHandle, CdkDragPlaceholder
+  imports: [CommonModule, HumanizePipe, DropdownTriggerDirective, CdkDropList, CdkDrag, CdkDragHandle, CdkDragPlaceholder
   ],
   templateUrl: './sort-manager.component.html',
   styleUrl: './sort-manager.component.css'
@@ -19,7 +18,6 @@ import { ClickOutsideDirective } from '@app/directive/click-outside.directive';
 export class SortManagerComponent {
 
   sortOrder = model.required<MediaOrder[]>(); 
-  isOpen = signal(false);
 
   private readonly ALL_FIELDS = Object.values(MediaOrderField);
   availableFields = computed(() => {
@@ -40,11 +38,6 @@ export class SortManagerComponent {
 
   canAddSort(): boolean {
     return this.sortOrder().length < this.ALL_FIELDS.length;
-  }
-
-  toggleMenu(event: Event) {
-    event.stopPropagation();
-    this.isOpen.update(v => !v);
   }
 
   addSort() {

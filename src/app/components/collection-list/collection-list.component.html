@@ -23,7 +23,7 @@
           >
             <ng-container 
               [ngTemplateOutlet]="rowTemplate" 
-              [ngTemplateOutletContext]="{ mediaId: layout.id, width: containerWidth(), height: containerHeight() }">
+              [ngTemplateOutletContext]="{ mediaId: layout.id, width: containerWidth(), height: containerHeight()+8 }">
             </ng-container>
           </div>
         }

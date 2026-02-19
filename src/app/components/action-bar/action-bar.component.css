@@ -3,14 +3,14 @@
   top: 12px;
 }
 .action-left {
-  left: 8px;
+  left: var(--action-step);
 }
 .action-right {
-  right: 8px;
+  right: var(--action-step);
   display: flex;
   flex-direction: row;
 }
 
 .chevron {
-  transform: rotate(180deg) translateX(5px);
+  transform: rotate(180deg);
 }

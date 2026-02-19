@@ -2,11 +2,15 @@
   text-align: left;
   margin: 0;
   margin-left: 4px;
+
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .viewport-container {
   width: 100%;
-  height: calc((var(--card-width-line) * 1.5) + 30px);
+  height: calc((var(--card-width-line) * 1.5) + 2px);
   overflow-x: auto;
   overflow-y: hidden;
   contain: strict;
@@ -33,10 +37,17 @@
 .line-header {
   display: flex;
   justify-content: space-between;
-  margin-top: 8px;
+  padding-top: 8px;
+  overflow: hidden;
+  width: 100%;
+}
+.line-header a {
+  min-width: 0;
+  width: 100%;
 }
 
 .menu-slot {
+  flex: none;
   margin-right: 4px;
   margin-bottom: 4px;
   scale: 1.2;

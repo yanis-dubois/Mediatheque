@@ -1,0 +1,224 @@
+@import "@angular/cdk/overlay-prebuilt.css";
+
+/* phone */
+:root {
+  font-family: Inter, Avenir, Helvetica, Arial, sans-serif;
+  font-size: 16px;
+  line-height: 24px;
+  font-weight: 400;
+
+  color: #f6f6f6;
+  background-color: #1A1A1A;
+
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  -webkit-text-size-adjust: 100%;
+
+  /* variables */
+  /* action button step */
+  --action-step: 2px;
+  /* card size */
+  --card-width-grid: 90px;
+  --card-width-line: 90px;
+  --card-width-list: 60px;
+  /* animation */
+  --scale-card-in: 0.225s;
+  --scale-card-out: 0.6s;
+
+  /* colors */
+  /* primary */
+  --color-primary-bright: #D2B0FF;
+  --color-primary-light: #B09AFF;
+  --color-primary: #9683EC; /* DEFAULT */
+  --color-primary-dark: #5F61BB;
+  --color-primary-deep: #343E92;
+  /* light */
+  --color-light: #f6f6f6; /* DEFAULT */
+  --color-light-soft: #D0D0D0;
+  --color-light-dark: #808080;
+  /* dark */
+  --color-dark-light: #454545;
+  --color-dark-soft: #333;
+  --color-dark: #1A1A1A; /* DEFAULT */
+  --color-dark-deep: #101010;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    color: var(--color-light);
+    background-color: var(--color-dark);
+  }
+}
+
+/* tablet */
+@media (min-width: 600px) {
+  :root {
+    --card-width-grid: 105px;
+    --card-width-line: 105px;
+    --card-width-list: 70px;
+    /* action button step */
+    --action-step: 4px;
+  }
+}
+
+/* desktop */
+@media (min-width: 1025px) {
+  :root {
+    --card-width-grid: 120px;
+    --card-width-line: 120px;
+    --card-width-list: 80px;
+    /* action button step */
+    --action-step: 8px;
+  }
+}
+
+
+
+body {
+  margin: 0;
+}
+
+a {
+  font-weight: 500;
+  color: var(--color-light);
+  text-decoration: inherit;
+}
+a:hover {
+  color: var(--color-light-soft);
+}
+
+h1 {
+  text-align: center;
+}
+
+.title-chevron {
+  display: flex;
+  align-items: flex-end;
+} 
+.title-chevron:hover img {
+  filter: brightness(80%);
+} 
+
+/* icons */
+// ...
+
+/* action button (top of the screen) */
+.action-button {
+  color: var(--color-light);
+  background: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(8px);
+  border-radius: 100%;
+  border: none;
+  width: 2.6rem;
+  height: 2.6rem;
+  cursor: pointer;
+  font-size: 1.2rem;
+  font-weight: 1000;
+  z-index: 100;
+  margin: 0 var(--action-step);
+
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+.action-button:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+/* dropdown menu */
+.dropdown-menu {
+  background: var(--color-dark-soft);
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 8px;
+  box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+  min-width: 180px;
+  overflow: hidden;
+}
+.menu-backdrop {
+  background: transparent;
+  cursor: default;
+  pointer-events: auto;
+}
+.dropdown-button {
+  width: 100%;
+  padding: 10px 16px;
+  background: none;
+  border: none;
+  color: var(--color-light);
+  text-align: left;
+  cursor: pointer;
+  font-size: 0.9rem;
+  &:hover { 
+    background: var(--color-dark-light);
+  }
+}
+.delete-item {
+  cursor: pointer;
+  background: none;
+  border: none;
+  color: #ff4444 !important;
+  &:hover { 
+    background: rgba(255, 68, 68, 0.1) !important;
+  }
+}
+
+.input-search {
+  width: 100%;
+  padding: 8px 16px;
+  border-radius: 10px;
+  border: none;
+  background: rgba(255, 255, 255, 0.1);
+  color: var(--color-light);
+}
+select {
+  background: var(--color-dark);
+  color: var(--color-light);
+  border: 1px solid var(--color-dark-light);
+}
+
+/* skeleton display */
+.skeleton-card, .skeleton-text {
+  flex: none;
+  background-color: #333;
+  border-radius: 12px;
+  animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.25; }
+}
+
+/* page with virtualization layout */
+.page-container {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  overflow: hidden;
+}
+.page-header {
+  flex-shrink: 0;
+}
+.virtual-host {
+  flex-grow: 1;
+  min-height: 0;
+  position: relative;
+  padding: 4px;
+}
+.virtual-host-list {
+  padding: 0;
+}
+.viewport-container {
+  overflow-y: auto;
+  overflow-x: hidden;
+  display: block;
+  position: relative;
+  contain: strict;
+  padding: 4px 0;
+}
+.viewport-container-list {
+  padding: 0;
+}
+
+
