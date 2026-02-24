@@ -256,9 +256,50 @@ fn build_media_query_parts(
   if let Some(true) = &filter.favorite_only {
     conditions.push("m.favorite = 1".to_string());
   }
+  // search only on title
+  // if let Some(q) = &filter.search_query {
+  //   conditions.push("m.title LIKE ?".to_string());
+  //   params.push(Box::new(format!("%{}%", q)));
+  // }
   if let Some(q) = &filter.search_query {
-    conditions.push("m.title LIKE ?".to_string());
-    params.push(Box::new(format!("%{}%", q)));
+    let search_pattern = format!("%{}%", q);
+
+    // search on every text field
+    let universal_search = format!(
+      "(m.title LIKE ? OR m.description LIKE ? OR m.notes LIKE ? 
+      OR EXISTS (
+        SELECT 1 FROM person p 
+        WHERE p.name LIKE ? AND (
+          EXISTS (SELECT 1 FROM movie_director WHERE director_id = p.id AND movie_id = m.id) OR
+          EXISTS (SELECT 1 FROM series_creator WHERE creator_id = p.id AND series_id = m.id) OR
+          EXISTS (SELECT 1 FROM tabletop_game_designer WHERE designer_id = p.id AND tabletop_game_id = m.id) OR
+          EXISTS (SELECT 1 FROM tabletop_game_artist WHERE artist_id = p.id AND tabletop_game_id = m.id)
+        )
+      )
+      OR EXISTS (
+        SELECT 1 FROM genre g 
+        WHERE g.name LIKE ? AND (
+          EXISTS (SELECT 1 FROM movie_genre WHERE genre_id = g.id AND movie_id = m.id) OR
+          EXISTS (SELECT 1 FROM series_genre WHERE genre_id = g.id AND series_id = m.id)
+        )
+      )
+      OR EXISTS (
+        SELECT 1 FROM company c 
+        JOIN tabletop_game_publisher tgp ON tgp.publisher_id = c.id 
+        WHERE c.name LIKE ? AND tgp.tabletop_game_id = m.id
+      )
+      OR EXISTS (
+        SELECT 1 FROM game_mechanic gm 
+        JOIN tabletop_game_game_mechanic tggm ON tggm.game_mechanic_id = gm.id 
+        WHERE gm.name LIKE ? AND tggm.tabletop_game_id = m.id
+      ))"
+    );
+    conditions.push(universal_search);
+
+    // we add as many params as the '?' appear in that request
+    for _ in 0..7 {
+      params.push(Box::new(search_pattern.clone()));
+    }
   }
   // specific filters 
   // by Person (Movie, Series) TODO: add all other medias

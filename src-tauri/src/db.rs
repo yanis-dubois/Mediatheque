@@ -104,7 +104,7 @@ pub fn init_db(connection: &mut Connection) -> Result<()> {
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       collection_id TEXT NOT NULL,
       media_id TEXT NOT NULL,
-      position INTEGER, -- allow personnalised order
+      position INTEGER NOT NULL, -- allow personnalised order
 
       FOREIGN KEY (collection_id) REFERENCES collection(id) ON DELETE CASCADE,
       FOREIGN KEY (media_id) REFERENCES media(id) ON DELETE CASCADE
@@ -1500,7 +1500,6 @@ fn seed_collection() -> Vec<SeedCollection<'static>> {
       id: 13,
       name: "Animation Fantasy", 
       collection_type: CollectionType::Dynamic, 
-      media_type: CollectionMediaType::Specific(MediaType::Series),
       prefered_view: CollectionLayout::Row,
       collection_dynamic: Some(SeedCollectionDynamic { 
         filter: Some(MediaFilter {
@@ -1514,7 +1513,6 @@ fn seed_collection() -> Vec<SeedCollection<'static>> {
       id: 14,
       name: "Sci-Fi", 
       collection_type: CollectionType::Dynamic, 
-      media_type: CollectionMediaType::Specific(MediaType::Series),
       prefered_view: CollectionLayout::Row,
       collection_dynamic: Some(SeedCollectionDynamic { 
         filter: Some(MediaFilter {
@@ -1528,7 +1526,6 @@ fn seed_collection() -> Vec<SeedCollection<'static>> {
       id: 15,
       name: "Denis Villeneuve", 
       collection_type: CollectionType::Dynamic, 
-      media_type: CollectionMediaType::Specific(MediaType::Series),
       prefered_view: CollectionLayout::Row,
       collection_dynamic: Some(SeedCollectionDynamic { 
         filter: Some(MediaFilter {
