@@ -191,73 +191,47 @@ pub fn init_db(connection: &mut Connection) -> Result<()> {
 
 
 
-    -- Movie Relations
+    -- Media Relations
 
-    CREATE TABLE IF NOT EXISTS movie_director (
-      movie_id TEXT NOT NULL,
-      director_id INTEGER NOT NULL,
-      PRIMARY KEY (movie_id, director_id),
-      FOREIGN KEY (movie_id) REFERENCES movie(media_id) ON DELETE CASCADE,
-      FOREIGN KEY (director_id) REFERENCES person(id) ON DELETE CASCADE
+    -- Person
+    CREATE TABLE IF NOT EXISTS media_person (
+      media_id TEXT NOT NULL,
+      person_id INTEGER NOT NULL,
+      role TEXT NOT NULL CHECK(
+        role IN ('DIRECTOR', 'CREATOR', 'DESIGNER', 'ARTIST', 'AUTHOR')
+      ),
+      PRIMARY KEY (media_id, person_id, role),
+      FOREIGN KEY (media_id) REFERENCES media(id) ON DELETE CASCADE,
+      FOREIGN KEY (person_id) REFERENCES person(id) ON DELETE CASCADE
     );
 
-    CREATE TABLE IF NOT EXISTS movie_genre (
-      movie_id TEXT NOT NULL,
+    -- Company
+    CREATE TABLE IF NOT EXISTS media_company (
+      media_id TEXT NOT NULL,
+      company_id INTEGER NOT NULL,
+      role TEXT NOT NULL CHECK(
+        role IN ('PUBLISHER', 'STUDIO', 'DEVELOPER')
+      ),
+      PRIMARY KEY (media_id, company_id, role),
+      FOREIGN KEY (media_id) REFERENCES media(id) ON DELETE CASCADE,
+      FOREIGN KEY (company_id) REFERENCES company(id) ON DELETE CASCADE
+    );
+
+    -- Genre
+    CREATE TABLE IF NOT EXISTS media_genre (
+      media_id TEXT NOT NULL,
       genre_id INTEGER NOT NULL,
-      PRIMARY KEY (movie_id, genre_id),
-      FOREIGN KEY (movie_id) REFERENCES movie(media_id) ON DELETE CASCADE,
+      PRIMARY KEY (media_id, genre_id),
+      FOREIGN KEY (media_id) REFERENCES media(id) ON DELETE CASCADE,
       FOREIGN KEY (genre_id) REFERENCES genre(id) ON DELETE CASCADE
     );
 
-    -- Series Relations
-
-    CREATE TABLE IF NOT EXISTS series_creator (
-      series_id TEXT NOT NULL,
-      creator_id INTEGER NOT NULL,
-      PRIMARY KEY (series_id, creator_id),
-      FOREIGN KEY (series_id) REFERENCES series(media_id) ON DELETE CASCADE,
-      FOREIGN KEY (creator_id) REFERENCES person(id) ON DELETE CASCADE
-    );
-
-    CREATE TABLE IF NOT EXISTS series_genre (
-      series_id TEXT NOT NULL,
-      genre_id INTEGER NOT NULL,
-      PRIMARY KEY (series_id, genre_id),
-      FOREIGN KEY (series_id) REFERENCES series(media_id) ON DELETE CASCADE,
-      FOREIGN KEY (genre_id) REFERENCES genre(id) ON DELETE CASCADE
-    );
-
-    -- Tabletop Game Relations
-
-    CREATE TABLE IF NOT EXISTS tabletop_game_designer (
-      tabletop_game_id TEXT NOT NULL,
-      designer_id INTEGER NOT NULL,
-      PRIMARY KEY (tabletop_game_id, designer_id),
-      FOREIGN KEY (tabletop_game_id) REFERENCES tabletop_game(media_id) ON DELETE CASCADE,
-      FOREIGN KEY (designer_id) REFERENCES person(id) ON DELETE CASCADE
-    );
-
-    CREATE TABLE IF NOT EXISTS tabletop_game_artist (
-      tabletop_game_id TEXT NOT NULL,
-      artist_id INTEGER NOT NULL,
-      PRIMARY KEY (tabletop_game_id, artist_id),
-      FOREIGN KEY (tabletop_game_id) REFERENCES tabletop_game(media_id) ON DELETE CASCADE,
-      FOREIGN KEY (artist_id) REFERENCES person(id) ON DELETE CASCADE
-    );
-
-    CREATE TABLE IF NOT EXISTS tabletop_game_publisher (
-      tabletop_game_id TEXT NOT NULL,
-      publisher_id INTEGER NOT NULL,
-      PRIMARY KEY (tabletop_game_id, publisher_id),
-      FOREIGN KEY (tabletop_game_id) REFERENCES tabletop_game(media_id) ON DELETE CASCADE,
-      FOREIGN KEY (publisher_id) REFERENCES company(id) ON DELETE CASCADE
-    );
-
-    CREATE TABLE IF NOT EXISTS tabletop_game_game_mechanic (
-      tabletop_game_id TEXT NOT NULL,
+    -- Game Mechanic
+    CREATE TABLE IF NOT EXISTS media_game_mechanic (
+      media_id TEXT NOT NULL,
       game_mechanic_id INTEGER NOT NULL,
-      PRIMARY KEY (tabletop_game_id, game_mechanic_id),
-      FOREIGN KEY (tabletop_game_id) REFERENCES tabletop_game(media_id) ON DELETE CASCADE,
+      PRIMARY KEY (media_id, game_mechanic_id),
+      FOREIGN KEY (media_id) REFERENCES media(id) ON DELETE CASCADE
       FOREIGN KEY (game_mechanic_id) REFERENCES game_mechanic(id) ON DELETE CASCADE
     );
 
@@ -279,16 +253,10 @@ pub fn init_db(connection: &mut Connection) -> Result<()> {
 
     -- Relation Index (for revert search)
 
-    CREATE INDEX IF NOT EXISTS idx_movie_director_reverse ON movie_director(director_id);
-    CREATE INDEX IF NOT EXISTS idx_movie_genre_reverse ON movie_genre(genre_id);
-
-    CREATE INDEX IF NOT EXISTS idx_series_creator_reverse ON series_creator(creator_id);
-    CREATE INDEX IF NOT EXISTS idx_series_genre_reverse ON series_genre(genre_id);
-
-    CREATE INDEX IF NOT EXISTS idx_tabletop_game_designer_reverse ON tabletop_game_designer(designer_id);
-    CREATE INDEX IF NOT EXISTS idx_tabletop_game_artist_reverse ON tabletop_game_artist(artist_id);
-    CREATE INDEX IF NOT EXISTS idx_tabletop_game_publisher_reverse ON tabletop_game_publisher(publisher_id);
-    CREATE INDEX IF NOT EXISTS idx_tabletop_game_game_mechanic_reverse ON tabletop_game_game_mechanic(game_mechanic_id);
+    CREATE INDEX IF NOT EXISTS idx_media_person_reverse ON media_person(person_id, role);
+    CREATE INDEX IF NOT EXISTS idx_media_company_reverse ON media_company(company_id, role);
+    CREATE INDEX IF NOT EXISTS idx_media_genre_reverse ON media_genre(genre_id);
+    CREATE INDEX IF NOT EXISTS idx_media_game_mechanic_reverse ON media_game_mechanic(game_mechanic_id);
     "
   )?;
 
@@ -435,13 +403,14 @@ pub fn seed_data(connection: &mut Connection) -> Result<()> {
     // conversion Enums -> String (format SCREAMING_SNAKE_CASE)
     let media_type_str = m.media_type.to_string();
     let status_str = m.status.to_string();
+    let media_id_str = m.id.to_string();
 
     // insert in parent table Media
     tx.execute(
       "INSERT INTO media (id, media_type, image_width, image_height, title, description, release_date, added_date, status, favorite, notes)
         VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11)",
       params![
-        m.id.to_string(),
+        media_id_str,
         media_type_str,
         m.image_width,
         m.image_height,
@@ -459,134 +428,32 @@ pub fn seed_data(connection: &mut Connection) -> Result<()> {
 
     // movies
     if let Some(details) = m.movie_details {
-
-      // add movie
       tx.execute(
         "INSERT INTO movie (media_id, duration, serie) VALUES (?1, ?2, ?3)",
-        params![m.id.to_string(), details.duration, details.serie],
+        params![media_id_str, details.duration, details.serie],
       )?;
-
-      // add genre and movie_genre relation
-      for genre_name in details.genres {
-        tx.execute(
-          "INSERT OR IGNORE INTO genre (name) VALUES (?1)",
-          [genre_name],
-        )?;
-        tx.execute(
-          "INSERT INTO movie_genre (movie_id, genre_id)
-            SELECT ?1, id FROM genre WHERE name = ?2",
-          params![m.id.to_string(), genre_name],
-        )?;
-      }
-
-      // add director and movie_director relation
-      for director_name in details.directors {
-        tx.execute(
-          "INSERT OR IGNORE INTO person (name) VALUES (?1)",
-          [director_name],
-        )?;
-        tx.execute(
-          "INSERT INTO movie_director (movie_id, director_id)
-            SELECT ?1, id FROM person WHERE name = ?2",
-          params![m.id.to_string(), director_name],
-        )?;
-      }
+      seed_persons(&tx, &media_id_str, details.directors, "DIRECTOR")?;
+      seed_genres(&tx, &media_id_str, details.genres)?;
     }
     // series
     else if let Some(details) = m.series_details {
-
-      // add series
       tx.execute(
         "INSERT INTO series (media_id, seasons, episodes) VALUES (?1, ?2, ?3)",
-        params![m.id.to_string(), details.seasons, details.episodes],
+        params![media_id_str, details.seasons, details.episodes],
       )?;
-
-      // add genre and series_genre relation
-      for genre_name in details.genres {
-        tx.execute(
-          "INSERT OR IGNORE INTO genre (name) VALUES (?1)",
-          [genre_name],
-        )?;
-        tx.execute(
-          "INSERT INTO series_genre (series_id, genre_id)
-            SELECT ?1, id FROM genre WHERE name = ?2",
-          params![m.id.to_string(), genre_name],
-        )?;
-      }
-
-      // add director and series_creator relation
-      for creator_name in details.creators {
-        tx.execute(
-          "INSERT OR IGNORE INTO person (name) VALUES (?1)",
-          [creator_name],
-        )?;
-        tx.execute(
-          "INSERT INTO series_creator (series_id, creator_id)
-            SELECT ?1, id FROM person WHERE name = ?2",
-          params![m.id.to_string(), creator_name],
-        )?;
-      }
+      seed_persons(&tx, &media_id_str, details.creators, "CREATOR")?;
+      seed_genres(&tx, &media_id_str, details.genres)?;
     }
     // tabletop game
     else if let Some(details) = m.tabletop_game_details {
-
-      // add game
       tx.execute(
         "INSERT INTO tabletop_game (media_id, player_count, playing_time) VALUES (?1, ?2, ?3)",
-        params![m.id.to_string(), details.player_count, details.playing_time],
+        params![media_id_str, details.player_count, details.playing_time],
       )?;
-
-      // add designers
-      for designer_name in details.designers {
-        tx.execute(
-          "INSERT OR IGNORE INTO person (name) VALUES (?1)",
-          [designer_name],
-        )?;
-        tx.execute(
-          "INSERT INTO tabletop_game_designer (tabletop_game_id, designer_id)
-          SELECT ?1, id FROM person WHERE name = ?2",
-          params![m.id.to_string(), designer_name],
-        )?;
-      }
-
-      // add artists
-      for artist_name in details.artists {
-        tx.execute(
-          "INSERT OR IGNORE INTO person (name) VALUES (?1)",
-          [artist_name],
-        )?;
-        tx.execute(
-          "INSERT INTO tabletop_game_artist (tabletop_game_id, artist_id)
-          SELECT ?1, id FROM person WHERE name = ?2",
-          params![m.id.to_string(), artist_name],
-        )?;
-      }
-
-      // add publishers
-      for publisher_name in details.publishers {
-        tx.execute(
-          "INSERT OR IGNORE INTO company (name) VALUES (?1)",
-          [publisher_name],
-        )?;
-        tx.execute(
-          "INSERT INTO tabletop_game_publisher (tabletop_game_id, publisher_id)
-          SELECT ?1, id FROM company WHERE name = ?2",
-          params![m.id.to_string(), publisher_name],
-        )?;
-      }
-
-      // add mechanics
-      for mechanic_name in details.game_mechanics {
-        tx.execute(
-          "INSERT OR IGNORE INTO game_mechanic (name) VALUES (?1)",
-          [mechanic_name],
-        )?;
-        tx.execute(
-          "INSERT INTO tabletop_game_game_mechanic (tabletop_game_id, game_mechanic_id)
-          SELECT ?1, id FROM game_mechanic WHERE name = ?2",
-          params![m.id.to_string(), mechanic_name],
-        )?;
-      }
+      seed_persons(&tx, &media_id_str, details.designers, "DESIGNER")?;
+      seed_persons(&tx, &media_id_str, details.artists, "ARTIST")?;
+      seed_companies(&tx, &media_id_str, details.publishers, "PUBLISHER")?;
+      seed_game_mechanics(&tx, &media_id_str, details.game_mechanics)?;
     }
   }
 
@@ -663,6 +530,50 @@ pub fn seed_data(connection: &mut Connection) -> Result<()> {
   // validate all operations
   tx.commit()?;
   println!("Database initialized with success !");
+  Ok(())
+}
+fn seed_persons(tx: &rusqlite::Transaction, media_id: &str, names: Vec<&str>, role: &str) -> rusqlite::Result<()> {
+  for name in names {
+    tx.execute("INSERT OR IGNORE INTO person (name) VALUES (?1)", [name])?;
+    tx.execute(
+      "INSERT INTO media_person (media_id, person_id, role)
+        SELECT ?1, id, ?3 FROM person WHERE name = ?2",
+      params![media_id, name, role],
+    )?;
+  }
+  Ok(())
+}
+fn seed_genres(tx: &rusqlite::Transaction, media_id: &str, genres: Vec<&str>) -> rusqlite::Result<()> {
+  for genre in genres {
+    tx.execute("INSERT OR IGNORE INTO genre (name) VALUES (?1)", [genre])?;
+    tx.execute(
+      "INSERT INTO media_genre (media_id, genre_id)
+        SELECT ?1, id FROM genre WHERE name = ?2",
+      params![media_id, genre],
+    )?;
+  }
+  Ok(())
+}
+fn seed_companies(tx: &rusqlite::Transaction, media_id: &str, names: Vec<&str>, role: &str) -> rusqlite::Result<()> {
+  for name in names {
+    tx.execute("INSERT OR IGNORE INTO company (name) VALUES (?1)", [name])?;
+    tx.execute(
+      "INSERT INTO media_company (media_id, company_id, role)
+        SELECT ?1, id, ?3 FROM company WHERE name = ?2",
+      params![media_id, name, role],
+    )?;
+  }
+  Ok(())
+}
+fn seed_game_mechanics(tx: &rusqlite::Transaction, media_id: &str, game_mechanics: Vec<&str>) -> rusqlite::Result<()> {
+  for mech in game_mechanics {
+    tx.execute("INSERT OR IGNORE INTO game_mechanic (name) VALUES (?1)", [mech])?;
+    tx.execute(
+      "INSERT INTO media_game_mechanic (media_id, game_mechanic_id)
+      SELECT ?1, id FROM game_mechanic WHERE name = ?2",
+      params![media_id, mech],
+    )?;
+  }
   Ok(())
 }
 
@@ -1393,7 +1304,7 @@ fn seed_collection() -> Vec<SeedCollection<'static>> {
       prefered_view: CollectionLayout::Row, 
       collection_dynamic: Some(SeedCollectionDynamic { 
         filter: Some(MediaFilter {
-          search_query: Some("Dune".to_string()),
+          title: Some("Dune".to_string()),
           ..Default::default()
         })
       }),

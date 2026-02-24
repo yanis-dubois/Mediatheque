@@ -55,31 +55,29 @@ fn group_concat_to_vec(s: Option<String>) -> Vec<String> {
 
 #[tauri::command]
 pub fn get_media_by_id(state: tauri::State<'_, DbState>, id: String) -> Result<AnyMedia, String> {
-  println!("get_media_by_id");
+  println!("get_media_by_id for ID: {}", id);
 
   let connection = state.connection.lock().map_err(|_| "Failed to lock database")?;
 
-  // retrieve data from Media
+  // 1. Récupération des données de base
   let mut stmt = connection.prepare("SELECT * FROM media WHERE id = ?1")
     .map_err(|e| e.to_string())?;
 
   let base = stmt.query_row([&id], map_row_to_media)
     .map_err(|e| e.to_string())?;
 
-  println!("retrieved base media : {}", base.title);
-
-  // retrieve data from specific type
+  // 2. Récupération des données spécifiques selon le type
   match base.media_type {
     MediaType::Movie => {
       let movie = connection.query_row(
         "SELECT 
           m.duration, m.serie,
-          (SELECT GROUP_CONCAT(d.name) FROM person d 
-            JOIN movie_director md ON d.id = md.director_id 
-            WHERE md.movie_id = m.media_id) as directors,
+          (SELECT GROUP_CONCAT(p.name) FROM person p 
+            JOIN media_person mp ON p.id = mp.person_id 
+            WHERE mp.media_id = ?1 AND mp.role = 'DIRECTOR') as directors,
           (SELECT GROUP_CONCAT(g.name) FROM genre g 
-            JOIN movie_genre mg ON g.id = mg.genre_id 
-            WHERE mg.movie_id = m.media_id) as genres
+            JOIN media_genre mg ON g.id = mg.genre_id 
+            WHERE mg.media_id = ?1) as genres
         FROM movie m WHERE m.media_id = ?1",
         [&id],
         |row| {
@@ -95,16 +93,17 @@ pub fn get_media_by_id(state: tauri::State<'_, DbState>, id: String) -> Result<A
 
       Ok(AnyMedia::Movie(movie))
     },
+
     MediaType::Series => {
       let series = connection.query_row(
         "SELECT 
           s.seasons, s.episodes,
           (SELECT GROUP_CONCAT(p.name) FROM person p 
-            JOIN series_creator sc ON p.id = sc.creator_id 
-            WHERE sc.series_id = s.media_id) as creators,
+            JOIN media_person mp ON p.id = mp.person_id 
+            WHERE mp.media_id = ?1 AND mp.role = 'CREATOR') as creators,
           (SELECT GROUP_CONCAT(g.name) FROM genre g 
-            JOIN series_genre sg ON g.id = sg.genre_id 
-            WHERE sg.series_id = s.media_id) as genres
+            JOIN media_genre mg ON g.id = mg.genre_id 
+            WHERE mg.media_id = ?1) as genres
         FROM series s WHERE s.media_id = ?1",
         [&id],
         |row| {
@@ -116,31 +115,28 @@ pub fn get_media_by_id(state: tauri::State<'_, DbState>, id: String) -> Result<A
             genre: group_concat_to_vec(row.get("genres")?),
           })
         }
-      ).map_err(|e| {
-        let err_msg = format!("SQL error for series (ID {}): {}", id, e);
-        println!("{}", err_msg);
-        err_msg
-      })?;
+      ).map_err(|e| e.to_string())?;
 
       Ok(AnyMedia::Series(series))
     },
+
     MediaType::TabletopGame => {
       let game = connection.query_row(
         "SELECT 
           tg.player_count, 
           tg.playing_time,
           (SELECT GROUP_CONCAT(p.name) FROM person p 
-            JOIN tabletop_game_designer tgd ON p.id = tgd.designer_id 
-            WHERE tgd.tabletop_game_id = tg.media_id) as designers,
+            JOIN media_person mp ON p.id = mp.person_id 
+            WHERE mp.media_id = ?1 AND mp.role = 'DESIGNER') as designers,
           (SELECT GROUP_CONCAT(p.name) FROM person p 
-            JOIN tabletop_game_artist tga ON p.id = tga.artist_id 
-            WHERE tga.tabletop_game_id = tg.media_id) as artists,
+            JOIN media_person mp ON p.id = mp.person_id 
+            WHERE mp.media_id = ?1 AND mp.role = 'ARTIST') as artists,
           (SELECT GROUP_CONCAT(c.name) FROM company c 
-            JOIN tabletop_game_publisher tgp ON c.id = tgp.publisher_id 
-            WHERE tgp.tabletop_game_id = tg.media_id) as publishers,
+            JOIN media_company mc ON c.id = mc.company_id 
+            WHERE mc.media_id = ?1 AND mc.role = 'PUBLISHER') as publishers,
           (SELECT GROUP_CONCAT(gm.name) FROM game_mechanic gm 
-            JOIN tabletop_game_game_mechanic tggm ON gm.id = tggm.game_mechanic_id 
-            WHERE tggm.tabletop_game_id = tg.media_id) as mechanics
+            JOIN media_game_mechanic mgm ON gm.id = mgm.game_mechanic_id 
+            WHERE mgm.media_id = ?1) as mechanics
         FROM tabletop_game tg WHERE tg.media_id = ?1",
         [&id],
         |row| {
@@ -154,15 +150,11 @@ pub fn get_media_by_id(state: tauri::State<'_, DbState>, id: String) -> Result<A
             game_mechanics: group_concat_to_vec(row.get("mechanics")?),
           })
         }
-      ).map_err(|e| {
-        let err_msg = format!("SQL error for tabletop_game (ID {}): {}", id, e);
-        println!("{}", err_msg);
-        err_msg
-      })?;
+      ).map_err(|e| e.to_string())?;
 
       Ok(AnyMedia::TabletopGame(game))
     }
-    // fallback : only base data
+    
     _ => Ok(AnyMedia::Base(base)),
   }
 }
@@ -181,59 +173,65 @@ fn build_media_query_parts(
   let mut join_clauses = Vec::new();
 
   // --- JOIN ---
-  // if collection has a specific type and is ordered by specific fields,
-  // then we join the needed tables
   if let CollectionMediaType::Specific(media_type) = &collection_media_type {
+    // JOIN on media details
     match media_type {
-      MediaType::Movie => {
-        join_clauses.push("LEFT JOIN movie mv ON m.id = mv.media_id".to_string());
-        if order.iter().any(|o| o.field == MediaOrderField::Genre) {
-          join_clauses.push(
-            "LEFT JOIN (
-              SELECT movie_id, MIN(g.name) as first_genre_name 
-              FROM movie_genre mg 
-              JOIN genre g ON mg.genre_id = g.id 
-              GROUP BY movie_id
-            ) g_sorted ON m.id = g_sorted.movie_id".to_string()
-          );
-        }
-        if order.iter().any(|o| o.field == MediaOrderField::Directors) {
-          join_clauses.push(
-            "LEFT JOIN (
-              SELECT movie_id, MIN(p.name) as first_person_name 
-              FROM movie_director md 
-              JOIN person p ON md.director_id = p.id 
-              GROUP BY movie_id
-            ) p_sorted ON m.id = p_sorted.movie_id".to_string()
-          );
-        }
-      },
-      MediaType::Series => {
-        join_clauses.push("LEFT JOIN series s ON m.id = s.media_id".to_string());
-        if order.iter().any(|o| o.field == MediaOrderField::Genre) {
-          join_clauses.push(
-            "LEFT JOIN (
-              SELECT series_id, MIN(g.name) as first_genre_name 
-              FROM series_genre sg 
-              JOIN genre g ON sg.genre_id = g.id 
-              GROUP BY series_id
-            ) g_sorted ON m.id = g_sorted.series_id".to_string()
-          );
-        }
-        if order.iter().any(|o| o.field == MediaOrderField::Creators) {
-          join_clauses.push("LEFT JOIN series_creator sc ON m.id = sc.series_id LEFT JOIN person p ON sc.creator_id = p.id".to_string());
-          join_clauses.push(
-            "LEFT JOIN (
-              SELECT series_id, MIN(p.name) as first_person_name 
-              FROM series_creator sc
-              JOIN person p ON sc.creator_id = p.id 
-              GROUP BY series_id
-            ) p_sorted ON m.id = p_sorted.series_id".to_string()
-          );
-        }
-      },
-      // no join by default
+      MediaType::Movie => join_clauses.push("LEFT JOIN movie mv ON m.id = mv.media_id".to_string()),
+      MediaType::Series => join_clauses.push("LEFT JOIN series s ON m.id = s.media_id".to_string()),
+      MediaType::TabletopGame => join_clauses.push("LEFT JOIN tabletop_game tg ON m.id = tg.media_id".to_string()),
       _ => {}
+    }
+
+    // add join for specific order
+    for o in order {
+      match o.field {
+        // JOIN on person
+        MediaOrderField::Directors | MediaOrderField::Creators | 
+        MediaOrderField::Designers | MediaOrderField::Artists => {
+          let role = match o.field {
+            MediaOrderField::Directors => "DIRECTOR",
+            MediaOrderField::Creators  => "CREATOR",
+            MediaOrderField::Designers => "DESIGNER",
+            MediaOrderField::Artists   => "ARTIST",
+            _ => unreachable!(),
+          };
+
+          // create alias on the role
+          join_clauses.push(format!(
+            "LEFT JOIN (
+              SELECT mp.media_id, MIN(p.name) as name 
+              FROM media_person mp 
+              JOIN person p ON mp.person_id = p.id 
+              WHERE mp.role = '{}'
+              GROUP BY mp.media_id
+            ) p_sorted_{} ON m.id = p_sorted_{}.media_id",
+            role, role, role
+          ));
+        },
+        // JOIN on genre
+        MediaOrderField::Genre => {
+          join_clauses.push(
+            "LEFT JOIN (
+              SELECT mg.media_id, MIN(g.name) as name 
+              FROM media_genre mg 
+              JOIN genre g ON mg.genre_id = g.id 
+              GROUP BY mg.media_id
+            ) g_sorted ON m.id = g_sorted.media_id".to_string()
+          );
+        },
+        // JOIN on game_mechanic
+        MediaOrderField::GameMechanic => {
+          join_clauses.push(
+            "LEFT JOIN (
+              SELECT mgm.media_id, MIN(gm.name) as name 
+              FROM media_game_mechanic mgm 
+              JOIN game_mechanic gm ON mgm.game_mechanic_id = gm.id 
+              GROUP BY mgm.media_id
+            ) g_sorted ON m.id = g_sorted.media_id".to_string()
+          );
+        },
+        _ => {}
+      }
     }
   }
 
@@ -256,11 +254,11 @@ fn build_media_query_parts(
   if let Some(true) = &filter.favorite_only {
     conditions.push("m.favorite = 1".to_string());
   }
-  // search only on title
-  // if let Some(q) = &filter.search_query {
-  //   conditions.push("m.title LIKE ?".to_string());
-  //   params.push(Box::new(format!("%{}%", q)));
-  // }
+  if let Some(t) = &filter.title {
+    conditions.push("m.title LIKE ?".to_string());
+    params.push(Box::new(format!("%{}%", t)));
+  }
+  // search on every text field
   if let Some(q) = &filter.search_query {
     let pattern = format!("%{}%", q);
     let mut search_conditions = Vec::new();
@@ -274,13 +272,9 @@ fn build_media_query_parts(
     // person
     search_conditions.push(
       "EXISTS (
-        SELECT 1 FROM person p 
-        WHERE p.name LIKE ? AND (
-          EXISTS (SELECT 1 FROM movie_director WHERE director_id = p.id AND movie_id = m.id) OR
-          EXISTS (SELECT 1 FROM series_creator WHERE creator_id = p.id AND series_id = m.id) OR
-          EXISTS (SELECT 1 FROM tabletop_game_designer WHERE designer_id = p.id AND tabletop_game_id = m.id) OR
-          EXISTS (SELECT 1 FROM tabletop_game_artist WHERE artist_id = p.id AND tabletop_game_id = m.id)
-        )
+        SELECT 1 FROM media_person mp 
+        JOIN person p ON mp.person_id = p.id 
+        WHERE mp.media_id = m.id AND p.name LIKE ?
       )".to_string()
     );
     params.push(Box::new(pattern.clone()));
@@ -288,11 +282,9 @@ fn build_media_query_parts(
     // genre
     search_conditions.push(
       "EXISTS (
-        SELECT 1 FROM genre g 
-        WHERE g.name LIKE ? AND (
-          EXISTS (SELECT 1 FROM movie_genre WHERE genre_id = g.id AND movie_id = m.id) OR
-          EXISTS (SELECT 1 FROM series_genre WHERE genre_id = g.id AND series_id = m.id)
-        )
+        SELECT 1 FROM media_genre mg 
+        JOIN genre g ON mg.genre_id = g.id 
+        WHERE mg.media_id = m.id AND g.name LIKE ?
       )".to_string()
     );
     params.push(Box::new(pattern.clone()));
@@ -300,9 +292,9 @@ fn build_media_query_parts(
     // company
     search_conditions.push(
       "EXISTS (
-        SELECT 1 FROM company c 
-        JOIN tabletop_game_publisher tgp ON tgp.publisher_id = c.id 
-        WHERE c.name LIKE ? AND tgp.tabletop_game_id = m.id
+        SELECT 1 FROM media_company mc 
+        JOIN company c ON mc.company_id = c.id 
+        WHERE mc.media_id = m.id AND c.name LIKE ?
       )".to_string()
     );
     params.push(Box::new(pattern.clone()));
@@ -310,9 +302,9 @@ fn build_media_query_parts(
     // game mechanic
     search_conditions.push(
       "EXISTS (
-        SELECT 1 FROM game_mechanic gm 
-        JOIN tabletop_game_game_mechanic tggm ON tggm.game_mechanic_id = gm.id 
-        WHERE gm.name LIKE ? AND tggm.tabletop_game_id = m.id
+        SELECT 1 FROM media_game_mechanic mgm
+        JOIN game_mechanic gm ON mgm.game_mechanic_id = gm.id 
+        WHERE mgm.media_id = m.id AND gm.name LIKE ?
       )".to_string()
     );
     params.push(Box::new(pattern.clone()));
@@ -322,38 +314,31 @@ fn build_media_query_parts(
     conditions.push(final_search_clause);
   }
   // specific filters 
-  // by Person (Movie, Series) TODO: add all other medias
+  // by Person
   if let Some(person_name) = &filter.person {
-    conditions.push(format!(
+    conditions.push(
       "EXISTS (
-        SELECT 1 FROM movie_director md JOIN person p ON md.director_id = p.id 
-        WHERE md.movie_id = m.id AND p.name LIKE ?
-        UNION
-        SELECT 1 FROM series_creator sc JOIN person p ON sc.creator_id = p.id 
-        WHERE sc.series_id = m.id AND p.name LIKE ?
-      )"
-    ));
-    params.push(Box::new(format!("%{}%", person_name)));
+        SELECT 1 FROM media_person mp 
+        JOIN person p ON mp.person_id = p.id 
+        WHERE mp.media_id = m.id AND p.name LIKE ?
+      )".to_string());
     params.push(Box::new(format!("%{}%", person_name)));
   }
-  // by Genre (Movie, Series)
+  // by Genre
   if let Some(genres) = &filter.genres {
     if !genres.is_empty() {
-      // concatenate all genre
       let placeholders = genres.iter().map(|_| "?").collect::<Vec<_>>().join(",");
-
       conditions.push(format!(
         "EXISTS (
-          SELECT 1 FROM movie_genre mg JOIN genre g ON mg.genre_id = g.id 
-          WHERE mg.movie_id = m.id AND g.name IN ({})
-          UNION
-          SELECT 1 FROM series_genre sg JOIN genre g ON sg.genre_id = g.id 
-          WHERE sg.series_id = m.id AND g.name IN ({})
-        )", placeholders, placeholders
+          SELECT 1 FROM media_genre mg 
+          JOIN genre g ON mg.genre_id = g.id 
+          WHERE mg.media_id = m.id AND g.name IN ({})
+        )",
+        placeholders
       ));
-
-      for g in genres { params.push(Box::new(g.clone())); }
-      for g in genres { params.push(Box::new(g.clone())); }
+      for g in genres { 
+        params.push(Box::new(g.clone())); 
+      }
     }
   }
   // TODO [...]
@@ -367,28 +352,28 @@ fn build_media_query_parts(
   let order_clause = 
     if order.is_empty() {
       if *collection_type == CollectionType::Manual {
-        format!("ORDER BY cm.position ASC")
+        "ORDER BY cm.position ASC".to_string()
       }
       else {
-        format!("ORDER BY title COLLATE NOCASE ASC")
+        "ORDER BY title COLLATE NOCASE ASC".to_string()
       }
     }
     else {
     let mut parts = Vec::new();
 
     for o in order {
-      let mapped_field: String = match (o.field, &collection_media_type) {
+      let mapped_field: String = match o.field {
         // Movie specific field
-        (MediaOrderField::Directors, CollectionMediaType::Specific(MediaType::Movie)) => "p_sorted.first_person_name".to_string(),
-        (MediaOrderField::Genre, CollectionMediaType::Specific(MediaType::Movie)) => "g_sorted.first_genre_name".to_string(),
-        (MediaOrderField::Serie, CollectionMediaType::Specific(MediaType::Movie)) => "mv.serie".to_string(),
-        (MediaOrderField::Duration, CollectionMediaType::Specific(MediaType::Movie)) => "mv.duration".to_string(),
-
-        // Series specific field
-        (MediaOrderField::Creators, CollectionMediaType::Specific(MediaType::Series)) => "p_sorted.first_person_name".to_string(),
-        (MediaOrderField::Genre, CollectionMediaType::Specific(MediaType::Series)) => "g_sorted.first_genre_name".to_string(),
-        (MediaOrderField::Seasons, CollectionMediaType::Specific(MediaType::Series)) => "s.seasons".to_string(),
-        (MediaOrderField::Episodes, CollectionMediaType::Specific(MediaType::Series)) => "s.episodes".to_string(),
+        MediaOrderField::Directors => "p_sorted_DIRECTOR.name".to_string(),
+        MediaOrderField::Creators => "p_sorted_CREATOR.name".to_string(),
+        MediaOrderField::Designers => "p_sorted_DESIGNER.name".to_string(),
+        MediaOrderField::Artists => "p_sorted_ARTIST.name".to_string(),
+        MediaOrderField::Genre => "g_sorted.name".to_string(),
+        MediaOrderField::Serie => "mv.serie".to_string(),
+        MediaOrderField::Duration => "mv.duration".to_string(),
+        MediaOrderField::Seasons => "s.seasons".to_string(),
+        MediaOrderField::Episodes => "s.episodes".to_string(),
+        MediaOrderField::PlayerCount => "tg.player_count".to_string(),
 
         // Media generic field
         _ => format!("m.{}", o.field)
@@ -519,12 +504,12 @@ pub fn insert_external_media(
   image_width: u32, 
   image_height: u32
 ) -> Result<(), rusqlite::Error> {
-  println!("insert_external_media");
+  println!("insert_external_media: {}", media_uuid);
 
   let base = data.base();
   let added_date = chrono::Utc::now().to_rfc3339();
 
-  // insert into Media
+  // insert in parent media table
   tx.execute(
     "INSERT INTO media (id, media_type, image_width, image_height, title, description, release_date, added_date, status, favorite, notes)
       VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11)",
@@ -537,37 +522,89 @@ pub fn insert_external_media(
       base.description,
       base.release_date,
       added_date,
-      "TO_DISCOVER", // default status
-      false, // default favorite
-      "", // default notes
-      // width,
-      // height
+      "TO_DISCOVER",
+      false,
+      "",
     ],
   )?;
 
-  // Insert into specific media_type
+  // insert details
   match data {
     ExternalMediaRequest::Movie(m) => {
       tx.execute(
         "INSERT INTO movie (media_id, duration, serie) VALUES (?1, ?2, ?3)",
         params![media_uuid, m.duration, m.serie],
       )?;
-
-      for genre_name in m.genre {
-        tx.execute("INSERT OR IGNORE INTO genre (name) VALUES (?1)", [genre_name.clone()])?;
-        tx.execute("INSERT INTO movie_genre (movie_id, genre_id) SELECT ?1, id FROM genre WHERE name = ?2", params![media_uuid, genre_name])?;
-      }
-
-      for director_name in m.directors {
-        tx.execute("INSERT OR IGNORE INTO person (name) VALUES (?1)", [director_name.clone()])?;
-        tx.execute("INSERT INTO movie_director (movie_id, director_id) SELECT ?1, id FROM person WHERE name = ?2", params![media_uuid, director_name])?;
-      }
+      insert_relations_person(tx, media_uuid, m.directors, "DIRECTOR")?;
+      insert_relations_genre(tx, media_uuid, m.genre)?;
     },
-    // TODO add other media types
-    _ => {} 
+
+    ExternalMediaRequest::Series(s) => {
+      tx.execute(
+        "INSERT INTO series (media_id, seasons, episodes) VALUES (?1, ?2, ?3)",
+        params![media_uuid, s.seasons, s.episodes],
+      )?;
+      insert_relations_person(tx, media_uuid, s.creators, "CREATOR")?;
+      insert_relations_genre(tx, media_uuid, s.genre)?;
+    },
+
+    ExternalMediaRequest::TabletopGame(tg) => {
+      tx.execute(
+        "INSERT INTO tabletop_game (media_id, player_count, playing_time) VALUES (?1, ?2, ?3)",
+        params![media_uuid, tg.player_count, tg.playing_time],
+      )?;
+      insert_relations_person(tx, media_uuid, tg.designers, "DESIGNER")?;
+      insert_relations_person(tx, media_uuid, tg.artists, "ARTIST")?;
+      insert_relations_company(tx, media_uuid, tg.publishers, "PUBLISHER")?;
+      insert_game_mechanic(tx, media_uuid, tg.game_mechanics)?;
+    }
   }
 
-  println!("Insert of data finished !");
+  Ok(())
+}
+
+fn insert_relations_person(tx: &Transaction, media_id: &str, names: Vec<String>, role: &str) -> Result<(), rusqlite::Error> {
+  for name in names {
+    tx.execute("INSERT OR IGNORE INTO person (name) VALUES (?1)", [&name])?;
+    tx.execute(
+      "INSERT INTO media_person (media_id, person_id, role) 
+       SELECT ?1, id, ?3 FROM person WHERE name = ?2",
+      params![media_id, name, role],
+    )?;
+  }
+  Ok(())
+}
+fn insert_relations_genre(tx: &Transaction, media_id: &str, genres: Vec<String>) -> Result<(), rusqlite::Error> {
+  for genre in genres {
+    tx.execute("INSERT OR IGNORE INTO genre (name) VALUES (?1)", [&genre])?;
+    tx.execute(
+      "INSERT INTO media_genre (media_id, genre_id) 
+       SELECT ?1, id FROM genre WHERE name = ?2",
+      params![media_id, genre],
+    )?;
+  }
+  Ok(())
+}
+fn insert_relations_company(tx: &Transaction, media_id: &str, names: Vec<String>, role: &str) -> Result<(), rusqlite::Error> {
+  for name in names {
+    tx.execute("INSERT OR IGNORE INTO company (name) VALUES (?1)", [&name])?;
+    tx.execute(
+      "INSERT INTO media_company (media_id, company_id, role) 
+       SELECT ?1, id, ?3 FROM company WHERE name = ?2",
+      params![media_id, name, role],
+    )?;
+  }
+  Ok(())
+}
+fn insert_game_mechanic(tx: &Transaction, media_id: &str, game_mechanics: Vec<String>) -> Result<(), rusqlite::Error> {
+  for mechanic in game_mechanics {
+    tx.execute("INSERT OR IGNORE INTO game_mechanic (name) VALUES (?1)", [&mechanic])?;
+    tx.execute(
+      "INSERT INTO media_game_mechanic (media_id, game_mechanic_id) 
+       SELECT ?1, id FROM game_mechanic WHERE name = ?2",
+      params![media_id, mechanic],
+    )?;
+  }
   Ok(())
 }
 

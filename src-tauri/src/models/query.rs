@@ -13,6 +13,7 @@ pub struct MediaFilter {
   pub media_type: Option<MediaType>,
   pub status: Option<MediaStatus>,
   pub favorite_only: Option<bool>,
+  pub title: Option<String>,
   pub search_query: Option<String>,
 
   // specific filed
@@ -36,6 +37,7 @@ impl Default for MediaFilter {
       media_type: None,
       status: None,
       favorite_only: None,
+      title: None,
       search_query: None,
 
       person: None,

@@ -93,9 +93,16 @@ pub enum MediaOrderField {
   Genre,
   Serie,
   Duration,
+
   Creators,
   Seasons,
-  Episodes
+  Episodes,
+
+  Designers,
+  Artists,
+  GameMechanic,
+  Publishers,
+  PlayerCount
 }
 
 #[derive(Debug, Serialize, Deserialize, PartialEq, Clone)]
