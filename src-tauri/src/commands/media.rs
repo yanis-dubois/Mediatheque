@@ -262,12 +262,18 @@ fn build_media_query_parts(
   //   params.push(Box::new(format!("%{}%", q)));
   // }
   if let Some(q) = &filter.search_query {
-    let search_pattern = format!("%{}%", q);
+    let pattern = format!("%{}%", q);
+    let mut search_conditions = Vec::new();
 
-    // search on every text field
-    let universal_search = format!(
-      "(m.title LIKE ? OR m.description LIKE ? OR m.notes LIKE ? 
-      OR EXISTS (
+    // generic fields
+    search_conditions.push("m.title LIKE ?".to_string());
+    search_conditions.push("m.description LIKE ?".to_string());
+    search_conditions.push("m.notes LIKE ?".to_string());
+    for _ in 0..3 { params.push(Box::new(pattern.clone())); }
+
+    // person
+    search_conditions.push(
+      "EXISTS (
         SELECT 1 FROM person p 
         WHERE p.name LIKE ? AND (
           EXISTS (SELECT 1 FROM movie_director WHERE director_id = p.id AND movie_id = m.id) OR
@@ -275,31 +281,45 @@ fn build_media_query_parts(
           EXISTS (SELECT 1 FROM tabletop_game_designer WHERE designer_id = p.id AND tabletop_game_id = m.id) OR
           EXISTS (SELECT 1 FROM tabletop_game_artist WHERE artist_id = p.id AND tabletop_game_id = m.id)
         )
-      )
-      OR EXISTS (
+      )".to_string()
+    );
+    params.push(Box::new(pattern.clone()));
+
+    // genre
+    search_conditions.push(
+      "EXISTS (
         SELECT 1 FROM genre g 
         WHERE g.name LIKE ? AND (
           EXISTS (SELECT 1 FROM movie_genre WHERE genre_id = g.id AND movie_id = m.id) OR
           EXISTS (SELECT 1 FROM series_genre WHERE genre_id = g.id AND series_id = m.id)
         )
-      )
-      OR EXISTS (
+      )".to_string()
+    );
+    params.push(Box::new(pattern.clone()));
+
+    // company
+    search_conditions.push(
+      "EXISTS (
         SELECT 1 FROM company c 
         JOIN tabletop_game_publisher tgp ON tgp.publisher_id = c.id 
         WHERE c.name LIKE ? AND tgp.tabletop_game_id = m.id
-      )
-      OR EXISTS (
+      )".to_string()
+    );
+    params.push(Box::new(pattern.clone()));
+
+    // game mechanic
+    search_conditions.push(
+      "EXISTS (
         SELECT 1 FROM game_mechanic gm 
         JOIN tabletop_game_game_mechanic tggm ON tggm.game_mechanic_id = gm.id 
         WHERE gm.name LIKE ? AND tggm.tabletop_game_id = m.id
-      ))"
+      )".to_string()
     );
-    conditions.push(universal_search);
+    params.push(Box::new(pattern.clone()));
 
-    // we add as many params as the '?' appear in that request
-    for _ in 0..7 {
-      params.push(Box::new(search_pattern.clone()));
-    }
+    // group everything together
+    let final_search_clause = format!("({})", search_conditions.join(" OR "));
+    conditions.push(final_search_clause);
   }
   // specific filters 
   // by Person (Movie, Series) TODO: add all other medias
