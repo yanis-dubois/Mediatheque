@@ -1,4 +1,4 @@
-import { Component, effect, Input, output, signal } from '@angular/core';
+import { Component, Input, output, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 
 import { CollectionListComponent } from '@components/collection-list/collection-list.component'
@@ -6,13 +6,13 @@ import { MediaRowComponent } from '@components/media-row/media-row.component';
 
 import { CollectionService } from '@app/services/collection.service';
 import { Collection, CollectionMediaType } from '@app/models/collection.model';
+import { GenericPickerComponent } from "../generic-picker/generic-picker.component";
 
 @Component({
   selector: 'app-media-picker',
   standalone: true,
-  imports: [CollectionListComponent, FormsModule, MediaRowComponent],
-  templateUrl: './media-picker.component.html',
-  styleUrl: './media-picker.component.css'
+  imports: [CollectionListComponent, FormsModule, MediaRowComponent, GenericPickerComponent],
+  templateUrl: './media-picker.component.html'
 })
 export class MediaPickerComponent {
   @Input({ required: true }) collection!: Collection;
@@ -21,18 +21,12 @@ export class MediaPickerComponent {
   onConfirm = output<Set<string>>();
 
   mediaResults = signal<[string, number, number][]>([]);
-  selectedIds = signal<Set<string>>(new Set());
   searchQuery = signal('');
-
   mediaType = signal<CollectionMediaType>({type: "ALL"});
 
   constructor(
     private collectionService: CollectionService
-  ) {
-    effect(async () => {
-      await this.onSearch(this.searchQuery());
-    }, { allowSignalWrites: true });
-  }
+  ) {}
 
   ngOnInit() {
     this.mediaType.set(this.collection.mediaType);
@@ -52,16 +46,4 @@ export class MediaPickerComponent {
     }
   }
 
-  toggleSelection(id: string) {
-    this.selectedIds.update(set => {
-      const newSet = new Set(set);
-      if (newSet.has(id)) newSet.delete(id);
-      else newSet.add(id);
-      return newSet;
-    });
-  }
-
-  isSelected(id: string): boolean {
-    return this.selectedIds().has(id);
-  }
 }

@@ -43,7 +43,6 @@ export class CollectionComponent {
 
   // media data needed for virtualizing (id, width, height)
   mediaLayoutData = signal<[string, number, number][]>([]);
-  onLayoutNeedsRefresh = output<void>();
 
   // enums
   protected readonly CollectionDisplayMode = CollectionDisplayMode;
@@ -98,10 +97,21 @@ export class CollectionComponent {
 
     // update layout on media change for dynamic collection
     effect(() => {
-      this.mediaService.lastUpdate(); 
+      this.mediaService.lastUpdate();
 
       untracked(() => {
         if (this.collectionType() === CollectionType.DYNAMIC) {
+          this.refreshLayout$.next();
+        }
+      });
+    });
+
+    // update layout on collection change for manual collection
+    effect(() => {
+      this.collectionService.lastUpdate();
+
+      untracked(() => {
+        if (this.collectionType() === CollectionType.MANUAL) {
           this.refreshLayout$.next();
         }
       });
@@ -156,7 +166,7 @@ export class CollectionComponent {
 
   async loadLayoutData() {
     this.mediaLayoutData.set(
-      await this.collectionService.getLayoutData(this.id(),  this.searchQuery())
+      await this.collectionService.getLayoutData(this.id(), this.searchQuery())
     );
   }
 
@@ -222,7 +232,7 @@ export class CollectionComponent {
     if (newMediaIds.size < 1) return;
 
     try {
-      await this.collectionService.addMediaBatch(this.id(), newMediaIds);
+      await this.collectionService.addMediaBatchToCollection(this.id(), newMediaIds);
       this.refreshLayout$.next();
     } catch (e) {
       console.error("Error while adding media to collection", e);

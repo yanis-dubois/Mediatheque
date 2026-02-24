@@ -19,12 +19,6 @@ export class FilterManagerComponent {
   mediaTypeOptions = Object.values(MediaType);
   statusOptions = Object.values(MediaStatus);
 
-  constructor() {
-    effect(() => {
-      console.log("FilterManager reçu :", this.filter());
-    });
-  }
-
   toggleFavorite(event: MouseEvent) {
     event.stopPropagation();
     const currentValue = !!this.filter().favoriteOnly;

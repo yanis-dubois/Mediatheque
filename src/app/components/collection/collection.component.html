@@ -76,23 +76,26 @@
 
         <div class="page-header">
           <h1 
+            class="editable-title"
             contenteditable="true"
             #nameInput
             (blur)="onNameBlur(nameInput.innerText)"
             (keydown.enter)="$event.preventDefault(); validateName(nameInput)"
             (keydown.escape)="nameInput.innerText = name(); validateName(nameInput)"
-            class="editable-title"
           >
             {{ name() }}
           </h1>
 
           <div class="search-box">
             <input 
+              #searchInput
               class="input-search"
               type="text"
               placeholder="Search on the collection..."
               [value]="searchQuery()"
               (input)="searchQuery.set($any($event.target).value)"
+              (keydown.enter)="searchInput.blur()"
+              (keydown.escape)="searchQuery.set(''); searchInput.blur()"
             />
           </div>
 
@@ -210,13 +213,11 @@
         }
 
         @if (showPicker()) {
-          <div class="picker-overlay">
-            <app-media-picker 
-              [collection]="collection"
-              (onCancel)="showPicker.set(false)"
-              (onConfirm)="showPicker.set(false); addSelectedMedia($event)"
-            />
-          </div>
+          <app-media-picker 
+            [collection]="collection"
+            (onCancel)="showPicker.set(false)"
+            (onConfirm)="showPicker.set(false); addSelectedMedia($event)"
+          />
         }
       </section>
     }

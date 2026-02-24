@@ -1,0 +1,23 @@
+<app-generic-picker
+  class="picker-overlay"
+  [title]="'Add ' + media.title + ' to'"
+  (searchChange)="onSearch($event)"
+  (onCancel)="onCancel.emit()"
+  (onConfirm)="onConfirm.emit($event)"
+  #picker
+>
+  <app-collections-list 
+    class="virtual-host virtual-host-list picker-content"
+    [collectionIds]="collectionResults()" 
+  >
+    <ng-template #rowRef let-collectionId="collectionId" let-width="width" let-height="height">
+      <div (click)="picker.toggleSelection(collectionId)" class="selectable-row">
+        <app-collection-row-item [collectionId]="collectionId" [width]="width" [height]="height"
+          [isMenuOpen]="false"
+        >
+          <span #icon icon class="check-icon"> {{ picker.getSelectionIcon(collectionId) }} </span>
+        </app-collection-row-item>
+      </div>
+    </ng-template>
+  </app-collections-list>
+</app-generic-picker>

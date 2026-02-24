@@ -57,7 +57,7 @@ export class CollectionsComponent {
   async loadLayoutData() {
     try {
       this.collectionIds.set(
-        await this.collectionService.getCollectionsIds(this.searchQuery())
+        await this.collectionService.searchCollection(this.searchQuery(), {type:"ALL"})
       );
     } catch (e) {
       console.error(e);

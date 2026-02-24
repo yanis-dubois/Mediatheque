@@ -38,27 +38,3 @@
     }
   }
 }
-
-.picker-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100vw;
-  height: 100vh;
-  z-index: 1000;
-  background: var(--bg-color-dark);
-  display: flex;
-  flex-direction: column;
-  animation: slideUp 0.3s cubic-bezier(0.25, 1, 0.5, 1);
-}
-
-@keyframes slideUp {
-  from {
-    transform: translateY(100%);
-    opacity: 0;
-  }
-  to {
-    transform: translateY(0);
-    opacity: 1;
-  }
-}

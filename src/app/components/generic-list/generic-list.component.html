@@ -1,0 +1,22 @@
+<div 
+  #scrollElement class="viewport-container viewport-container-list" 
+  style="height: 100%; width: 100%; overflow: auto;"
+>
+  <div [style.height.px]="virtualizer.getTotalSize()" style="width: 100%; position: relative;">
+    @for (vItem of virtualizer.getVirtualItems(); track vItem.key) {
+      <div
+        [style.height.px]="itemHeight() + gap()"
+        [style.transform]="'translateY(' + vItem.start + 'px)'"
+        style="position: absolute; top: 0; left: 0; width: 100%;"
+      >
+        <ng-container 
+          [ngTemplateOutlet]="rowTemplate" 
+          [ngTemplateOutletContext]="{ 
+            $implicit: items()[vItem.index], 
+            index: vItem.index 
+          }">
+        </ng-container>
+      </div>
+    }
+  </div>
+</div>

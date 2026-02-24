@@ -3,23 +3,21 @@ import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { debounceTime, Subject, switchMap } from 'rxjs';
 
-import { Media } from '@models/media.model';
-
-import { MediaService } from '@app/services/media.service';
 import { GenericListComponent } from "../generic-list/generic-list.component";
+import { CollectionService } from '@app/services/collection.service';
+import { Collection } from '@app/models/collection.model';
 
 @Component({
-  selector: 'app-collection-list',
+  selector: 'app-collections-list',
   standalone: true,
   imports: [CommonModule, RouterModule, GenericListComponent],
-  templateUrl: './collection-list.component.html',
-  styleUrls: ['./collection-list.component.css']
+  templateUrl: './collections-list.component.html'
 })
-export class CollectionListComponent {
+export class CollectionsListComponent {
   @ContentChild('rowRef') rowTemplate!: TemplateRef<any>;
 
-  // all media infos (id, width, height)
-  mediaLayoutData = input.required<[string, number, number][]>();
+  // all collection id
+  collectionIds = input.required<string[]>();
 
   private scrollSubject = new Subject<string[]>();
   private el = inject(ElementRef);
@@ -28,17 +26,10 @@ export class CollectionListComponent {
   containerWidth = signal(100);
   gap = signal(8);
 
-  protected getMediaLayout(index: number) {
-    const data = this.mediaLayoutData()[index];
-    if (!data) return {id: '', width: 0, height: 0};
-    return { id: data[0], width: data[1], height: data[2] };
-  }
-
-  protected onVisibleItemsChanged(visibleData: [string, number, number][]) {
-    const visibleIds = visibleData.map(data => data[0]);
+  protected onVisibleItemsChanged(visibleIds: string[]) {
 
     const missingIds = visibleIds.filter(id => {
-      return this.mediaService.getMediaSignal(id)() === null;
+      return this.collectionService.getCollectionSignal(id)() === null;
     });
 
     if (missingIds.length > 0) {
@@ -47,26 +38,26 @@ export class CollectionListComponent {
   }
 
   constructor(
-    private mediaService: MediaService,
+    private collectionService: CollectionService,
   ) {
     this.scrollSubject.pipe(
-      debounceTime(100),
+      debounceTime(50),
       switchMap(async (ids) => {
         // only gets the missing medias
-        const missingIds = ids.filter(id => this.mediaService.getMediaSignal(id)() === null);
+        const missingIds = ids.filter(id => this.collectionService.getCollectionSignal(id)() === null);
         if (missingIds.length === 0) return [];
 
         try {
           // retrieve data
-          return await this.mediaService.getMediaBatch(missingIds);
+          return await this.collectionService.getCollectionBatch(missingIds);
         } catch (e) {
           console.error("Batch load failed", e);
           return [];
         }
       })
-    ).subscribe((medias: Media[]) => {
+    ).subscribe((collections: Collection[]) => {
       // fill the cache
-      medias.forEach(m => this.mediaService.setMedia(m));
+      collections.forEach(c => this.collectionService.setCollection(c));
     });
   }
 

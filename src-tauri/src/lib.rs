@@ -33,6 +33,7 @@ pub fn run() {
       commands::collection::update_collection_filter,
       commands::collection::update_collection_media_type,
       commands::collection::add_media_batch_to_collection,
+      commands::collection::add_media_to_collection_batch,
       commands::collection::remove_media_from_collection,
       commands::collection::create_collection,
       commands::collection::delete_collection,

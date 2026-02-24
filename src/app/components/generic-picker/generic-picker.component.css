@@ -29,14 +29,3 @@
   cursor: pointer;
   &:disabled { opacity: 0.3; }
 }
-
-.picker-content {
-  flex: 1;
-  background: var(--color-dark);
-  overflow: hidden;
-}
-
-@keyframes slideUp {
-  from { transform: translateY(100%); }
-  to { transform: translateY(0); }
-}

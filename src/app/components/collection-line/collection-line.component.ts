@@ -33,6 +33,7 @@ export class CollectionLineComponent {
 
   protected getMediaLayout(index: number) {
     const data = this.mediaLayoutData()[index];
+    if (!data) return {id: '', width: 0, height: 0};
     return { id: data[0], width: data[1], height: data[2] };
   }
 

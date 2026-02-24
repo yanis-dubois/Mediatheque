@@ -3,7 +3,6 @@ import { Injectable, signal, WritableSignal } from '@angular/core';
 import { invoke } from '@tauri-apps/api/core';
 
 import { ExternalMedia, Media, MediaStatus } from '@models/media.model';
-import { Movie, Series } from '@models/media-details.model';
 
 @Injectable({ providedIn: 'root' })
 export class MediaService {

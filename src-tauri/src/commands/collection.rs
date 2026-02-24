@@ -128,22 +128,33 @@ pub fn get_collection_layout_data(
 #[tauri::command]
 pub fn search_in_collections(
   state: tauri::State<'_, DbState>,
-  search_query: String
+  search_query: String,
+  media_type: CollectionMediaType, 
+  is_collection_picker: bool
 ) -> Result<Vec<String>, String> {
   let connection = state.connection.lock().map_err(|_| "DB Lock failed")?;
 
-  let pattern = 
-    if search_query.trim().is_empty() {
-      "%".to_string()
-    } else {
-      format!("%{}%", search_query.trim())
-    };
+  // Base
+  let mut sql = "SELECT id FROM collection WHERE name LIKE ?1".to_string();
+  let pattern = if search_query.trim().is_empty() { "%".to_string() } else { format!("%{}%", search_query.trim()) };
+  let mut params: Vec<Box<dyn rusqlite::ToSql>> = vec![Box::new(pattern)];
 
-  let mut stmt = connection
-    .prepare("SELECT id FROM collection WHERE name LIKE ?1 ORDER BY favorite DESC, name COLLATE NOCASE ASC")
-    .map_err(|e| e.to_string())?;
+  // WHERE
+  if is_collection_picker {
+    sql.push_str(" AND type = 'MANUAL' AND (media_type = ?2 OR media_type = 'ALL')");
+    params.push(Box::new(media_type.to_db_string()));
+  } else if media_type != CollectionMediaType::All {
+    sql.push_str(" AND media_type = ?2");
+    params.push(Box::new(media_type.to_db_string()));
+  }
 
-  let ids = stmt.query_map([pattern], |row| row.get(0))
+  // ORDER BY
+  sql.push_str(" ORDER BY favorite DESC, name COLLATE NOCASE ASC");
+
+  let mut stmt = connection.prepare(&sql).map_err(|e| e.to_string())?;
+  let params_refs: Vec<&dyn rusqlite::ToSql> = params.iter().map(|p| p as &dyn rusqlite::ToSql).collect();
+
+  let ids = stmt.query_map(&params_refs[..], |row| row.get(0))
     .map_err(|e| e.to_string())?
     .collect::<rusqlite::Result<Vec<String>>>()
     .map_err(|e| e.to_string())?;
@@ -329,6 +340,34 @@ pub fn add_media_batch_to_collection(state: tauri::State<'_, DbState>, id: Strin
     for media_id in media_ids {
       current_pos += 1;
       stmt.execute(rusqlite::params![id, media_id, current_pos]).map_err(|e| e.to_string())?;
+    }
+  }
+
+  tx.commit().map_err(|e| e.to_string())?;
+
+  Ok(())
+}
+
+#[tauri::command]
+pub fn add_media_to_collection_batch(state: tauri::State<'_, DbState>, media_id: String, collection_ids: Vec<String>) -> Result<(), String> {
+  println!("add_media__to_collection_batch");
+
+  let mut connection = state.connection.lock().map_err(|_| "DB Lock failed")?;
+
+  let tx = connection.transaction().map_err(|e| e.to_string())?;
+
+  {
+    let mut stmt = tx.prepare(
+      "INSERT INTO collection_media (collection_id, media_id, position) 
+        VALUES (
+          ?1, 
+          ?2, 
+          (SELECT COALESCE(MAX(position), 0) + 1 FROM collection_media WHERE collection_id = ?1)
+        )"
+    ).map_err(|e| e.to_string())?;
+
+    for id in collection_ids {
+      stmt.execute([id, media_id.clone()]).map_err(|e| e.to_string())?;
     }
   }
 

@@ -25,12 +25,6 @@ export class SortManagerComponent {
     return this.ALL_FIELDS.filter(f => !used.includes(f));
   });
 
-  constructor() {
-    effect(() => {
-      console.log("SortManager reçu :", this.sortOrder());
-    });
-  }
-
   getFieldsForIndex(index: number): MediaOrderField[] {
     const currentField = this.sortOrder()[index].field;
     return [...this.availableFields(), currentField];

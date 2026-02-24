@@ -18,11 +18,14 @@
 
     <div class="search-box">
       <input 
+        #searchInput
         class="input-search"
         type="text"
         placeholder="Search a collection..."
         [value]="searchQuery()"
         (input)="searchQuery.set($any($event.target).value)"
+        (keydown.enter)="searchInput.blur()"
+        (keydown.escape)="searchQuery.set(''); searchInput.blur()"
       />
     </div>
   </div>

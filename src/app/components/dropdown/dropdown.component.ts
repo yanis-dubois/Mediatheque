@@ -12,7 +12,7 @@ import { DropdownTriggerDirective } from '@app/directive/dropdown.directive'
 export class DropdownComponent {
   @ViewChild('menuTemplate') menuTemplate!: TemplateRef<any>;
 
-  customClass = input<string>('dots-btn');
+  customClass = input<string>('dots-button');
   isOpenExternal = input.required<boolean>();
 
   opened = output<void>();

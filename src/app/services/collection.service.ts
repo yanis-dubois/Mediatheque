@@ -52,7 +52,6 @@ export class CollectionService {
   }
 
   private async loadCollectionIntoCache(id: string) {
-    // Optionnel : ajouter un check pour éviter de charger 2 fois le même ID en même temps
     this.setCollection(await this.getInfo(id));
   }
 
@@ -66,8 +65,8 @@ export class CollectionService {
     return invoke<[string, number, number][]>('search_in_collection', { collectionId: id, searchQuery: search });
   }
 
-  getCollectionsIds(search: string) {
-    return invoke<string[]>('search_in_collections', { searchQuery: search });
+  searchCollection(search: string, mediaType: CollectionMediaType, isCollectionPicker: boolean = false) {
+    return invoke<string[]>('search_in_collections', { searchQuery: search, mediaType, isCollectionPicker });
   }
 
   async getCollectionBatch(ids: string[]): Promise<Collection[]> {
@@ -140,13 +139,20 @@ export class CollectionService {
   }
 
   // manual
-  addMediaBatch(id: string, mediaIds: Set<string>) {
+  async addMediaBatchToCollection(id: string, mediaIds: Set<string>) {
     const mediaIdsArray = [...mediaIds];
-    return invoke('add_media_batch_to_collection', { id, mediaIds: mediaIdsArray });
+    await invoke('add_media_batch_to_collection', { id, mediaIds: mediaIdsArray });
+    this.lastUpdate.set(Date.now());
   }
 
-  removeMedia(id: string, mediaId: string) {
-    return invoke('remove_media_from_collection', { id, mediaId });
+  async addMediaToCollectionBatch(mediaId: string, collectionIds: Set<string>) {
+    const collectionIdsArray = [...collectionIds];
+    await invoke('add_media_to_collection_batch', { mediaId, collectionIds: collectionIdsArray });
+    this.lastUpdate.set(Date.now());
+  }
+
+  async removeMedia(id: string, mediaId: string) {
+    await invoke('remove_media_from_collection', { id, mediaId });
   }
 
   /* create */

@@ -1,5 +1,5 @@
 <app-generic-list 
-  [items]="mediaLayoutData()"
+  [items]="collectionIds()"
   [itemHeight]="containerHeight()"
   [gap]="gap()"
   (visibleItemsChanged)="onVisibleItemsChanged($event)" 
@@ -9,7 +9,7 @@
     <ng-container 
       [ngTemplateOutlet]="rowTemplate" 
       [ngTemplateOutletContext]="{ 
-        mediaId: item[0], 
+        collectionId: item, 
         width: containerWidth(), 
         height: containerHeight() + gap(),
       }">

@@ -1,0 +1,51 @@
+<div class="row-content" 
+  [class.is-menu-open]="isMenuOpen()"
+  [style.height.px]="height"
+>
+  @if (collection(); as collection) {
+    <div class="card"
+    [style.--scale-width]="1 + (8 / width)"
+    [style.--scale-height]="1 + (8 / height)"
+    >
+      <!-- <img 
+        [src]="media.id | posterPath"
+        [alt]="media.title"
+        [style.width.px]="width"
+        [style.height.px]="height - 8"
+      > -->
+    </div>
+
+    <div class="infos">
+      <div class="text-group">
+        <h3 class="title">{{ collection.name }}</h3>
+        <p class="type">{{ collection.mediaType | emojize }}</p>
+      </div>          
+
+      <div class="icon-slot">
+        <ng-content select="[icon]"></ng-content>
+        @if (!customIcon()) {
+          <span class="fav-icon">{{ collection.favorite | emojize }}</span>
+        }
+      </div>
+    </div>
+
+    <div class="menu-slot">
+      <ng-content select="[mediaMenu]"></ng-content>
+    </div>
+  }
+  @else {
+    <div class="skeleton-card" 
+      [style.width.px]="width" 
+      [style.height.px]="height">
+    </div>
+
+    <div class="infos">
+      <div class="text-group">
+        <div class="skeleton-text title"></div>
+        <div class="skeleton-text type"></div>
+      </div>
+    </div>
+  }
+
+  <hr class="separator"/>
+</div>
