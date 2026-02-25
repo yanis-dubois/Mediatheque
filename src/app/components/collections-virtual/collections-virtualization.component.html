@@ -12,7 +12,6 @@
     @for (vItem of virtualizer.getVirtualItems(); track vItem.index + '-' + collectionIds()[vItem.index]) {
       @if (collectionIds()[vItem.index]; as id) {
         <div
-          class="row"
           [style.height.px]="containerHeight()" 
           [style.width.%]="100" 
           [style.transform]="'translateY(' + vItem.start + 'px)'"

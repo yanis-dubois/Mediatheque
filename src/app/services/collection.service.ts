@@ -1,12 +1,15 @@
-import { Injectable, signal, WritableSignal } from '@angular/core';
+import { inject, Injectable, signal, WritableSignal } from '@angular/core';
 
 import { invoke } from '@tauri-apps/api/core';
 
 import { Collection, CollectionLayout, CollectionMediaType, ExternalCollection } from '@models/collection.model';
 import { MediaFilter, MediaOrder } from '@models/media-query.model';
+import { PinService } from './pin.service';
 
 @Injectable({ providedIn: 'root' })
 export class CollectionService {
+
+  private pinService = inject(PinService);
 
   /* cache */
 
@@ -20,7 +23,6 @@ export class CollectionService {
       this.collectionCache.set(id, signal<Collection | null>(null));
     }
 
-    // 
     if (forceLoad && (!this.collectionCache.has(id) || this.collectionCache.get(id)!() === null)) {
       this.loadCollectionIntoCache(id);
       this.updateCacheOrder(id);
@@ -173,6 +175,8 @@ export class CollectionService {
     // delete from cache
     this.collectionCache.delete(id);
     this.cacheOrder = this.cacheOrder.filter(itemId => itemId !== id);
+
+    this.pinService.removePinFromCache(id);
 
     // update
     this.lastUpdate.set(Date.now());

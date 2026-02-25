@@ -18,6 +18,7 @@ export interface Collection {
   filter: MediaFilter;
 
   hasImage: boolean;
+  canBeSorted: boolean;
 }
 
 export interface ExternalCollection {
@@ -27,12 +28,23 @@ export interface ExternalCollection {
 
 export enum CollectionType {
   MANUAL = "MANUAL",
-  DYNAMIC = "DYNAMIC"
+  DYNAMIC = "DYNAMIC",
+  SYSTEM = "SYSTEM"
 }
 
 export type CollectionMediaType = 
   | { type: 'ALL' } 
   | { type: 'SPECIFIC', value: MediaType };
+export function compareCollectionMediaType(a: CollectionMediaType, b: CollectionMediaType): boolean {
+  // one ALL one SPECIFIC
+  if (a.type !== b.type) return false;
+  // both SPECIFIC
+  if (a.type === 'SPECIFIC' && b.type === 'SPECIFIC') {
+    return a.value === b.value;
+  }
+  // both ALL
+  return true;
+}
 
 export enum CollectionLayout {
   GRID = "GRID",

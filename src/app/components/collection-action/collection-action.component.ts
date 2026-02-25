@@ -1,14 +1,16 @@
 import { Component, computed, EmbeddedViewRef, inject, input, output, Renderer2, signal, TemplateRef, ViewChild, ViewContainerRef } from '@angular/core';
 import { Router } from '@angular/router';
-import { CollectionType } from '@app/models/collection.model';
+import { CollectionType, CollectionMediaType } from '@app/models/collection.model';
 import { CollectionService } from '@app/services/collection.service';
 import { MediaPickerComponent } from "../media-picker/media-picker.component";
 import { DOCUMENT } from '@angular/common';
+import { PinService } from '@app/services/pin.service';
+import { HumanizePipe } from "../../pipe/humanize";
 
 @Component({
   selector: 'app-collection-action',
   standalone: true,
-  imports: [MediaPickerComponent],
+  imports: [MediaPickerComponent, HumanizePipe],
   templateUrl: './collection-action.component.html'
 })
 export class CollectionActionComponent {
@@ -25,10 +27,28 @@ export class CollectionActionComponent {
   deleteRequest = output<string>();
 
   private collectionService = inject(CollectionService);
+  private pinService = inject(PinService);
 
   collection = computed(() => 
     this.collectionService.getCollectionSignal(this.collectionId())()
   );
+
+  // for pins
+  isPinnedGlobal = computed(() => 
+    this.pinService.isPinned(this.collectionId(), {type: 'ALL'})
+  );
+  isPinnedSpecific = computed(() => {
+    const col = this.collection();
+    if (!col || col.mediaType.type === 'ALL') return false;
+    return this.pinService.isPinned(this.collectionId(), col.mediaType);
+  });
+  hasSpecificContext = computed(() => {
+    const col = this.collection();
+    if (col && col.mediaType.type === 'SPECIFIC') {
+      return col.mediaType.value;
+    }
+    return null;
+  });
 
   protected readonly CollectionType = CollectionType;
 
@@ -42,6 +62,14 @@ export class CollectionActionComponent {
       await this.collectionService.toggleFavorite(this.collectionId(), !collection.favorite);
     } catch (e) {
       console.error("Error while updating favorite", e);
+    }
+  }
+
+  async togglePin(context: CollectionMediaType) {
+    try {
+      this.pinService.togglePin(this.collectionId(), context);
+    } catch (e) {
+      console.error(`Error toggling pin for context ${context}`, e);
     }
   }
 

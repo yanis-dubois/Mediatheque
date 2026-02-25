@@ -1,5 +1,6 @@
 use std::sync::Mutex;
 use rusqlite::{params, Connection, Result};
+use strum::IntoEnumIterator;
 use tauri::AppHandle;
 use tauri::Manager;
 
@@ -70,14 +71,27 @@ pub fn init_db(connection: &mut Connection) -> Result<()> {
 
   connection.execute_batch(
     "
+    -- Home
+
+    CREATE TABLE IF NOT EXISTS pinned_collection (
+      context TEXT NOT NULL CHECK(
+        context IN ('ALL', 'BOOK', 'MOVIE', 'SERIES', 'VIDEO_GAME', 'TABLETOP_GAME')
+      ),
+      position INTEGER NOT NULL CHECK(position BETWEEN 0 AND 15),
+      collection_id TEXT NOT NULL,
+      
+      PRIMARY KEY (context, position),
+      FOREIGN KEY (collection_id) REFERENCES collection(id) ON DELETE CASCADE
+    );
+
     -- Collection
 
-    CREATE TABLE collection (
+    CREATE TABLE IF NOT EXISTS collection (
       id TEXT PRIMARY KEY,
       name TEXT NOT NULL,
 
       type TEXT NOT NULL CHECK(
-        type IN ('MANUAL', 'DYNAMIC')
+        type IN ('MANUAL', 'DYNAMIC', 'SYSTEM')
       ),
       media_type TEXT NOT NULL CHECK(
         media_type IN ('ALL', 'BOOK', 'MOVIE', 'SERIES', 'VIDEO_GAME', 'TABLETOP_GAME')
@@ -94,13 +108,13 @@ pub fn init_db(connection: &mut Connection) -> Result<()> {
       sort_order TEXT, -- in JSON, ex: [{field: 'favorite', direction: 'DESC'}, {field: 'status', direction: 'ASC'}]
       filter TEXT, -- for dynamic colection - in JSON, ex: [{media_type: 'MOVIE'}, {favorite: 'true'}]
 
-      has_image INTEGER NOT NULL DEFAULT 0 CHECK(has_image IN (0, 1))
+      has_image INTEGER NOT NULL DEFAULT 0 CHECK(has_image IN (0, 1)),
+      can_be_sorted INTEGER NOT NULL DEFAULT 0 CHECK(can_be_sorted IN (0, 1))
     );
 
-    -- Specific Collection
-  
     -- Manual Collection
-    CREATE TABLE collection_media (
+
+    CREATE TABLE IF NOT EXISTS collection_media (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       collection_id TEXT NOT NULL,
       media_id TEXT NOT NULL,
@@ -344,6 +358,7 @@ struct SeedCollection<'a> {
   name: &'a str,
   collection_type: CollectionType,
   media_type: CollectionMediaType,
+  can_be_sorted: i32,
   added_date: &'a str,
   favorite: i32,
   description: &'a str,
@@ -363,6 +378,7 @@ impl<'a> Default for SeedCollection<'a> {
       name: "Sans titre",
       collection_type: CollectionType::Manual,
       media_type: CollectionMediaType::All,
+      can_be_sorted: 1,
       added_date: "2026-01-01",
       favorite: 0,
       description: "",
@@ -464,6 +480,7 @@ pub fn seed_data(connection: &mut Connection) -> Result<()> {
 
 
   let collection_list = seed_collection();
+  let mut pinned_cpt = 0;
 
   for mut c in collection_list {
 
@@ -496,8 +513,8 @@ pub fn seed_data(connection: &mut Connection) -> Result<()> {
 
     // insert in parent table Collection
     tx.execute(
-      "INSERT INTO collection (id, name, type, media_type, added_date, favorite, description, preferred_layout, sort_order, filter, has_image)
-       VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11)",
+      "INSERT INTO collection (id, name, type, media_type, added_date, favorite, description, preferred_layout, sort_order, filter, has_image, can_be_sorted)
+       VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12)",
       params![
         c.id.to_string(),
         c.name,
@@ -510,6 +527,7 @@ pub fn seed_data(connection: &mut Connection) -> Result<()> {
         sort_order_json,
         filter_json,
         c.has_image,
+        c.can_be_sorted
       ],
     )?;
 
@@ -524,6 +542,20 @@ pub fn seed_data(connection: &mut Connection) -> Result<()> {
           params![c.id.to_string(), m_id.to_string(), pos as i32],
         )?;
       }
+    }
+
+    // system collection
+    if c.collection_type == CollectionType::System {
+      for media_type in std::iter::once(CollectionMediaType::All.to_db_string())
+        .chain(MediaType::iter().map(|m| m.to_string())) {
+
+        tx.execute(
+          "INSERT INTO pinned_collection (context, position, collection_id)
+            VALUES (?1, ?2, ?3)",
+          params![media_type, pinned_cpt, c.id.to_string()],
+        )?;
+      }
+      pinned_cpt += 1;
     }
   }
 
@@ -1213,14 +1245,9 @@ fn seed_collection() -> Vec<SeedCollection<'static>> {
   vec![
     SeedCollection { 
       id: 0, 
-      name: "Favorite", 
-      collection_type: CollectionType::Dynamic, 
+      name: "Favorites", 
+      collection_type: CollectionType::System, 
       prefered_view: CollectionLayout::Row, 
-      sort_order: vec![
-        MediaOrder { field: MediaOrderField::MediaType, direction: MediaOrderDirection::Asc },
-        MediaOrder { field: MediaOrderField::Status, direction: MediaOrderDirection::Desc },
-        MediaOrder { field: MediaOrderField::ReleaseDate, direction: MediaOrderDirection::Asc }
-      ],
       collection_dynamic: Some(SeedCollectionDynamic { 
         filter: Some(MediaFilter {
           favorite_only: Some(true),
@@ -1231,8 +1258,48 @@ fn seed_collection() -> Vec<SeedCollection<'static>> {
     },
     SeedCollection { 
       id: 1, 
-      name: "Recent", 
-      collection_type: CollectionType::Dynamic, 
+      name: "Finished", 
+      collection_type: CollectionType::System, 
+      prefered_view: CollectionLayout::Row, 
+      collection_dynamic: Some(SeedCollectionDynamic { 
+        filter: Some(MediaFilter {
+          status: Some(MediaStatus::Finished),
+          ..Default::default()
+        })
+      }),
+      ..Default::default()
+    },
+    SeedCollection { 
+      id: 2, 
+      name: "In Progress", 
+      collection_type: CollectionType::System, 
+      prefered_view: CollectionLayout::Row, 
+      collection_dynamic: Some(SeedCollectionDynamic { 
+        filter: Some(MediaFilter {
+          status: Some(MediaStatus::InProgress),
+          ..Default::default()
+        })
+      }),
+      ..Default::default()
+    },
+    SeedCollection { 
+      id: 3, 
+      name: "To Discover", 
+      collection_type: CollectionType::System, 
+      prefered_view: CollectionLayout::Row, 
+      collection_dynamic: Some(SeedCollectionDynamic { 
+        filter: Some(MediaFilter {
+          status: Some(MediaStatus::ToDiscover),
+          ..Default::default()
+        })
+      }),
+      ..Default::default()
+    },
+    SeedCollection { 
+      id: 4, 
+      name: "Recently Added", 
+      can_be_sorted: 0,
+      collection_type: CollectionType::System, 
       prefered_view: CollectionLayout::Row, 
       sort_order: vec![
         MediaOrder { field: MediaOrderField::AddedDate, direction: MediaOrderDirection::Desc }
@@ -1243,7 +1310,7 @@ fn seed_collection() -> Vec<SeedCollection<'static>> {
       ..Default::default()
     },
     SeedCollection { 
-      id: 2, 
+      id: 232, 
       name: "Movie", 
       collection_type: CollectionType::Dynamic, 
       media_type: CollectionMediaType::Specific(MediaType::Movie),
@@ -1257,7 +1324,7 @@ fn seed_collection() -> Vec<SeedCollection<'static>> {
       ..Default::default()
     },
     SeedCollection { 
-      id: 3, 
+      id: 334, 
       name: "Series", 
       collection_type: CollectionType::Dynamic,
       media_type: CollectionMediaType::Specific(MediaType::Series),
@@ -1271,7 +1338,7 @@ fn seed_collection() -> Vec<SeedCollection<'static>> {
       ..Default::default()
     },
     SeedCollection { 
-      id: 4, 
+      id: 6, 
       name: "Tabletop Game", 
       collection_type: CollectionType::Dynamic, 
       media_type: CollectionMediaType::Specific(MediaType::TabletopGame),
@@ -1285,39 +1352,13 @@ fn seed_collection() -> Vec<SeedCollection<'static>> {
       ..Default::default()
     },
     SeedCollection { 
-      id: 5, 
-      name: "To Discover", 
-      collection_type: CollectionType::Dynamic, 
-      prefered_view: CollectionLayout::Row, 
-      collection_dynamic: Some(SeedCollectionDynamic { 
-        filter: Some(MediaFilter {
-          status: Some(MediaStatus::ToDiscover), 
-          ..Default::default()
-        })
-      }),
-      ..Default::default()
-    },
-    SeedCollection { 
-      id: 6, 
+      id: 7, 
       name: "Dune", 
       collection_type: CollectionType::Dynamic, 
       prefered_view: CollectionLayout::Row, 
       collection_dynamic: Some(SeedCollectionDynamic { 
         filter: Some(MediaFilter {
           title: Some("Dune".to_string()),
-          ..Default::default()
-        })
-      }),
-      ..Default::default()
-    },
-    SeedCollection { 
-      id: 7, 
-      name: "Finished", 
-      collection_type: CollectionType::Dynamic, 
-      prefered_view: CollectionLayout::Column, 
-      collection_dynamic: Some(SeedCollectionDynamic { 
-        filter: Some(MediaFilter {
-          status: Some(MediaStatus::Finished), 
           ..Default::default()
         })
       }),
@@ -1447,10 +1488,10 @@ fn seed_collection() -> Vec<SeedCollection<'static>> {
       ..Default::default()
     },
     SeedCollection { 
-      id: 1000, 
+      id: 16,
       name: "All Media", 
       collection_type: CollectionType::Dynamic, 
-      prefered_view: CollectionLayout::Row, 
+      prefered_view: CollectionLayout::Row,
       collection_dynamic: Some(SeedCollectionDynamic { 
         filter: None
       }),

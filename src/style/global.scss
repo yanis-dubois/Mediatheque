@@ -55,8 +55,8 @@
 /* tablet */
 @media (min-width: 600px) {
   :root {
-    --card-width-grid: 105px;
-    --card-width-line: 105px;
+    --card-width-grid: 100px;
+    --card-width-line: 100px;
     --card-width-list: 70px;
     /* action button step */
     --action-step: 4px;
@@ -66,8 +66,8 @@
 /* desktop */
 @media (min-width: 1025px) {
   :root {
-    --card-width-grid: 120px;
-    --card-width-line: 120px;
+    --card-width-grid: 110px;
+    --card-width-line: 110px;
     --card-width-list: 80px;
     /* action button step */
     --action-step: 8px;

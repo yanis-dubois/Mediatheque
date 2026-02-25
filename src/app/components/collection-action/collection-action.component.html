@@ -6,9 +6,29 @@
     Add media
   </button>
 }
-<button class="dropdown-button delete-item" (click)="onDelete()">
-  Delete
+
+<button class="dropdown-button" (click)="togglePin({type: 'ALL'})">
+  @if (isPinnedGlobal()) {
+    📌 Unpin from Home
+  } @else {
+    📍 Pin to Home
+  }
 </button>
+@if (hasSpecificContext(); as mediaType) {
+  <button class="dropdown-button" (click)="togglePin(collection()!.mediaType)">
+    @if (isPinnedSpecific()) {
+      📌 Unpin from {{ mediaType | humanize }} Home
+    } @else {
+      📍 Pin to {{ mediaType | humanize}} Home
+    }
+  </button>
+}
+
+@if (collection()?.collectionType !== CollectionType.SYSTEM) {
+  <button class="dropdown-button delete-item" (click)="onDelete()">
+    Delete
+  </button>
+}
 
 <ng-template #pickerTemplate>
   <app-media-picker 

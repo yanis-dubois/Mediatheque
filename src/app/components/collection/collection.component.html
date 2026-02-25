@@ -49,12 +49,14 @@
           </select>
         </div>
 
-        <app-sort-manager 
-          [sortOrder]="sortOrder()" 
-          (sortOrderChange)="onSortChanged($event)"
-        />
+        @if (collection.canBeSorted) {
+          <app-sort-manager 
+            [sortOrder]="sortOrder()" 
+            (sortOrderChange)="onSortChanged($event)"
+          />
+        }
 
-        @if (collection.collectionType === 'DYNAMIC') {
+        @if (collection.collectionType === CollectionType.DYNAMIC) {
           <app-filter-manager 
             [filter]="filter()" 
             (filterChange)="onFilterChanged($event)"
@@ -75,16 +77,24 @@
       <section class="page-container">
 
         <div class="page-header">
-          <h1 
-            class="editable-title"
-            contenteditable="true"
-            #nameInput
-            (blur)="onNameBlur(nameInput.innerText)"
-            (keydown.enter)="$event.preventDefault(); validateName(nameInput)"
-            (keydown.escape)="nameInput.innerText = name(); validateName(nameInput)"
-          >
-            {{ name() }}
-          </h1>
+          
+          @if (collection.collectionType === CollectionType.SYSTEM) {
+            <h1>
+              {{ name() }}
+            </h1>
+          }
+          @else {
+            <h1 
+              class="editable-title"
+              contenteditable="true"
+              #nameInput
+              (blur)="onNameBlur(nameInput.innerText)"
+              (keydown.enter)="$event.preventDefault(); validateName(nameInput)"
+              (keydown.escape)="nameInput.innerText = name(); validateName(nameInput)"
+            >
+              {{ name() }}
+            </h1>
+          }
 
           <div class="search-box">
             <input 

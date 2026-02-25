@@ -32,11 +32,15 @@ pub fn run() {
       commands::collection::update_collection_sort,
       commands::collection::update_collection_filter,
       commands::collection::update_collection_media_type,
+      commands::collection::update_pinned_collections,
       commands::collection::add_media_batch_to_collection,
       commands::collection::add_media_to_collection_batch,
       commands::collection::remove_media_from_collection,
       commands::collection::create_collection,
       commands::collection::delete_collection,
+      commands::pin::get_all_pins,
+      commands::pin::pin_collection,
+      commands::pin::unpin_collection,
     ])
     .run(tauri::generate_context!())
     .expect("error while running tauri application");

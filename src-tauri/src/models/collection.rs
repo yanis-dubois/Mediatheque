@@ -11,6 +11,7 @@ pub struct Collection {
 
   pub collection_type: CollectionType,
   pub media_type: CollectionMediaType,
+  pub can_be_sorted: bool,
 
   pub added_date: String,
 

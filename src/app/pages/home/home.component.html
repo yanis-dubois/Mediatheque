@@ -1,24 +1,40 @@
-<main class="container">
-  <h1>Welcome to Tauri + Angular!</h1>
+<section>
+  <h1>Library</h1>
 
-  <div class="row">
-    <a href="https://tauri.app" target="_blank">
-      <img src="/assets/tauri.svg" class="logo tauri" alt="Tauri logo" />
-    </a>
-    <a href="https://angular.io" target="_blank">
-      <img src="/assets/angular.svg" class="logo angular" alt="Angular logo" />
+  <div class="container">
+    <div *ngFor="let id of collectionIds()">
+      <!-- <app-collection [id]="id" [view]="CollectionDisplayMode.PREVIEW">
+        <div collectionMenu (click)="$event.preventDefault(); $event.stopPropagation()">
+          <app-dropdown
+            [isOpenExternal]="false"
+          >
+            <app-collection-action 
+              [collectionId]="id"
+            />
+          </app-dropdown>
+        </div>
+      </app-collection> -->
+
+      <app-collection [id]="id" [view]="CollectionDisplayMode.PREVIEW">
+        <div collectionMenu (click)="$event.preventDefault(); $event.stopPropagation()">
+          <app-dropdown
+            [isOpenExternal]="activeMenuId() === id"
+            (opened)="activeMenuId.set(id)"
+            (closed)="activeMenuId.set(null)"
+          >
+            <app-collection-action 
+              [collectionId]="id"
+            />
+          </app-dropdown>
+        </div>
+      </app-collection>
+    </div>
+  
+    <a [routerLink]="['/collections']">
+      <h2 class="title-chevron">
+        Collections
+        <img src="assets/icons/chevron.svg" style="height: 1em;"/>
+      </h2>
     </a>
   </div>
-  <p>Click on the logos to learn more about the frameworks</p>
-
-  <!-- <div *ngFor="let id of collectionIds()">
-    <app-collection [id]="id" [view]="CollectionDisplayMode.PREVIEW"></app-collection>
-  </div> -->
-
-  <a [routerLink]="['/collections']">
-    <h2 class="title-chevron">
-      Collections
-      <img src="assets/icons/chevron.svg" style="height: 1em;"/>
-    </h2>
-  </a>
-</main>
+</section>

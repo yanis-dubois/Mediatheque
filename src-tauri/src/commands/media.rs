@@ -1,27 +1,8 @@
 use crate::db::{DbState};
 use crate::models::external_media::{ExternalMediaRequest};
 use crate::models::media::{AnyMedia, Media, Movie, Series, TabletopGame};
-use crate::models::enums::{CollectionMediaType, CollectionType, MediaOrderField, MediaStatus, MediaType};
+use crate::models::enums::{CollectionMediaType, CollectionType, MediaOrderField, MediaStatus, MediaType, match_media_status, match_media_type};
 use crate::models::query::{MediaFilter, MediaOrder};
-
-// convert SQL TEXT -> Enums
-pub fn match_media_type(s: &str) -> MediaType {
-  match s {
-    "BOOK" => MediaType::Book,
-    "SERIES" => MediaType::Series,
-    "VIDEO_GAME" => MediaType::VideoGame,
-    "TABLETOP_GAME" => MediaType::TabletopGame,
-    _ => MediaType::Movie, // default
-  }
-}
-fn match_media_status(s: &str) -> MediaStatus {
-  match s {
-    "IN_PROGRESS" => MediaStatus::InProgress,
-    "FINISHED" => MediaStatus::Finished,
-    "DROPPED" => MediaStatus::Dropped,
-    _ => MediaStatus::ToDiscover, // default
-  }
-}
 
 // convert SQL -> Media
 pub fn map_row_to_media(row: &rusqlite::Row) -> rusqlite::Result<Media> {

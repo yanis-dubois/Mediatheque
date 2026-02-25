@@ -1,34 +1,10 @@
 use rusqlite::params;
 
-use crate::commands::media::{get_media_layout_list, match_media_type};
+use crate::commands::media::{get_media_layout_list};
 use crate::db::{DbState};
 use crate::models::collection::{Collection, ExternalCollection};
-use crate::models::enums::{CollectionLayout, CollectionMediaType, CollectionType, MediaType};
+use crate::models::enums::{CollectionLayout, CollectionMediaType, CollectionType, MediaType, match_collection_media_type, match_collection_type, match_collection_view};
 use crate::models::query::{MediaFilter, MediaOrder};
-
-// convert SQL TEXT -> Enums
-fn match_collection_type(s: &str) -> CollectionType {
-  match s {
-    "DYNAMIC" => CollectionType::Dynamic,
-    "MANUAL" => CollectionType::Manual,
-    _ => CollectionType::Manual // default
-  }
-}
-fn match_collection_media_type(s: &str) -> CollectionMediaType {
-  match s {
-    "ALL" => CollectionMediaType::All,
-    _ => CollectionMediaType::Specific(match_media_type(s))
-  }
-}
-fn match_collection_view(s: &str) -> CollectionLayout {
-  match s {
-    "GRID" => CollectionLayout::Grid,
-    "ROW" => CollectionLayout::Row,
-    "COLUMN" => CollectionLayout::Column,
-    "LIST" => CollectionLayout::List,
-    _ => CollectionLayout::Grid
-  }
-}
 
 // convert SQL -> Collection
 fn map_row_to_collection(row: &rusqlite::Row) -> rusqlite::Result<Collection> {
@@ -41,6 +17,7 @@ fn map_row_to_collection(row: &rusqlite::Row) -> rusqlite::Result<Collection> {
   let sort_order_raw: String = row.get(8)?;
   let filter_raw: Option<String> = row.get(9)?;
   let has_image_int: i32 = row.get(10)?;
+  let can_be_sorted_int: i32 = row.get(11)?;
 
   let mut collection = Collection {
     id: row.get(0)?,
@@ -52,14 +29,14 @@ fn map_row_to_collection(row: &rusqlite::Row) -> rusqlite::Result<Collection> {
     description: row.get(6)?,
     preferred_layout: match_collection_view(&prefered_view_str),
     sort_order: serde_json::from_str(&sort_order_raw).unwrap_or_default(),
-    
     has_image: has_image_int == 1,
+    can_be_sorted: can_be_sorted_int == 1,
     filter: MediaFilter { ..Default::default() }
   };
 
   // set filter
   match collection.collection_type {
-    CollectionType::Dynamic => {
+    CollectionType::Dynamic | CollectionType::System => {
       // JSON -> MediaFilter
       collection.filter = filter_raw
         .and_then(|json| serde_json::from_str(&json).ok())
@@ -149,7 +126,7 @@ pub fn search_in_collections(
   }
 
   // ORDER BY
-  sql.push_str(" ORDER BY favorite DESC, name COLLATE NOCASE ASC");
+  sql.push_str(" ORDER BY type DESC, favorite DESC, name COLLATE NOCASE ASC");
 
   let mut stmt = connection.prepare(&sql).map_err(|e| e.to_string())?;
   let params_refs: Vec<&dyn rusqlite::ToSql> = params.iter().map(|p| p as &dyn rusqlite::ToSql).collect();
@@ -391,6 +368,35 @@ pub fn remove_media_from_collection(
     [&id, &media_id],
   ).map_err(|e| e.to_string())?;
 
+  Ok(())
+}
+
+#[tauri::command]
+pub fn update_pinned_collections(
+    state: tauri::State<'_, DbState>, 
+    context: String,
+    collection_ids: Vec<String>
+) -> Result<(), String> {
+  let mut connection = state.connection.lock().map_err(|_| "Failed to lock database")?;
+  let tx = connection.transaction().map_err(|e| e.to_string())?;
+
+  // delete old position
+  tx.execute(
+    "DELETE FROM home_slots WHERE context = ?1", 
+    [&context]
+  ).map_err(|e| e.to_string())?;
+
+  // insert new position
+  for (index, id) in collection_ids.iter().take(16).enumerate() {
+    tx.execute(
+      "INSERT INTO home_slots (context, position, collection_id) VALUES (?1, ?2, ?3)",
+      params![context, index as i32, id],
+    ).map_err(|e| e.to_string())?;
+  }
+
+  tx.commit().map_err(|e| e.to_string())?;
+
+  println!("Pinned collections updated for context: {}", context);
   Ok(())
 }
 
