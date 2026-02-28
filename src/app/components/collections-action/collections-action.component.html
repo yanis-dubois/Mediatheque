@@ -1,0 +1,8 @@
+@if (context(); as context) {
+  <button class="dropdown-button" (click)="addCollection()">
+    + Create {{ context.type == 'SPECIFIC' ? (context.value | humanize) : '' }} collection
+  </button>
+  <button class="dropdown-button" (click)="addCollection(true)">
+    + Create dynamic collection
+  </button>
+}

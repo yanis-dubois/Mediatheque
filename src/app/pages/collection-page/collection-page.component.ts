@@ -5,6 +5,7 @@ import { ActivatedRoute } from '@angular/router';
 import { CollectionComponent } from '@components/collection/collection.component';
 
 import { CollectionDisplayMode } from '@models/collection.model'
+import { NavService } from '@app/services/nav.service copy';
 
 @Component({
   selector: 'app-collection-page',
@@ -17,9 +18,12 @@ export class CollectionPageComponent {
   id?: string;
   error?: string;
 
+  context = this.navService.context;
+
   protected readonly CollectionDisplayMode = CollectionDisplayMode;
 
   constructor(
+    private navService: NavService,
     private route: ActivatedRoute,
   ) {}
 

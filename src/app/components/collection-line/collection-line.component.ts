@@ -5,7 +5,7 @@ import { debounceTime, Subject, switchMap } from 'rxjs';
 
 import { injectVirtualizer, VirtualItem } from '@tanstack/angular-virtual';
 
-import { Collection } from '@models/collection.model';
+import { Collection, CollectionType } from '@models/collection.model';
 import { Media } from '@models/media.model';
 
 import { CollectionService } from '@services/collection.service';
@@ -26,6 +26,7 @@ export class CollectionLineComponent {
   // all media infos (id, width, height)
   mediaLayoutData = input.required<[string, number, number][]>();
 
+  protected readonly CollectionType = CollectionType;
   private scrollSubject = new Subject<string[]>();
   private el = inject(ElementRef);
 

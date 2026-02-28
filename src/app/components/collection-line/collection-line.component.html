@@ -14,27 +14,36 @@
   </div>
 
   <div #scrollElement class="viewport-container">
-    <div
-      class="scroll-container"
-      style="height: 100%; position: relative;"
-    >
-      @for (vItem of virtualizer.getVirtualItems(); track vItem.key) {
-        @if (getMediaLayout(vItem.index); as layout) {
-          <div
-            class="line"
-            [style.width.px]="vItem.size"
-            [style.transform]="'translateX(' + vItem.start + 'px)'"
-            style="position: absolute; top: 0; left: 0;"
-          >
-            <ng-container 
-              [ngTemplateOutlet]="itemTemplate" 
-              [ngTemplateOutletContext]="{ mediaId: layout.id, width: getElementWidth(vItem.index), height: containerHeight()}"
-            >
-            </ng-container>
-          </div>
-        }
+    @if (mediaLayoutData().length < 1) {
+      @if (collection.collectionType === CollectionType.MANUAL) {
+        <p> You can add media to this collection. </p>
+      } @else {
+        <p> No media match these filters. </p>
       }
-    </div>
+    } @else {
+      <div
+        class="scroll-container"
+        style="height: 100%; position: relative;"
+      >
+        @for (vItem of virtualizer.getVirtualItems(); track vItem.key) {
+          @if (getMediaLayout(vItem.index); as layout) {
+            <div
+              class="line"
+              [style.width.px]="vItem.size"
+              [style.transform]="'translateX(' + vItem.start + 'px)'"
+              style="position: absolute; top: 0; left: 0;"
+            >
+              <ng-container 
+                [ngTemplateOutlet]="itemTemplate" 
+                [ngTemplateOutletContext]="{ mediaId: layout.id, width: getElementWidth(vItem.index), height: containerHeight()}"
+              >
+              </ng-container>
+            </div>
+          }
+        }
+      </div>
+    }
   </div>
+
 
 </section>

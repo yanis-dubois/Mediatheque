@@ -1,4 +1,4 @@
-import { Component, computed, effect, model, signal } from '@angular/core';
+import { Component, computed, model } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { CdkDragDrop, moveItemInArray, CdkDropList, CdkDrag, CdkDragHandle, CdkDragPlaceholder } from '@angular/cdk/drag-drop';
 

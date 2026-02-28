@@ -1,4 +1,4 @@
-import { Component, effect, model, signal } from '@angular/core';
+import { Component, effect, ElementRef, input, output, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 
 import { MediaFilter } from '@models/media-query.model';
@@ -14,10 +14,22 @@ import { DropdownTriggerDirective } from '@app/directive/dropdown.directive'
   styleUrl: './filter-manager.component.css'
 })
 export class FilterManagerComponent {
+  @ViewChild('mediaTypeSelect') selectRef!: ElementRef<HTMLSelectElement>;
 
-  filter = model.required<MediaFilter>();
+  version = input<number>(0);
+  filter = input.required<MediaFilter>();
+  filterChange = output<MediaFilter>();
   mediaTypeOptions = Object.values(MediaType);
   statusOptions = Object.values(MediaStatus);
+
+  constructor() {
+    effect(() => {
+      this.version();
+      if (this.selectRef) {
+        this.selectRef.nativeElement.value = this.filter().mediaType || '';
+      }
+    });
+  }
 
   toggleFavorite(event: MouseEvent) {
     event.stopPropagation();
@@ -26,18 +38,20 @@ export class FilterManagerComponent {
   }
 
   updateFilter(key: keyof MediaFilter, value: any) {
-    this.filter.update(f => ({
-      ...f,
+    const updatedFilter = {
+      ...this.filter(),
       [key]: value === "" ? undefined : value
-    }));
+    };
+    this.filterChange.emit(updatedFilter);
   }
 
   resetFilter() {
-    this.filter.set({ 
+    const updatedFilter = {
       mediaType: undefined,
       status: undefined,
       favoriteOnly: undefined,
       searchQuery: undefined,
-    });
+    };
+    this.filterChange.emit(updatedFilter);
   }
 }

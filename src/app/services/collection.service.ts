@@ -63,15 +63,15 @@ export class CollectionService {
     return invoke<Collection>('get_collection_by_id', { collectionId: id });
   }
 
-  getLayoutData(id: string, search: string) {
-    return invoke<[string, number, number][]>('search_in_collection', { collectionId: id, searchQuery: search });
+  getLayoutData(id: string, context: CollectionMediaType, search: string) {
+    return invoke<[string, number, number][]>('search_in_collection', { collectionId: id, context, searchQuery: search });
   }
 
-  searchCollection(search: string, mediaType: CollectionMediaType, isCollectionPicker: boolean = false) {
-    return invoke<string[]>('search_in_collections', { searchQuery: search, mediaType, isCollectionPicker });
+  searchCollection(search: string, context: CollectionMediaType, isCollectionPicker: boolean = false) {
+    return invoke<string[]>('search_in_collections', { searchQuery: search, context, isCollectionPicker });
   }
 
-  async getCollectionBatch(ids: string[]): Promise<Collection[]> {
+  async getCollectionBatch(ids: string[]): Promise<Collection[]> { // TODO : contexte
     if (ids.length === 0) return [];
     return await invoke<Collection[]>('get_collection_batch', { ids });
   }
@@ -137,7 +137,10 @@ export class CollectionService {
     }
 
     // apply it
-    if (newMediaType) this.updateMediaType(id, newMediaType);
+    if (newMediaType) {
+      await this.pinService.removeIncompatiblePins(id, newMediaType);
+      this.updateMediaType(id, newMediaType);
+    }
   }
 
   // manual

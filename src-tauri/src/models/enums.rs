@@ -1,4 +1,4 @@
-use serde::{Serialize, Deserialize};
+use serde::{Deserialize, Serialize};
 use strum::EnumIter;
 
 #[derive(Debug, Serialize, Deserialize, PartialEq, Clone, EnumIter)]
@@ -7,12 +7,12 @@ use strum::EnumIter;
 #[strum(serialize_all = "SCREAMING_SNAKE_CASE")]
 #[derive(Default)]
 pub enum MediaType {
-  Book,
-  #[default]
-  Movie,
-  Series,
-  VideoGame,
-  TabletopGame,
+    Book,
+    #[default]
+    Movie,
+    Series,
+    VideoGame,
+    TabletopGame,
 }
 
 #[derive(Debug, Serialize, Deserialize, PartialEq, Clone)]
@@ -21,14 +21,12 @@ pub enum MediaType {
 #[strum(serialize_all = "SCREAMING_SNAKE_CASE")]
 #[derive(Default)]
 pub enum MediaStatus {
-  #[default]
-  ToDiscover,
-  InProgress,
-  Finished,
-  Dropped,
+    #[default]
+    ToDiscover,
+    InProgress,
+    Finished,
+    Dropped,
 }
-
-
 
 #[derive(Debug, Serialize, Deserialize, PartialEq, Clone)]
 #[serde(rename_all = "SCREAMING_SNAKE_CASE")]
@@ -36,10 +34,10 @@ pub enum MediaStatus {
 #[strum(serialize_all = "SCREAMING_SNAKE_CASE")]
 #[derive(Default)]
 pub enum CollectionType {
-  #[default]
-  Manual,
-  Dynamic,
-  System
+    #[default]
+    Manual,
+    Dynamic,
+    System,
 }
 
 #[derive(Debug, Serialize, Deserialize, PartialEq, Clone, EnumIter)]
@@ -48,18 +46,18 @@ pub enum CollectionType {
 #[strum(serialize_all = "SCREAMING_SNAKE_CASE")]
 #[derive(Default)]
 pub enum CollectionMediaType {
-  #[default]
-  All,
-  Specific(MediaType),
+    #[default]
+    All,
+    Specific(MediaType),
 }
 
 impl CollectionMediaType {
-  pub fn to_db_string(&self) -> String {
-    match self {
-      CollectionMediaType::All => "ALL".to_string(),
-      CollectionMediaType::Specific(media) => media.to_string().to_uppercase(),
+    pub fn to_db_string(&self) -> String {
+        match self {
+            CollectionMediaType::All => "ALL".to_string(),
+            CollectionMediaType::Specific(media) => media.to_string().to_uppercase(),
+        }
     }
-  }
 }
 
 #[derive(Debug, Serialize, Deserialize, PartialEq, Clone)]
@@ -68,14 +66,12 @@ impl CollectionMediaType {
 #[strum(serialize_all = "SCREAMING_SNAKE_CASE")]
 #[derive(Default)]
 pub enum CollectionLayout {
-  #[default]
-  Grid,
-  Row,
-  Column,
-  List
+    #[default]
+    Grid,
+    Row,
+    Column,
+    List,
 }
-
-
 
 #[derive(Debug, Serialize, Deserialize, PartialEq, Clone, Copy)]
 #[serde(rename_all = "SCREAMING_SNAKE_CASE")]
@@ -83,28 +79,28 @@ pub enum CollectionLayout {
 #[strum(serialize_all = "SCREAMING_SNAKE_CASE")]
 #[derive(Default)]
 pub enum MediaOrderField {
-  #[default]
-  Title,
-  AddedDate,
-  ReleaseDate,
-  MediaType,
-  Favorite,
-  Status,
+    #[default]
+    Title,
+    AddedDate,
+    ReleaseDate,
+    MediaType,
+    Favorite,
+    Status,
 
-  Directors,
-  Genre,
-  Serie,
-  Duration,
+    Directors,
+    Genre,
+    Serie,
+    Duration,
 
-  Creators,
-  Seasons,
-  Episodes,
+    Creators,
+    Seasons,
+    Episodes,
 
-  Designers,
-  Artists,
-  GameMechanic,
-  Publishers,
-  PlayerCount
+    Designers,
+    Artists,
+    GameMechanic,
+    Publishers,
+    PlayerCount,
 }
 
 #[derive(Debug, Serialize, Deserialize, PartialEq, Clone)]
@@ -113,50 +109,49 @@ pub enum MediaOrderField {
 #[strum(serialize_all = "SCREAMING_SNAKE_CASE")]
 #[derive(Default)]
 pub enum MediaOrderDirection {
-  #[default]
-  Asc,
-  Desc
+    #[default]
+    Asc,
+    Desc,
 }
-
 
 // convert SQL TEXT -> Enums
 pub fn match_media_type(s: &str) -> MediaType {
-  match s {
-    "BOOK" => MediaType::Book,
-    "SERIES" => MediaType::Series,
-    "VIDEO_GAME" => MediaType::VideoGame,
-    "TABLETOP_GAME" => MediaType::TabletopGame,
-    _ => MediaType::Movie, // default
-  }
+    match s {
+        "BOOK" => MediaType::Book,
+        "SERIES" => MediaType::Series,
+        "VIDEO_GAME" => MediaType::VideoGame,
+        "TABLETOP_GAME" => MediaType::TabletopGame,
+        _ => MediaType::Movie, // default
+    }
 }
 pub fn match_media_status(s: &str) -> MediaStatus {
-  match s {
-    "IN_PROGRESS" => MediaStatus::InProgress,
-    "FINISHED" => MediaStatus::Finished,
-    "DROPPED" => MediaStatus::Dropped,
-    _ => MediaStatus::ToDiscover, // default
-  }
+    match s {
+        "IN_PROGRESS" => MediaStatus::InProgress,
+        "FINISHED" => MediaStatus::Finished,
+        "DROPPED" => MediaStatus::Dropped,
+        _ => MediaStatus::ToDiscover, // default
+    }
 }
 pub fn match_collection_media_type(s: &str) -> CollectionMediaType {
-  match s {
-    "ALL" => CollectionMediaType::All,
-    _ => CollectionMediaType::Specific(match_media_type(s))
-  }
+    match s {
+        "ALL" => CollectionMediaType::All,
+        _ => CollectionMediaType::Specific(match_media_type(s)),
+    }
 }
 pub fn match_collection_type(s: &str) -> CollectionType {
-  match s {
-    "DYNAMIC" => CollectionType::Dynamic,
-    "MANUAL" => CollectionType::Manual,
-    "SYSTEM" => CollectionType::System,
-    _ => CollectionType::Manual // default
-  }
+    match s {
+        "DYNAMIC" => CollectionType::Dynamic,
+        "MANUAL" => CollectionType::Manual,
+        "SYSTEM" => CollectionType::System,
+        _ => CollectionType::Manual, // default
+    }
 }
 pub fn match_collection_view(s: &str) -> CollectionLayout {
-  match s {
-    "GRID" => CollectionLayout::Grid,
-    "ROW" => CollectionLayout::Row,
-    "COLUMN" => CollectionLayout::Column,
-    "LIST" => CollectionLayout::List,
-    _ => CollectionLayout::Grid
-  }
+    match s {
+        "GRID" => CollectionLayout::Grid,
+        "ROW" => CollectionLayout::Row,
+        "COLUMN" => CollectionLayout::Column,
+        "LIST" => CollectionLayout::List,
+        _ => CollectionLayout::Grid,
+    }
 }

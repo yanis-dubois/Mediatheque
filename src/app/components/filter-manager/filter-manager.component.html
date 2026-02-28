@@ -12,7 +12,12 @@
 
     <button class="dropdown-button">
       <label>Type : </label>
-      <select [value]="filter().mediaType || ''" (change)="updateFilter('mediaType', $any($event.target).value)">
+      <select 
+        #mediaTypeSelect
+        [value]="filter().mediaType || ''" 
+        [attr.data-v]="version()"
+        (change)="updateFilter('mediaType', $any($event.target).value)"
+      >
         <option value="">All</option>
         @for (type of mediaTypeOptions; track type) {
           <option [value]="type" [selected]="type === filter().mediaType">

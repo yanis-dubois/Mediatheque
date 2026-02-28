@@ -1,6 +1,5 @@
-import { Component, effect, inject, signal, untracked } from '@angular/core';
+import { Component, effect, input, signal, untracked } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { Router } from '@angular/router';
 import { debounceTime, Subject } from 'rxjs';
 
 import { CollectionsVirtualizationComponent } from "@components/collections-virtual/collections-virtualization.component";
@@ -8,21 +7,20 @@ import { ActionBarComponent } from "@components/action-bar/action-bar.component"
 import { DropdownComponent } from "@components/dropdown/dropdown.component";
 
 import { CollectionService } from '@services/collection.service';
-import { CollectionType, ExternalCollection } from '@app/models/collection.model';
-import { MediaType } from '@app/models/media.model';
+import { CollectionsActionComponent } from "@components/collections-action/collections-action.component";
+import { CollectionMediaType } from '@app/models/collection.model';
 
 @Component({
   selector: 'app-collections',
   standalone: true,
-  imports: [CommonModule, CollectionsVirtualizationComponent, ActionBarComponent, DropdownComponent],
+  imports: [CommonModule, CollectionsVirtualizationComponent, ActionBarComponent, DropdownComponent, CollectionsActionComponent],
   templateUrl: './collections.component.html',
   styleUrls: ['./collections.component.scss']
 })
 export class CollectionsComponent {
-
+  context = input.required<CollectionMediaType>();
   collectionIds = signal<string[]>([]);
 
-  private router = inject(Router);
   private refreshLayout$ = new Subject<void>();
 
   searchQuery = signal<string>('');
@@ -57,28 +55,11 @@ export class CollectionsComponent {
   async loadLayoutData() {
     try {
       this.collectionIds.set(
-        await this.collectionService.searchCollection(this.searchQuery(), {type:"ALL"})
+        await this.collectionService.searchCollection(this.searchQuery(), this.context())
       );
     } catch (e) {
       console.error(e);
     }
   }
 
-  async addCollection (isDynamic: boolean = false, mediaType?: MediaType) {
-    const newCollection: ExternalCollection = {
-      collectionType: isDynamic 
-        ? CollectionType.DYNAMIC 
-        : CollectionType.MANUAL,
-      mediaType: mediaType 
-        ? {type: "SPECIFIC", value: mediaType} 
-        : {type: "ALL"}
-    };
-
-    try {
-      let newCollectionId = await this.collectionService.createCollection(newCollection);
-      this.router.navigate(['/collection', newCollectionId], { queryParams: { edit: 'true' } });
-    } catch (e) {
-      console.error(e);
-    }
-  }
 }

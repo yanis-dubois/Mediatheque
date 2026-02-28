@@ -1,40 +1,54 @@
+<app-action-bar>
+  <app-dropdown [customClass]="'action-button'" [isOpenExternal]="true">
+    <app-collections-action/>
+  </app-dropdown>
+</app-action-bar>
+
 <section>
-  <h1>Library</h1>
+  @if (context(); as context) {
+    <h1>
+      @if (context.type === 'SPECIFIC') {
+        {{ context.value | humanize }}
+      }
+      Library
+    </h1>
 
-  <div class="container">
-    <div *ngFor="let id of collectionIds()">
-      <!-- <app-collection [id]="id" [view]="CollectionDisplayMode.PREVIEW">
-        <div collectionMenu (click)="$event.preventDefault(); $event.stopPropagation()">
-          <app-dropdown
-            [isOpenExternal]="false"
-          >
-            <app-collection-action 
-              [collectionId]="id"
-            />
-          </app-dropdown>
-        </div>
-      </app-collection> -->
+    <div class="container">
+      <div cdkDropList (cdkDropListDropped)="drop($event)">
+        @for (id of collectionIds(); track id) {
+          <div cdkDrag class="collection-row">
+            <app-collection [id]="id" [context]="context" [view]="CollectionDisplayMode.PREVIEW">
+              <div 
+                collectionMenu 
+                (click)="$event.preventDefault(); $event.stopPropagation()" 
+                class="collection-action">
+                <app-dropdown
+                  [isOpenExternal]="activeMenuId() === id"
+                  (opened)="activeMenuId.set(id)"
+                  (closed)="activeMenuId.set(null)"
+                >
+                  <app-collection-action 
+                    [collectionId]="id"
+                  />
+                </app-dropdown>
 
-      <app-collection [id]="id" [view]="CollectionDisplayMode.PREVIEW">
-        <div collectionMenu (click)="$event.preventDefault(); $event.stopPropagation()">
-          <app-dropdown
-            [isOpenExternal]="activeMenuId() === id"
-            (opened)="activeMenuId.set(id)"
-            (closed)="activeMenuId.set(null)"
-          >
-            <app-collection-action 
-              [collectionId]="id"
-            />
-          </app-dropdown>
-        </div>
-      </app-collection>
+                <div class="drag-handle dots-button" cdkDragHandle>
+                  ⋮⋮
+                </div>
+              </div>
+            </app-collection>
+
+            <div *cdkDragPlaceholder class="placeholder"></div>
+          </div>
+        }
+      </div>
+
+      <a [routerLink]="['/collections', context.type === 'ALL' ? '' : context.value]">
+        <h2 class="title-chevron">
+          Collections
+          <img src="assets/icons/chevron.svg" style="height: 1em;"/>
+        </h2>
+      </a>
     </div>
-  
-    <a [routerLink]="['/collections']">
-      <h2 class="title-chevron">
-        Collections
-        <img src="assets/icons/chevron.svg" style="height: 1em;"/>
-      </h2>
-    </a>
-  </div>
+  }
 </section>

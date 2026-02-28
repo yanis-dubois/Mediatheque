@@ -8,7 +8,7 @@ import { DropdownComponent } from '@components/dropdown/dropdown.component';
 import { CollectionActionComponent } from '@components/collection-action/collection-action.component';
 import { CollectionComponent } from "@components/collection/collection.component";
 
-import { Collection, CollectionDisplayMode } from '@models/collection.model';
+import { Collection, CollectionDisplayMode, CollectionMediaType } from '@models/collection.model';
 
 import { CollectionService } from '@services/collection.service';
 
@@ -21,6 +21,7 @@ import { CollectionService } from '@services/collection.service';
 })
 export class CollectionsVirtualizationComponent {
   @ViewChild('scrollElement') scrollElement!: ElementRef<HTMLElement>;
+  context = input.required<CollectionMediaType>();
 
   private scrollSubject = new Subject<string[]>();
   private el = inject(ElementRef);

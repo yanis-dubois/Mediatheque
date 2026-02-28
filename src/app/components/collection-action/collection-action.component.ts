@@ -39,13 +39,14 @@ export class CollectionActionComponent {
   );
   isPinnedSpecific = computed(() => {
     const col = this.collection();
-    if (!col || col.mediaType.type === 'ALL') return false;
+    if (!col) return false;
     return this.pinService.isPinned(this.collectionId(), col.mediaType);
   });
   hasSpecificContext = computed(() => {
     const col = this.collection();
-    if (col && col.mediaType.type === 'SPECIFIC') {
-      return col.mediaType.value;
+    if (col) {
+      if (col.mediaType.type === 'SPECIFIC')
+        return col.mediaType.value;
     }
     return null;
   });

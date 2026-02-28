@@ -8,10 +8,23 @@ import { MediaPageComponent } from '@pages/media-page/media-page.component';
 export const routes: Routes = [
   {
     path: '',
+    redirectTo: 'home',
+    pathMatch: 'full'
+  },
+  {
+    path: 'home',
     component: HomeComponent
+  },
+  { 
+    path: 'home/:context', 
+    component: HomeComponent 
   },
   {
     path: 'collections',
+    component: CollectionsPageComponent
+  },
+  {
+    path: 'collections/:context',
     component: CollectionsPageComponent
   },
   {

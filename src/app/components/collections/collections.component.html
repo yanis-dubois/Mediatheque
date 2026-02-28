@@ -3,12 +3,7 @@
     [customClass]="'action-button'"
     [isOpenExternal]="true"
   >
-    <button class="dropdown-button" (click)="addCollection()">
-      + Create collection
-    </button>
-    <button class="dropdown-button" (click)="addCollection(true)">
-      + Create dynamic collection
-    </button>
+    <app-collections-action/>
   </app-dropdown>
 </app-action-bar>
 
@@ -33,6 +28,7 @@
   <app-collections-virtualization 
     class="virtual-host"
     [collectionIds]="collectionIds()"
+    [context]="context()"
   >
   </app-collections-virtualization>
 </section>

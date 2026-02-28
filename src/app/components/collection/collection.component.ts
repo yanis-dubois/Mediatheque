@@ -1,7 +1,9 @@
-import { Component, computed, effect, ElementRef, inject, input, Input, output, signal, untracked, viewChild } from '@angular/core';
+import { Component, computed, effect, ElementRef, inject, input, Input, signal, untracked, viewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { debounceTime, Subject } from 'rxjs';
+
+import { confirm } from '@tauri-apps/plugin-dialog';
 
 import { DropdownComponent } from '@components/dropdown/dropdown.component';
 import { SortManagerComponent } from '@components/sort-manager/sort-manager.component';
@@ -17,13 +19,14 @@ import { MediaPickerComponent } from '@components/media-picker/media-picker.comp
 import { MediaActionComponent } from "@components/media-action/media-action.component";
 import { ActionBarComponent } from "@components/action-bar/action-bar.component";
 
-import { CollectionDisplayMode, CollectionLayout, CollectionType } from '@models/collection.model';
+import { CollectionDisplayMode, CollectionLayout, CollectionMediaType, CollectionType } from '@models/collection.model';
 import { MediaFilter, MediaOrder } from '@models/media-query.model';
 
 import { HumanizePipe } from "@pipe/humanize";
 import { CollectionService } from '@services/collection.service';
 import { MediaService } from '@services/media.service';
 import { CollectionActionComponent } from "../collection-action/collection-action.component";
+import { PinService } from '@app/services/pin.service';
 
 @Component({
   selector: 'app-collection',
@@ -35,6 +38,7 @@ import { CollectionActionComponent } from "../collection-action/collection-actio
 export class CollectionComponent {
   @Input({ required: true }) view!: CollectionDisplayMode;
   id = input.required<string>();
+  context = input.required<CollectionMediaType>();
 
   nameInput = viewChild<ElementRef<HTMLHeadingElement>>('nameInput');
   private route = inject(ActivatedRoute);
@@ -80,7 +84,8 @@ export class CollectionComponent {
 
   constructor(
     private mediaService: MediaService,
-    private collectionService: CollectionService
+    private collectionService: CollectionService,
+    private pinService: PinService
   ) {
     this.refreshLayout$.pipe(
       debounceTime(50)
@@ -95,12 +100,12 @@ export class CollectionComponent {
       });
     });
 
-    // update layout on media change for dynamic collection
+    // update layout on media change for dynamic & system collection
     effect(() => {
       this.mediaService.lastUpdate();
 
       untracked(() => {
-        if (this.collectionType() === CollectionType.DYNAMIC) {
+        if (this.collectionType() !== CollectionType.MANUAL) {
           this.refreshLayout$.next();
         }
       });
@@ -166,7 +171,7 @@ export class CollectionComponent {
 
   async loadLayoutData() {
     this.mediaLayoutData.set(
-      await this.collectionService.getLayoutData(this.id(), this.searchQuery())
+      await this.collectionService.getLayoutData(this.id(), this.context(), this.searchQuery())
     );
   }
 
@@ -219,7 +224,22 @@ export class CollectionComponent {
     }
   }
 
+  filterVersion = signal(0);
   async onFilterChanged(newFilter: MediaFilter) {
+    const conflictingContext = this.pinService.checkPinIncompatibility(this.id(), newFilter.mediaType);
+    if (conflictingContext) {
+      const contextName = conflictingContext.type === 'SPECIFIC' ? conflictingContext.value : 'actuel';
+      const confirmed = await confirm(
+        `Cette collection est épinglée dans la section "${contextName}". Changer le type de média la détachera de cette page. Voulez-vous continuer ?`,
+        { title: 'Confirmation de modification', kind: 'warning' }
+      );
+
+      if (!confirmed) {
+        this.filterVersion.update(v => v + 1);
+        return;
+      }
+    }
+
     try {
       await this.collectionService.updateFilter(this.id(), newFilter);
       this.refreshLayout$.next();

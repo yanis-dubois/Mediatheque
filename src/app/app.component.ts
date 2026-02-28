@@ -2,6 +2,8 @@ import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterOutlet } from '@angular/router';
 
+import { NavigationComponent } from "./components/navigation/navigation.component";
+
 // TMP
 import { MediaService } from './services/media.service';
 import { movieData } from '@app/data'
@@ -10,7 +12,7 @@ import { movieData } from '@app/data'
 @Component({
   selector: 'app-root',
   standalone: true,
-  imports: [CommonModule, RouterOutlet],
+  imports: [CommonModule, RouterOutlet, NavigationComponent],
   templateUrl: './app.component.html',
   styleUrl: './app.component.css'
 })
