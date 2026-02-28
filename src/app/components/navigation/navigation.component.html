@@ -1,8 +1,18 @@
 <nav class="nav">
-  <a routerLink="/home" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}" class="nav-item">🏠</a>
+  <a 
+    routerLink="/home" 
+    [class.active]="isTypeActive()" 
+    class="nav-item"
+  >
+    🏠
+  </a>
   <div class="divider"></div>
   @for (type of mediaType; track type) {
-    <a [routerLink]="['/home', type]" routerLinkActive="active" class="nav-item">
+    <a 
+      [routerLink]="['/home', type]" 
+      [class.active]="isTypeActive(type)" 
+      class="nav-item"
+    >
       {{ type | emojize }}
     </a>
   }
