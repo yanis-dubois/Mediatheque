@@ -1,6 +1,6 @@
 <nav class="nav">
   <a 
-    routerLink="/home" 
+    (click)="handleNavigation()"
     [class.active]="isTypeActive()" 
     class="nav-item"
   >
@@ -9,7 +9,7 @@
   <div class="divider"></div>
   @for (type of mediaType; track type) {
     <a 
-      [routerLink]="['/home', type]" 
+      (click)="handleNavigation(type)"
       [class.active]="isTypeActive(type)" 
       class="nav-item"
     >

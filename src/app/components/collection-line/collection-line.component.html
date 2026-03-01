@@ -3,7 +3,8 @@
   <div class="line-header">
     <a [routerLink]="['/collection', collection.id]">
       <h2 class="title title-chevron">
-        {{collection.name}} 
+        {{ collection.collectionType| emojize }}
+        {{ collection.name }} 
         <img src="assets/icons/chevron.svg"/>
       </h2>
     </a>

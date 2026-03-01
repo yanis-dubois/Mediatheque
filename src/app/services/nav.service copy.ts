@@ -21,13 +21,13 @@ export class NavService {
       })
     ).subscribe(params => {
       const ctxParam = params.get('context');
-      
+
       // if a context is specified in the path, update it
       if (ctxParam) {
         this._context.set({ type: 'SPECIFIC', value: ctxParam as MediaType });
       } 
       // if we are in ALL
-      else if (this.router.url === '/home' || this.router.url === '/') {
+      else if (this.router.url === '/home' || this.router.url === '/collections' || this.router.url === '/') {
         this._context.set({ type: 'ALL' });
       }
     });

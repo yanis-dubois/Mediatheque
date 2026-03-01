@@ -45,6 +45,10 @@ export function compareCollectionMediaType(a: CollectionMediaType, b: Collection
   // both ALL
   return true;
 }
+export function isCollectionMediaType(value: any): value is CollectionMediaType {
+  return value && typeof value === 'object' && 'type' in value && 
+    (value.type === 'ALL' || (value.type === 'SPECIFIC' && 'value' in value));
+}
 
 export enum CollectionLayout {
   GRID = "GRID",

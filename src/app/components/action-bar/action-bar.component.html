@@ -1,7 +1,14 @@
 <div class="action action-left">
-  <button class="action-button" (click)="goToPreviousPage()">
-    <img class="chevron" src="assets/icons/chevron.svg"/>
-  </button>
+  
+  @if (isHomePage()) {
+    <button class="action-button" (click)="goToSettings()">
+      <img class="chevron" src="assets/icons/settings.svg"/>
+    </button>
+  } @else {
+    <button class="action-button" (click)="goToPreviousPage()">
+      <img class="chevron" src="assets/icons/chevron.svg"/>
+    </button>
+  }
 </div>
 
 <div class="action action-right">

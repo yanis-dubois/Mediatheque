@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, computed } from '@angular/core';
 import { Location } from '@angular/common';
 import { Router } from '@angular/router';
 
@@ -11,10 +11,19 @@ import { Router } from '@angular/router';
 })
 export class ActionBarComponent {
 
+  isHomePage = computed(() => {
+    const url = this.router.url;
+    return url === '/' || url.startsWith('/home');
+  });
+
   constructor(
     private location: Location,
     private router: Router
   ) {}
+
+  goToSettings() {
+    this.router.navigateByUrl('/settings');
+  }
 
   goToPreviousPage() {
     if (window.history.length > 1) {

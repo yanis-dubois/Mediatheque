@@ -9,7 +9,14 @@
 
 <section class="page-container">
   <div class="page-header">
-    <h1> Collections </h1>
+    <h1>
+      @if (context(); as context) {
+        @if (context.type === 'SPECIFIC') {
+          {{ context.value | humanize }}
+        }
+      }
+      Collections
+    </h1>
 
     <div class="search-box">
       <input 

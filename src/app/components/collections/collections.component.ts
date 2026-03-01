@@ -9,11 +9,12 @@ import { DropdownComponent } from "@components/dropdown/dropdown.component";
 import { CollectionService } from '@services/collection.service';
 import { CollectionsActionComponent } from "@components/collections-action/collections-action.component";
 import { CollectionMediaType } from '@app/models/collection.model';
+import { HumanizePipe } from "../../pipe/humanize";
 
 @Component({
   selector: 'app-collections',
   standalone: true,
-  imports: [CommonModule, CollectionsVirtualizationComponent, ActionBarComponent, DropdownComponent, CollectionsActionComponent],
+  imports: [CommonModule, CollectionsVirtualizationComponent, ActionBarComponent, DropdownComponent, CollectionsActionComponent, HumanizePipe],
   templateUrl: './collections.component.html',
   styleUrls: ['./collections.component.scss']
 })
@@ -29,7 +30,7 @@ export class CollectionsComponent {
     private collectionService: CollectionService
   ) {
     this.refreshLayout$.pipe(
-      debounceTime(100)
+      debounceTime(50)
     ).subscribe(() => {
       this.loadLayoutData();
     });
@@ -42,8 +43,9 @@ export class CollectionsComponent {
       });
     });
 
-    effect(async () => {
-      this.searchQuery()
+    effect(() => {
+      this.searchQuery();
+      this.context();
       this.refreshLayout$.next();
     });
   }

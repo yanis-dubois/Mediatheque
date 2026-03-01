@@ -27,11 +27,12 @@ import { CollectionService } from '@services/collection.service';
 import { MediaService } from '@services/media.service';
 import { CollectionActionComponent } from "../collection-action/collection-action.component";
 import { PinService } from '@app/services/pin.service';
+import { EmojizePipe } from "../../pipe/emojize";
 
 @Component({
   selector: 'app-collection',
   standalone: true,
-  imports: [CommonModule, RouterModule, HumanizePipe, SortManagerComponent, FilterManagerComponent, CollectionLineComponent, CollectionGridComponent, CollectionColumnComponent, CollectionRowComponent, CollectionListComponent, MediaCardComponent, MediaRowComponent, MediaPickerComponent, DropdownComponent, MediaActionComponent, ActionBarComponent, CollectionActionComponent],
+  imports: [CommonModule, RouterModule, HumanizePipe, SortManagerComponent, FilterManagerComponent, CollectionLineComponent, CollectionGridComponent, CollectionColumnComponent, CollectionRowComponent, CollectionListComponent, MediaCardComponent, MediaRowComponent, MediaPickerComponent, DropdownComponent, MediaActionComponent, ActionBarComponent, CollectionActionComponent, EmojizePipe],
   templateUrl: './collection.component.html',
   styleUrl: './collection.component.scss'
 })

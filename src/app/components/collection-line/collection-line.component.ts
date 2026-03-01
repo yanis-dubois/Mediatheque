@@ -8,13 +8,13 @@ import { injectVirtualizer, VirtualItem } from '@tanstack/angular-virtual';
 import { Collection, CollectionType } from '@models/collection.model';
 import { Media } from '@models/media.model';
 
-import { CollectionService } from '@services/collection.service';
 import { MediaService } from '@app/services/media.service';
+import { EmojizePipe } from "../../pipe/emojize";
 
 @Component({
   selector: 'app-collection-line',
   standalone: true,
-  imports: [CommonModule, RouterModule],
+  imports: [CommonModule, RouterModule, EmojizePipe],
   templateUrl: './collection-line.component.html',
   styleUrl: './collection-line.component.css'
 })
