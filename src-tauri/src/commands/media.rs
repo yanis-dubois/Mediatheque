@@ -26,6 +26,7 @@ pub fn map_row_to_media(row: &rusqlite::Row) -> rusqlite::Result<Media> {
     status: match_media_status(&status_str),
     favorite: fav_int == 1, // 0/1 -> bool
     notes: row.get(10)?,
+    score: row.get(11)?,
   })
 }
 
@@ -510,6 +511,27 @@ pub fn update_media_notes(
 
   connection
     .execute("UPDATE media SET notes = ?1 WHERE id = ?2", [notes, id])
+    .map_err(|e| e.to_string())?;
+
+  Ok(())
+}
+
+#[tauri::command]
+pub fn update_media_score(
+  state: tauri::State<'_, DbState>,
+  id: String,
+  score: Option<u32>,
+) -> Result<(), String> {
+  let connection = state
+    .connection
+    .lock()
+    .map_err(|_| "Failed to lock database")?;
+
+  connection
+    .execute(
+      "UPDATE media SET score = ?1 WHERE id = ?2",
+      params![score, id],
+    )
     .map_err(|e| e.to_string())?;
 
   Ok(())

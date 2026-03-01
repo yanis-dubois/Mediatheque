@@ -46,8 +46,8 @@ export class MediaService {
 
   /* get media */
 
-  getById(id: string): Promise<Media> {
-    return invoke<any>('get_media_by_id', { id });
+  async getById(id: string): Promise<Media> {
+    return await invoke<Media>('get_media_by_id', { id });
   }
 
   async getMediaBatch(ids: string[]): Promise<Media[]> {
@@ -71,8 +71,18 @@ export class MediaService {
     this.lastUpdate.set(Date.now());
   }
 
-  updateNotes(id: string, notes: string): Promise<void> {
-    return invoke('update_media_notes', { id, notes });
+  async updateNotes(id: string, notes: string): Promise<void> {
+    await invoke('update_media_notes', { id, notes });
+
+    this.getMediaSignal(id).update(m => m ? { ...m, notes: notes } : null);
+    this.lastUpdate.set(Date.now());
+  }
+
+  async updateScore(id: string, score?: number): Promise<void> {
+    await invoke('update_media_score', { id, score });
+
+    this.getMediaSignal(id).update(m => m ? { ...m, score: score } : null);
+    this.lastUpdate.set(Date.now());
   }
 
   /* add media */

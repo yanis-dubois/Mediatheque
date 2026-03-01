@@ -1,4 +1,4 @@
-import { Component, Input, signal } from '@angular/core';
+import { Component, computed, ElementRef, input, Input, signal, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 
 import { MovieDetailsComponent } from "@components/movie-details/movie-details.component";
@@ -10,47 +10,43 @@ import { Movie, Series, TabletopGame } from '@models/media-details.model';
 
 import { MediaService } from '@services/media.service'
 import { PosterPathPipe } from "@pipe/image-path.pipe";
+import { NumericRangeDirective } from "@app/directive/numeric-range.directive";
 
 @Component({
   selector: 'app-media-details',
   standalone: true,
-  imports: [CommonModule, MovieDetailsComponent, SerieDetailsComponent, TabletopGameDetailsComponent, PosterPathPipe],
+  imports: [CommonModule, MovieDetailsComponent, SerieDetailsComponent, TabletopGameDetailsComponent, PosterPathPipe, NumericRangeDirective],
   templateUrl: './media-details.component.html',
   styleUrl: './media-details.component.css'
 })
 export class MediaDetailsComponent {
-  @Input({ required: true }) id!: string;
+  id = input.required<string>();
 
   protected readonly MediaType = MediaType;
   protected readonly MediaStatus = MediaStatus;
   statusOptions = Object.values(MediaStatus);
 
-  media?: Media;
-  loading = true;
-  error?: string;
+  media = signal<Media | undefined>(undefined);
 
   favorite = signal(false);
   notes = signal('');
   isEditingNotes = signal(false);
   isSavingNotes = signal(false);
   status = signal<MediaStatus>(MediaStatus.TO_DISCOVER);
+  score = signal<number | undefined>(undefined);
 
   constructor(
     private mediaService: MediaService
   ) {}
 
   async ngOnInit() {
-    try {
-      this.media = await this.mediaService.getById(this.id);
-      this.favorite.set(this.media.favorite);
-      this.notes.set(this.media.notes);
-      this.status.set(this.media.status);
-    } catch (e) {
-      console.error(e);
-      this.error = 'Media not found 😢';
-    } finally {
-      this.loading = false;
-    }
+    const media = await this.mediaService.getById(this.id());
+
+    this.media.set(media);
+    this.favorite.set(media.favorite);
+    this.notes.set(media.notes);
+    this.status.set(media.status);
+    this.score.set(media.score);
   }
 
   asMovie(m: Media): Movie {
@@ -68,7 +64,7 @@ export class MediaDetailsComponent {
     const isFavorite = !this.favorite();
   
     try {
-      await this.mediaService.toggleFavorite(this.media.id, isFavorite);
+      await this.mediaService.toggleFavorite(this.id(), isFavorite);
       this.favorite.set(isFavorite);
     } catch (e) {
       console.error("Error while updating favorite", e);
@@ -80,7 +76,7 @@ export class MediaDetailsComponent {
     const statusEnum = newStatus as MediaStatus;
 
     try {
-      await this.mediaService.updateStatus(this.media.id, statusEnum);
+      await this.mediaService.updateStatus(this.id(), statusEnum);
       this.status.set(statusEnum);
     } catch (e) {
       console.error("Error while updating status", e);
@@ -89,20 +85,56 @@ export class MediaDetailsComponent {
 
   async onNotesBlur(newNotes: string) {
     if (!this.media) return;
-    this.isEditingNotes.set(false);
   
     // save only if changed
     if (newNotes !== this.notes()) {
-      this.isSavingNotes.set(true);
       try {
-        await this.mediaService.updateNotes(this.media.id, newNotes);
+        await this.mediaService.updateNotes(this.id(), newNotes);
         this.notes.set(newNotes);
       } catch (e) {
-        console.error("Failed to save notes :", e);
-      } finally {
-        // "saving" feedback for 500ms
-        setTimeout(() => this.isSavingNotes.set(false), 500);
+        console.error("Error while updating notes :", e);
       }
+    }
+  }
+
+  ///////////
+
+  validateScore(el: HTMLElement) {
+    el.blur();
+
+    const selection = window.getSelection();
+    if (selection) {
+      selection.removeAllRanges();
+    }
+  }
+
+  async onScoreBlur(value: string, el: HTMLElement) {
+    const val = value.replace(/\D/g, '');
+    console.log("val:",val);
+
+    const isEmpty = val.trim().length === 0;
+    if (isEmpty) {
+      el.innerText = '_';
+      if (this.score() !== undefined) {
+        await this.mediaService.updateScore(this.id(), undefined);
+        this.score.set(undefined);
+      }
+      return;
+    }
+
+    const newScore = Math.min(100, Math.max(0, parseInt(val, 10)));
+    if (newScore === this.score()) {
+      this.score.set(newScore);
+      el.innerText = newScore.toString();
+      return;
+    }
+
+    try {
+      await this.mediaService.updateScore(this.id(), newScore);
+      this.score.set(newScore);
+      el.innerText = newScore.toString();
+    } catch (e) {
+      console.error("Error while updating score :", e);
     }
   }
 }

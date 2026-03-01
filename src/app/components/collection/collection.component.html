@@ -91,12 +91,10 @@
                 class="editable-title"
                 contenteditable="true"
                 #nameInput
-                (blur)="onNameBlur(nameInput.innerText)"
+                (blur)="onNameBlur(nameInput.innerText, nameInput)"
                 (keydown.enter)="$event.preventDefault(); validateName(nameInput)"
                 (keydown.escape)="nameInput.innerText = name(); validateName(nameInput)"
-              >
-                {{ name() }}
-              </h1>
+              >{{ name() }}</h1>
             }
           </div>
 

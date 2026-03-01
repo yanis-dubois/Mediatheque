@@ -111,9 +111,7 @@ pub fn init_db(connection: &mut Connection) -> Result<()> {
       filter TEXT, -- for dynamic colection - in JSON, ex: [{media_type: 'MOVIE'}, {favorite: 'true'}]
 
       has_image INTEGER NOT NULL DEFAULT 0 CHECK(has_image IN (0, 1)),
-      can_be_sorted INTEGER NOT NULL DEFAULT 0 CHECK(can_be_sorted IN (0, 1)),
-
-      
+      can_be_sorted INTEGER NOT NULL DEFAULT 0 CHECK(can_be_sorted IN (0, 1))
     );
 
     -- Manual Collection
@@ -151,7 +149,9 @@ pub fn init_db(connection: &mut Connection) -> Result<()> {
         status IN ('TO_DISCOVER', 'IN_PROGRESS', 'FINISHED', 'DROPPED')
       ),
       favorite INTEGER NOT NULL DEFAULT 0 CHECK(favorite IN (0, 1)),
-      notes TEXT NOT NULL DEFAULT ''
+      notes TEXT NOT NULL DEFAULT '',
+
+      score INTEGER CHECK(score BETWEEN 0 AND 100)
     );
 
     -- Detailed Media
@@ -297,6 +297,7 @@ struct SeedMedia<'a> {
   status: MediaStatus,
   favorite: i32,
   notes: &'a str,
+  score: Option<u32>,
 
   // details
   movie_details: Option<SeedMovie<'a>>,
@@ -318,6 +319,7 @@ impl<'a> Default for SeedMedia<'a> {
       status: MediaStatus::ToDiscover,
       favorite: 0,
       notes: "",
+      score: None,
       movie_details: None,
       series_details: None,
       tabletop_game_details: None,
@@ -424,8 +426,8 @@ pub fn seed_data(connection: &mut Connection) -> Result<()> {
 
     // insert in parent table Media
     tx.execute(
-      "INSERT INTO media (id, media_type, image_width, image_height, title, description, release_date, added_date, status, favorite, notes)
-        VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11)",
+      "INSERT INTO media (id, media_type, image_width, image_height, title, description, release_date, added_date, status, favorite, notes, score)
+        VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12)",
       params![
         media_id_str,
         media_type_str,
@@ -437,7 +439,8 @@ pub fn seed_data(connection: &mut Connection) -> Result<()> {
         m.added_date,
         status_str,
         m.favorite,
-        m.notes
+        m.notes,
+        m.score
       ],
     )?;
 
@@ -919,6 +922,7 @@ fn seed_media_data() -> Vec<SeedMedia<'static>> {
       status: MediaStatus::Finished,
       favorite: 1,
       notes: "Indispensable.",
+      score: Some(95),
       movie_details: Some(SeedMovie {
         directors: vec!["Katsuhiro Otomo"],
         genres: vec!["Animation", "Sci-Fi", "Action"],

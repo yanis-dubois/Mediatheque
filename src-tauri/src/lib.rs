@@ -18,6 +18,7 @@ pub fn run() {
       commands::media::toggle_media_favorite,
       commands::media::update_media_status,
       commands::media::update_media_notes,
+      commands::media::update_media_score,
       commands::media::add_media_to_library,
       commands::collection::search_layout_data,
       commands::collection::search_in_collection,

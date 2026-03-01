@@ -41,6 +41,7 @@ export interface Media {
   status: MediaStatus;
   favorite: boolean;
   notes: string;
+  score?: number;
 }
 
 export interface ExternalMedia {

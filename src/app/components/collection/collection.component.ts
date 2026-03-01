@@ -58,7 +58,7 @@ export class CollectionComponent {
   collection = computed(() => {
     return this.collectionService.getCollectionSignal(this.id(), true)();
   });
-  name = computed(() => this.collection()?.name ?? '');
+  name = computed(() => this.collection()?.name ?? 'Unnamed Collection');
   favorite = computed(() => this.collection()?.favorite ?? false);
   description = computed(() => this.collection()?.description ?? '');
   collectionType = computed(() => this.collection()?.collectionType ?? CollectionType.MANUAL);
@@ -96,35 +96,15 @@ export class CollectionComponent {
 
     effect(() => {
       this.id();
+      this.mediaService.lastUpdate();
+      this.collectionService.lastUpdate();
       untracked(() => {
         this.refreshLayout$.next();
       });
     });
 
-    // update layout on media change for dynamic & system collection
-    effect(() => {
-      this.mediaService.lastUpdate();
-
-      untracked(() => {
-        if (this.collectionType() !== CollectionType.MANUAL) {
-          this.refreshLayout$.next();
-        }
-      });
-    });
-
-    // update layout on collection change for manual collection
-    effect(() => {
-      this.collectionService.lastUpdate();
-
-      untracked(() => {
-        if (this.collectionType() === CollectionType.MANUAL) {
-          this.refreshLayout$.next();
-        }
-      });
-    });
-
     effect(async () => {
-      this.searchQuery()
+      this.searchQuery();
       this.refreshLayout$.next();
     });
 
@@ -184,12 +164,16 @@ export class CollectionComponent {
     }
   }
 
-  async onNameBlur(newName: string) {  
-    // save only if changed
-    if (newName === this.name()) return;
-    
+  async onNameBlur(newName: string, el: HTMLElement) { 
+    const isEmpty = newName.trim().length === 0;
+    const finalName = isEmpty ? 'Unnamed Collection' : newName;
+
+    if (isEmpty) {
+      el.innerText = finalName;
+    }
+
     try {
-      await this.collectionService.updateName(this.id(), newName);
+      await this.collectionService.updateName(this.id(), finalName);
     } catch (e) {
       console.error("Failed to save name :", e);
     }

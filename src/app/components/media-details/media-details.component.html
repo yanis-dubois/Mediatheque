@@ -1,22 +1,27 @@
-@if (loading) {
-  <p>Loading ...</p>
-} 
-@else if (error) {
-  <p>Error : {{ error }}</p>
-} 
-@else if (media) {
+@if (media(); as media) {
   <section class="header">
 
     <div>
       <img class="image" [src]="media.id | posterPath" [alt]="media.title"/>
       <p>({{ media.imageWidth }} x {{ media.imageHeight }})</p>
     </div>
-  
+
     <div class="info">
       <h1 class="title">{{ media.title }}</h1>
       <p class="type">{{ media.mediaType }}</p>
       <p class="releaseDate">release date : {{ media.releaseDate }}</p>
       <p class="addedDate">added date : {{ media.addedDate }}</p>
+      <p 
+        class="score"
+        contenteditable="true"
+        appNumericRange
+        [min]="0"
+        [max]="100"
+        #scoreInput
+        (blur)="onScoreBlur(scoreInput.innerText, scoreInput)"
+        (keydown.enter)="$event.preventDefault(); validateScore(scoreInput)"
+        (keydown.escape)="scoreInput.innerText = score()?.toString() ?? ''; validateScore(scoreInput)"
+      >{{ score() ? score() : '_' }}</p>
 
       <div class="fieldset-container status-box">
         <select 
@@ -29,7 +34,6 @@
         </select>
       </div>
 
-      <p class="favorite">favorite : {{ media.favorite }}</p>
       <button (click)="onToggleFavorite()" [class.is-favorite]="favorite()">
         @if (favorite()) {
           ❤️
@@ -64,16 +68,12 @@
             #notesArea
             [value]="notes()"
             (focus)="isEditingNotes.set(true)"
-            (blur)="onNotesBlur(notesArea.value)"
+            (blur)="onNotesBlur(notesArea.value); isEditingNotes.set(false)"
             (keydown.escape)="notesArea.value = notes(); notesArea.blur()"
             placeholder="Cliquez ici pour ajouter une note..."
             [class.editing]="isEditingNotes()"
           ></textarea>
         </div>
-
-        @if (isSavingNotes()) {
-          <span class="save-indicator">Sauvegarde...</span>
-        }
       </div>
 
     </div>
