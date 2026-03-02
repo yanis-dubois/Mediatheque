@@ -13,6 +13,8 @@ pub fn run() {
     })
     .invoke_handler(tauri::generate_handler![
       commands::path::get_posters_dir,
+      commands::settings::get_all_settings,
+      commands::settings::save_setting,
       commands::media::get_media_by_id,
       commands::media::get_media_batch,
       commands::media::toggle_media_favorite,

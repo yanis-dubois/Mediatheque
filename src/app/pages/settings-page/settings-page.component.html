@@ -1,0 +1,27 @@
+<app-action-bar></app-action-bar>
+
+<section class="settings-group">
+  <h1>Settings</h1>
+
+  <h2>Display Preferences</h2>
+  <div class="setting-item">
+    <label>Theme</label>
+    <select [value]="settings.theme()" (change)="onModeChange(SettingsKeys.THEME, $event)">
+      @for (theme of themes; track theme) {
+        <option [value]="theme" [selected]="theme === settings.theme()">
+          {{ theme | humanize }}
+        </option>
+      }
+    </select>
+  </div>
+  <div class="setting-item">
+    <label>Score</label>
+    <select [value]="settings.scoreDisplayMode()" (change)="onModeChange(SettingsKeys.SCORE_DISPLAY_MODE, $event)">
+      @for (mode of scoreDisplayModes; track mode) {
+        <option [value]="mode" [selected]="mode === settings.scoreDisplayMode()">
+          {{ mode | humanize }}
+        </option>
+      }
+    </select>
+  </div>
+</section>

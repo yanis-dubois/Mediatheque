@@ -1,6 +1,59 @@
 use serde::{Deserialize, Serialize};
 use strum::EnumIter;
 
+/* Settings */
+
+#[derive(Debug, Serialize, Deserialize, PartialEq, Clone, EnumIter)]
+#[serde(rename_all = "SCREAMING_SNAKE_CASE")]
+#[derive(strum::Display, strum::EnumString)]
+#[strum(serialize_all = "SCREAMING_SNAKE_CASE")]
+pub enum SettingsKey {
+  ScoreDisplayMode,
+  Theme,
+}
+
+#[derive(Debug, Serialize, Deserialize, PartialEq, Clone)]
+#[serde(untagged)]
+#[derive(strum::Display)]
+#[strum(serialize_all = "SCREAMING_SNAKE_CASE")]
+pub enum SettingValue {
+  ScoreMode(ScoreDisplayMode),
+  Theme(Theme),
+}
+
+impl SettingValue {
+  pub fn to_db_string(&self) -> String {
+    match self {
+      SettingValue::ScoreMode(mode) => mode.to_string(),
+      SettingValue::Theme(mode) => mode.to_string(),
+    }
+  }
+}
+
+#[derive(Debug, Serialize, Deserialize, PartialEq, Clone, EnumIter)]
+#[serde(rename_all = "SCREAMING_SNAKE_CASE")]
+#[derive(strum::Display, strum::EnumString)]
+#[strum(serialize_all = "SCREAMING_SNAKE_CASE")]
+pub enum Theme {
+  Light,
+  Dark,
+  System,
+}
+
+#[derive(Debug, Serialize, Deserialize, PartialEq, Clone, EnumIter)]
+#[serde(rename_all = "SCREAMING_SNAKE_CASE")]
+#[derive(strum::Display, strum::EnumString)]
+#[strum(serialize_all = "SCREAMING_SNAKE_CASE")]
+pub enum ScoreDisplayMode {
+  Hidden,
+  Percent,
+  Stars,
+  ThreeStep,
+  FiveStep,
+}
+
+/* Media */
+
 #[derive(Debug, Serialize, Deserialize, PartialEq, Clone, EnumIter)]
 #[serde(rename_all = "SCREAMING_SNAKE_CASE")]
 #[derive(strum::Display, strum::EnumString)]
@@ -27,6 +80,51 @@ pub enum MediaStatus {
   Finished,
   Dropped,
 }
+
+/* Media Query */
+
+#[derive(Debug, Serialize, Deserialize, PartialEq, Clone, Copy)]
+#[serde(rename_all = "SCREAMING_SNAKE_CASE")]
+#[derive(strum::Display, strum::EnumString)]
+#[strum(serialize_all = "SCREAMING_SNAKE_CASE")]
+#[derive(Default)]
+pub enum MediaOrderField {
+  #[default]
+  Title,
+  AddedDate,
+  ReleaseDate,
+  MediaType,
+  Favorite,
+  Status,
+
+  Directors,
+  Genre,
+  Serie,
+  Duration,
+
+  Creators,
+  Seasons,
+  Episodes,
+
+  Designers,
+  Artists,
+  GameMechanic,
+  Publishers,
+  PlayerCount,
+}
+
+#[derive(Debug, Serialize, Deserialize, PartialEq, Clone)]
+#[serde(rename_all = "SCREAMING_SNAKE_CASE")]
+#[derive(strum::Display, strum::EnumString)]
+#[strum(serialize_all = "SCREAMING_SNAKE_CASE")]
+#[derive(Default)]
+pub enum MediaOrderDirection {
+  #[default]
+  Asc,
+  Desc,
+}
+
+/* Collection */
 
 #[derive(Debug, Serialize, Deserialize, PartialEq, Clone)]
 #[serde(rename_all = "SCREAMING_SNAKE_CASE")]
@@ -73,46 +171,7 @@ pub enum CollectionLayout {
   List,
 }
 
-#[derive(Debug, Serialize, Deserialize, PartialEq, Clone, Copy)]
-#[serde(rename_all = "SCREAMING_SNAKE_CASE")]
-#[derive(strum::Display, strum::EnumString)]
-#[strum(serialize_all = "SCREAMING_SNAKE_CASE")]
-#[derive(Default)]
-pub enum MediaOrderField {
-  #[default]
-  Title,
-  AddedDate,
-  ReleaseDate,
-  MediaType,
-  Favorite,
-  Status,
-
-  Directors,
-  Genre,
-  Serie,
-  Duration,
-
-  Creators,
-  Seasons,
-  Episodes,
-
-  Designers,
-  Artists,
-  GameMechanic,
-  Publishers,
-  PlayerCount,
-}
-
-#[derive(Debug, Serialize, Deserialize, PartialEq, Clone)]
-#[serde(rename_all = "SCREAMING_SNAKE_CASE")]
-#[derive(strum::Display, strum::EnumString)]
-#[strum(serialize_all = "SCREAMING_SNAKE_CASE")]
-#[derive(Default)]
-pub enum MediaOrderDirection {
-  #[default]
-  Asc,
-  Desc,
-}
+/* Convertion */
 
 // convert SQL TEXT -> Enums
 pub fn match_media_type(s: &str) -> MediaType {

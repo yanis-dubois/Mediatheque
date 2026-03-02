@@ -73,7 +73,20 @@ pub fn setup_db(app: &AppHandle) -> Result<()> {
 pub fn init_db(connection: &mut Connection) -> Result<()> {
   connection.execute_batch(
     "
-    -- Home
+    -- Settings
+
+    CREATE TABLE IF NOT EXISTS settings (
+      key TEXT PRIMARY KEY NOT NULL,
+      value TEXT NOT NULL
+    );
+
+    -- Default Settings
+
+    INSERT OR IGNORE INTO settings (key, value) VALUES ('SCORE_DISPLAY_MODE', 'PERCENT');
+
+
+
+    -- Pin
 
     CREATE TABLE IF NOT EXISTS pinned_collection (
       context TEXT NOT NULL CHECK(

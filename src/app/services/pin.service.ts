@@ -17,10 +17,6 @@ export class PinService {
 
   readonly allPins = signal<PinEntry[]>([]);
 
-  constructor() {
-    this.refresh();
-  }
-
   async refresh() {
     this.allPins.set(
       await invoke<PinEntry[]>('get_all_pins')
