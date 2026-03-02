@@ -1,0 +1,26 @@
+<div class="stars-slider-container" (click)="onClick($event)">
+  <input 
+    type="range" 
+    min="0" 
+    max="10" 
+    [value]="score() ?? 0"
+    (input)="onChange($event)"
+    class="hidden-slider"
+  />
+
+  <div class="stars-display">
+    @for (star of [1, 2, 3, 4, 5]; track star) {
+      <span class="star-wrapper">
+        <span class="star-outline">☆</span>
+        <span 
+          class="star-half"
+          [class.active]="star <= starCount()/2 + 0.5"
+        >★</span>
+        <span 
+          class="star-filled"
+          [class.active]="star <= starCount()/2"
+        >★</span>
+      </span>
+    }
+  </div>
+</div>

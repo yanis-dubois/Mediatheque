@@ -96,6 +96,7 @@ pub enum MediaOrderField {
   MediaType,
   Favorite,
   Status,
+  Score,
 
   Directors,
   Genre,

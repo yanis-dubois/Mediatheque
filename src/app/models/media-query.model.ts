@@ -7,6 +7,7 @@ export enum MediaOrderField {
   MEDIA_TYPE = 'MEDIA_TYPE',
   FAVORITE = 'FAVORITE',
   STATUS = 'STATUS',
+  SCORE = 'SCORE',
 }
 
 export enum MediaOrderDirection {

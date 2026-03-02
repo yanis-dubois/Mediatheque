@@ -50,7 +50,7 @@ pub fn get_connection(app: &AppHandle) -> Result<Connection> {
 
 pub fn setup_db(app: &AppHandle) -> Result<()> {
   // delete data base
-  reset_db(app).map_err(|e| e)?; // TMP
+  // reset_db(app).map_err(|e| e)?; // TMP
 
   // open connection with DB
   let connection = get_connection(&app)?;

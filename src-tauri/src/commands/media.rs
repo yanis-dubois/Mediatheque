@@ -369,7 +369,7 @@ fn build_media_query_parts(
 
     for o in order {
       let mapped_field: String = match o.field {
-        // Movie specific field
+        // Specific Field
         MediaOrderField::Directors => "p_sorted_DIRECTOR.name".to_string(),
         MediaOrderField::Creators => "p_sorted_CREATOR.name".to_string(),
         MediaOrderField::Designers => "p_sorted_DESIGNER.name".to_string(),
@@ -381,7 +381,7 @@ fn build_media_query_parts(
         MediaOrderField::Episodes => "s.episodes".to_string(),
         MediaOrderField::PlayerCount => "tg.player_count".to_string(),
 
-        // Media generic field
+        // Generic field
         _ => format!("m.{}", o.field),
       };
 

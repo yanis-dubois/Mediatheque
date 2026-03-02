@@ -1,4 +1,4 @@
-import { Component, computed, ElementRef, input, Input, signal, ViewChild } from '@angular/core';
+import { Component, input, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 
 import { MovieDetailsComponent } from "@components/movie-details/movie-details.component";
@@ -10,12 +10,12 @@ import { Movie, Series, TabletopGame } from '@models/media-details.model';
 
 import { MediaService } from '@services/media.service'
 import { PosterPathPipe } from "@pipe/image-path.pipe";
-import { NumericRangeDirective } from "@app/directive/numeric-range.directive";
+import { ScoreDisplayComponent } from "@app/components/score-display/score-display.component";
 
 @Component({
   selector: 'app-media-details',
   standalone: true,
-  imports: [CommonModule, MovieDetailsComponent, SerieDetailsComponent, TabletopGameDetailsComponent, PosterPathPipe, NumericRangeDirective],
+  imports: [CommonModule, MovieDetailsComponent, SerieDetailsComponent, TabletopGameDetailsComponent, PosterPathPipe, ScoreDisplayComponent],
   templateUrl: './media-details.component.html',
   styleUrl: './media-details.component.css'
 })
@@ -97,44 +97,13 @@ export class MediaDetailsComponent {
     }
   }
 
-  ///////////
-
-  validateScore(el: HTMLElement) {
-    el.blur();
-
-    const selection = window.getSelection();
-    if (selection) {
-      selection.removeAllRanges();
-    }
-  }
-
-  async onScoreBlur(value: string, el: HTMLElement) {
-    const val = value.replace(/\D/g, '');
-    console.log("val:",val);
-
-    const isEmpty = val.trim().length === 0;
-    if (isEmpty) {
-      el.innerText = '_';
-      if (this.score() !== undefined) {
-        await this.mediaService.updateScore(this.id(), undefined);
-        this.score.set(undefined);
-      }
-      return;
-    }
-
-    const newScore = Math.min(100, Math.max(0, parseInt(val, 10)));
-    if (newScore === this.score()) {
-      this.score.set(newScore);
-      el.innerText = newScore.toString();
-      return;
-    }
-
+  async onScoreChange(newScore: number | undefined) {
     try {
       await this.mediaService.updateScore(this.id(), newScore);
       this.score.set(newScore);
-      el.innerText = newScore.toString();
     } catch (e) {
       console.error("Error while updating score :", e);
+      this.score.set(this.score());
     }
   }
 }

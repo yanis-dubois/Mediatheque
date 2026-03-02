@@ -1,0 +1,27 @@
+@switch (displayMode()) {
+  @case (ScoreDisplayModes.PERCENT) {
+    <app-score-display-percent 
+      [score]="score()" 
+      (scoreChange)="scoreChange.emit($event)"
+    ></app-score-display-percent>
+  }
+  @case (ScoreDisplayModes.STARS) {
+    <app-score-display-stars
+      [score]="score()" 
+      (scoreChange)="scoreChange.emit($event)"
+    ></app-score-display-stars>
+  }
+  @case (ScoreDisplayModes.THREE_STEP) {
+    <app-score-display-three-step 
+      [score]="score()" 
+      (scoreChange)="scoreChange.emit($event)"
+    ></app-score-display-three-step>
+  }
+  @case (ScoreDisplayModes.FIVE_STEP) {
+    <app-score-display-five-step 
+      [score]="score()" 
+      (scoreChange)="scoreChange.emit($event)"
+    ></app-score-display-five-step>
+  }
+  @default { }
+}

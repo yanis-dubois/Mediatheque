@@ -1,0 +1,68 @@
+.stars-slider-container {
+  position: relative;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100%;
+  cursor: pointer;
+
+  .hidden-slider {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    opacity: 0;
+    cursor: pointer;
+    z-index: 2; // above stars
+
+    -webkit-appearance: none;
+    appearance: none;
+    background: transparent;
+  }
+
+  .stars-display {
+    font-size: 24px;
+    z-index: 1; // below slider
+    pointer-events: none;
+
+    .star-wrapper {
+      position: relative;
+      display: inline-block;
+      font-size: 24px;
+    }
+
+    .star-outline {
+      color: var(--color-dark-soft);
+    }
+
+    .star-half {
+      position: absolute;
+      top: 0;
+      left: 0;
+      color: var(--color-primary);
+      clip-path: inset(0 50% 0 0); 
+
+      opacity: 0;
+      transition: opacity 0.15s ease-in-out;
+
+      &.active {
+        opacity: 1;
+      }
+    }
+
+    .star-filled {
+      position: absolute;
+      top: 0;
+      left: 0;
+      color: var(--color-primary);;
+
+      opacity: 0;
+      transition: opacity 0.15s ease-in-out;
+
+      &.active {
+        opacity: 1;
+      }
+    }
+  }
+}

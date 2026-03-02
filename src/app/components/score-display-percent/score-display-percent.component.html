@@ -1,0 +1,38 @@
+<div class="score-container" (pointerdown)="onPointerDown($event)">
+  <svg viewBox="0 0 64 64">
+    <circle
+      class="background"
+      cx="32"
+      cy="32"
+      [attr.r]="radius"
+    />
+    <circle
+      class="progress"
+      cx="32"
+      cy="32"
+      [attr.r]="radius"
+      [attr.stroke-dasharray]="circumference"
+      [style.stroke-dashoffset]="strokeDashoffset()"
+      [style.stroke]="scoreColor()"
+      transform="rotate(-90 32 32)"
+    />
+  </svg>
+  <div class="score-text">
+    <span 
+      class="score"
+      #scoreText
+      contenteditable="true"
+      appNumericRange
+      [min]="0"
+      [max]="100"
+      
+      (focus)="onFocus($event)"
+      (blur)="onBlur($event)"
+      (keydown.enter)="onEnter($event)"
+      (keydown.escape)="onCancel($event)"
+    >{{ score() ?? '_' }}</span>
+    @if (score() !== undefined && score() !== null) {
+      <span class="percent">%</span>
+    }
+  </div>
+</div>

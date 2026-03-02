@@ -11,17 +11,11 @@
       <p class="type">{{ media.mediaType }}</p>
       <p class="releaseDate">release date : {{ media.releaseDate }}</p>
       <p class="addedDate">added date : {{ media.addedDate }}</p>
-      <p 
-        class="score"
-        contenteditable="true"
-        appNumericRange
-        [min]="0"
-        [max]="100"
-        #scoreInput
-        (blur)="onScoreBlur(scoreInput.innerText, scoreInput)"
-        (keydown.enter)="$event.preventDefault(); validateScore(scoreInput)"
-        (keydown.escape)="scoreInput.innerText = score()?.toString() ?? ''; validateScore(scoreInput)"
-      >{{ score() ? score() : '_' }}</p>
+
+      <app-score-display 
+        [score]="score()" 
+        (scoreChange)="onScoreChange($event)"
+      />
 
       <div class="fieldset-container status-box">
         <select 

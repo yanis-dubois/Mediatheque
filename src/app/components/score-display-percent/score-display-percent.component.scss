@@ -1,0 +1,49 @@
+.score-container {
+  position: relative;
+  width: 64px;
+  height: 64px;
+  cursor: ew-resize;
+  user-select: none;
+
+  svg {
+    transform: rotate(0deg);
+  }
+
+  circle {
+    fill: none;
+    stroke-width: 4;
+  }
+
+  .background {
+    stroke: var(--color-dark-soft);
+  }
+
+  .progress {
+    stroke-linecap: round;
+    transition: stroke-dashoffset 0.5s ease-in-out, stroke 0.5s ease;
+  }
+
+  .score-text {
+    position: absolute;
+    display: flex;
+    align-items: baseline;
+    justify-content: space-around;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 1rem;
+    font-weight: bold;
+    color: var(--color-light-soft);
+
+    .score {
+      outline: none;
+      min-width: 0.2rem;
+      display: inline-block;
+      text-align: right;
+    }
+
+    .percent {
+      font-size: 0.6rem;
+    }
+  }
+}

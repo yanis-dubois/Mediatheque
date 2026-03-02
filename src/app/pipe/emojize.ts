@@ -1,5 +1,6 @@
 import { Pipe, PipeTransform } from '@angular/core';
 import { CollectionMediaType, CollectionType, isCollectionMediaType } from '@app/models/collection.model';
+import { FiveStep, ThreeStep } from '@app/models/score.model';
 import { MediaType } from '@models/media.model';
 
 @Pipe({
@@ -12,6 +13,8 @@ export class EmojizePipe implements PipeTransform {
   transform(value: MediaType): string;
   transform(value: CollectionMediaType): string;
   transform(value: CollectionType): string;
+  transform(value: ThreeStep): string;
+  transform(value: FiveStep): string;
   transform(value: any): string {
     // is favorite
     if (typeof value === 'boolean') {
@@ -41,6 +44,28 @@ export class EmojizePipe implements PipeTransform {
         case CollectionType.SYSTEM: return "⚙️";
         case CollectionType.DYNAMIC: return "🎛️";
         case CollectionType.MANUAL: return "🗂️";
+      }
+    }
+
+    // three step
+    if (Object.values(ThreeStep).includes(value)) {
+      switch (value) {
+        case ThreeStep.LOVE: return "🥰";
+        case ThreeStep.LIKE: return "👍";
+        case ThreeStep.DISLIKE: return "👎";
+        case ThreeStep.UNDEFINED: return "";
+      }
+    }
+
+    // five step
+    if (Object.values(FiveStep).includes(value)) {
+      switch (value) {
+        case FiveStep.LOVE: return "🥰";
+        case FiveStep.LIKE: return "😊"; // unused because match before ↑
+        case FiveStep.NEUTRAL: return "😐";
+        case FiveStep.DISLIKE: return "😕"; // unused because match before ↑
+        case FiveStep.HATE: return "💩";
+        case FiveStep.UNDEFINED: return "";
       }
     }
 
