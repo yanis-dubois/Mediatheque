@@ -5,6 +5,8 @@
   cursor: ew-resize;
   user-select: none;
 
+  touch-action: none;
+
   svg {
     transform: rotate(0deg);
   }
