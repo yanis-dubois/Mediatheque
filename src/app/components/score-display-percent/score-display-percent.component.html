@@ -10,6 +10,7 @@
       class="progress"
       cx="32"
       cy="32"
+      [class.animated]="!isDragging"
       [attr.r]="radius"
       [attr.stroke-dasharray]="circumference"
       [style.stroke-dashoffset]="strokeDashoffset()"
@@ -25,7 +26,6 @@
       appNumericRange
       [min]="0"
       [max]="100"
-      
       (focus)="onFocus($event)"
       (blur)="onBlur($event)"
       (keydown.enter)="onEnter($event)"

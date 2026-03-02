@@ -1,4 +1,4 @@
-import { Component, computed, ElementRef, HostListener, input, output, ViewChild } from '@angular/core';
+import { Component, computed, ElementRef, HostListener, input, output, signal, ViewChild } from '@angular/core';
 
 import { NumericRangeDirective } from "@app/directive/numeric-range.directive";
 
@@ -37,7 +37,10 @@ export class ScoreDisplayPercentComponent {
 
   /* slide params */
 
-  private isDragging = false;
+  private clickTimer: any;
+  private isClick = false;
+  private clickThresholdMs = 200;
+  public isDragging = false;
   private startX = 0;
   private startY = 0;
   private startScore = 0;
@@ -62,8 +65,9 @@ export class ScoreDisplayPercentComponent {
       el.innerText = '_';
     } else {
       const newScore = Math.min(100, Math.max(0, parseInt(val, 10)));
-      this.scoreChange.emit(newScore);
-      el.innerText = newScore.toString();
+      const isUndefined = newScore === 0;
+      this.scoreChange.emit(isUndefined ? undefined : newScore);
+      el.innerText = isUndefined ? '_' : newScore.toString();
     }
   }
 
@@ -80,37 +84,63 @@ export class ScoreDisplayPercentComponent {
   }
 
   onPointerDown(event: PointerEvent) {
-    // Ne pas démarrer le glissement si on édite le texte
-    if (document.activeElement === this.scoreText.nativeElement) return;
-    
     this.isDragging = true;
+    this.isClick = true;
     this.startX = event.clientX;
     this.startY = event.clientY;
     this.startScore = this.score() ?? 0;
-    
-    // capture the pointeur to use it outside of the container
+
+    // capture the pointer for the slide
     (event.target as HTMLElement).setPointerCapture(event.pointerId);
-    
+
+    // timer 
+    this.clickTimer = setTimeout(() => {
+      this.isClick = false;
+    }, this.clickThresholdMs);
+
     event.preventDefault();
   }
 
   @HostListener('window:pointermove', ['$event'])
   onPointerMove(event: PointerEvent) {
-    if (!this.isDragging) return;
+    const el = this.scoreText.nativeElement;
 
-    const deltaX = event.clientX - this.startX;
-    const deltaY = this.startY - event.clientY;
-    const delta = deltaX + deltaY;
+    // if there is a big pointer movement -> its a slide
+    if (this.isClick) {
+      const deltaX = Math.abs(event.clientX - this.startX);
+      const deltaY = Math.abs(event.clientY - this.startY);
+      if (deltaX > 5 || deltaY > 5) {
+        this.isClick = false;
+        clearTimeout(this.clickTimer);
+      }
+    }
 
-    const change = Math.round(delta / this.sensitivity);
-    const newScore = Math.min(100, Math.max(0, this.startScore + change));
+    // calculate score from slide
+    if (!this.isClick && this.isDragging) {
+      const deltaX = event.clientX - this.startX;
+      const deltaY = this.startY - event.clientY;
+      const delta = deltaX + deltaY;
+      const change = Math.round(delta / this.sensitivity);
+      const newScore = Math.min(100, Math.max(0, this.startScore + change));
+      const isUndefined = newScore === 0;
 
-    this.scoreChange.emit(newScore);
+      if (newScore !== this.score()) {
+        this.scoreChange.emit(isUndefined ? undefined : newScore);
+        el.innerText = isUndefined ? '_' : newScore.toString();
+      }
+    }
   }
 
   @HostListener('window:pointerup', ['$event'])
   onPointerUp(event: PointerEvent) {
-    if (!this.isDragging) return;
+    clearTimeout(this.clickTimer);
+
+    // it was a rapid click -> launch edition
+    if (this.isClick) {
+      this.scoreText.nativeElement.focus();
+    }
+    
+    this.isClick = false;
     this.isDragging = false;
     (event.target as HTMLElement).releasePointerCapture(event.pointerId);
   }

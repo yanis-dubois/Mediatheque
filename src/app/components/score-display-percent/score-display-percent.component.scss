@@ -20,7 +20,10 @@
 
   .progress {
     stroke-linecap: round;
-    transition: stroke-dashoffset 0.5s ease-in-out, stroke 0.5s ease;
+
+    &.animated {
+      transition: stroke-dashoffset 0.5s ease-in-out, stroke 0.1s ease;
+    }
   }
 
   .score-text {
