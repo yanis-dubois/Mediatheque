@@ -35,9 +35,11 @@
     </div>
   }
   @else {
-    <div class="skeleton-card" 
-      [style.width.px]="width" 
-      [style.height.px]="height">
+    <div class="card">
+      <div class="skeleton-card" 
+        [style.width.px]="width" 
+        [style.height.px]="height - 8">
+      </div>
     </div>
 
     <div class="infos">

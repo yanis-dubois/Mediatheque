@@ -19,7 +19,7 @@ import { MediaPickerComponent } from '@components/media-picker/media-picker.comp
 import { MediaActionComponent } from "@components/media-action/media-action.component";
 import { ActionBarComponent } from "@components/action-bar/action-bar.component";
 
-import { CollectionDisplayMode, CollectionLayout, CollectionMediaType, CollectionType } from '@models/collection.model';
+import { CollectionDisplayMode, CollectionLayout, CollectionType } from '@models/collection.model';
 import { MediaFilter, MediaOrder } from '@models/media-query.model';
 
 import { HumanizePipe } from "@pipe/humanize";
@@ -39,7 +39,6 @@ import { EmojizePipe } from "../../pipe/emojize";
 export class CollectionComponent {
   @Input({ required: true }) view!: CollectionDisplayMode;
   id = input.required<string>();
-  context = input.required<CollectionMediaType>();
 
   nameInput = viewChild<ElementRef<HTMLHeadingElement>>('nameInput');
   private route = inject(ActivatedRoute);
@@ -152,7 +151,7 @@ export class CollectionComponent {
 
   async loadLayoutData() {
     this.mediaLayoutData.set(
-      await this.collectionService.getLayoutData(this.id(), this.context(), this.searchQuery())
+      await this.collectionService.getLayoutData(this.id(), this.searchQuery())
     );
   }
 

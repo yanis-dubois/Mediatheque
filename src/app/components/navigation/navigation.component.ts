@@ -17,6 +17,7 @@ export class NavigationComponent {
   private router = inject(Router);
   private navService = inject(NavService);
   currentContext = this.navService.context;
+  isInSearch = this.navService.isSearch;
 
   mediaType = Object.values(MediaType);
 
@@ -45,6 +46,12 @@ export class NavigationComponent {
 
   isTypeActive(type?: string): boolean {
     const ctx = this.currentContext();
+
+    // search button
+    if (this.isInSearch())
+      return type === 'SEARCH';
+
+    // others
     if (!type) {
       return ctx.type === 'ALL';
     }

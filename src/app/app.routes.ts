@@ -5,6 +5,7 @@ import { CollectionsPageComponent } from '@pages/collections-page/collections-pa
 import { CollectionPageComponent } from '@pages/collection-page/collection-page.component'
 import { MediaPageComponent } from '@pages/media-page/media-page.component';
 import { SettingsPageComponent } from "./pages/settings-page/settings-page.component";
+import { SearchPageComponent } from "./pages/search-page/search-page.component";
 
 export const routes: Routes = [
   {
@@ -39,6 +40,10 @@ export const routes: Routes = [
   {
     path: 'settings',
     component: SettingsPageComponent
+  },
+  {
+    path: 'search',
+    component: SearchPageComponent
   },
   {
     path: '**',

@@ -17,7 +17,7 @@
       <div cdkDropList (cdkDropListDropped)="drop($event)">
         @for (id of collectionIds(); track id) {
           <div cdkDrag class="collection-row">
-            <app-collection [id]="id" [context]="context" [view]="CollectionDisplayMode.PREVIEW">
+            <app-collection [id]="id" [view]="CollectionDisplayMode.PREVIEW">
               <div 
                 collectionMenu 
                 (click)="$event.preventDefault(); $event.stopPropagation()" 

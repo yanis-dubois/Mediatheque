@@ -179,20 +179,11 @@ pub fn search_layout_data(
 pub fn search_in_collection(
   state: tauri::State<'_, DbState>,
   collection_id: String,
-  context: CollectionMediaType,
   search_query: String,
 ) -> Result<Vec<(String, u16, u16)>, String> {
   println!("search_in_collection : {}", search_query);
 
   let mut collection = get_collection_by_id(state.clone(), collection_id.clone())?;
-
-  // update media_type & filter for system collection
-  if collection.collection_type == CollectionType::System {
-    if let CollectionMediaType::Specific(media_type) = context {
-      collection.filter.media_type = Some(media_type.clone());
-      collection.media_type = CollectionMediaType::Specific(media_type);
-    }
-  }
 
   // update filter with search query
   collection.filter.search_query = if search_query == "" {

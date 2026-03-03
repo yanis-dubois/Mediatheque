@@ -17,7 +17,7 @@
           [style.transform]="'translateY(' + vItem.start + 'px)'"
           style="position: absolute; top: 0; left: 0;"
         >
-          <app-collection [id]="id" [context]="context()" [view]="CollectionDisplayMode.PREVIEW">
+          <app-collection [id]="id" [view]="CollectionDisplayMode.PREVIEW">
             <div collectionMenu (click)="$event.preventDefault(); $event.stopPropagation()">
               <app-dropdown
                 [isOpenExternal]="activeMenuId() === id"

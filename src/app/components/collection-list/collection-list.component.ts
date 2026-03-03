@@ -28,12 +28,6 @@ export class CollectionListComponent {
   containerWidth = signal(100);
   gap = signal(8);
 
-  protected getMediaLayout(index: number) {
-    const data = this.mediaLayoutData()[index];
-    if (!data) return {id: '', width: 0, height: 0};
-    return { id: data[0], width: data[1], height: data[2] };
-  }
-
   protected onVisibleItemsChanged(visibleData: [string, number, number][]) {
     const visibleIds = visibleData.map(data => data[0]);
 
@@ -50,7 +44,7 @@ export class CollectionListComponent {
     private mediaService: MediaService,
   ) {
     this.scrollSubject.pipe(
-      debounceTime(100),
+      debounceTime(50),
       switchMap(async (ids) => {
         // only gets the missing medias
         const missingIds = ids.filter(id => this.mediaService.getMediaSignal(id)() === null);

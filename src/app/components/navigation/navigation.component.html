@@ -1,19 +1,30 @@
 <nav class="nav">
-  <a 
-    (click)="handleNavigation()"
-    [class.active]="isTypeActive()" 
-    class="nav-item"
-  >
-    🏠
-  </a>
-  <div class="divider"></div>
-  @for (type of mediaType; track type) {
+  <div class="nav-group">
     <a 
-      (click)="handleNavigation(type)"
-      [class.active]="isTypeActive(type)" 
+      (click)="handleNavigation()"
+      [class.active]="isTypeActive()" 
       class="nav-item"
     >
-      {{ type | emojize }}
+      🏠
     </a>
-  }
+    <div class="divider"></div>
+    @for (type of mediaType; track type) {
+      <a 
+        (click)="handleNavigation(type)"
+        [class.active]="isTypeActive(type)" 
+        class="nav-item"
+      >
+        {{ type | emojize }}
+      </a>
+    }
+  </div>
+  <div class="nav-search">
+    <a 
+      [routerLink]="['/search']"
+      [class.active]="isTypeActive('SEARCH')" 
+      class="nav-item"
+    >
+      🔍
+    </a>
+  </div>
 </nav>
