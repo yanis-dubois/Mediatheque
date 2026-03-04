@@ -1,0 +1,22 @@
+<app-generic-list 
+  [items]="layoutData()"
+  [itemHeight]="containerHeight()"
+  [gap]="gap()"
+  (visibleItemsChanged)="onVisibleItemsChanged($event)" 
+  (windowResize)="updateDimensions()" 
+>
+  <ng-template #rowRef let-item let-index="index">
+    
+    <!-- <a [routerLink]="['/media', mediaId]" style="text-decoration: none; color: inherit;">
+      <app-media-row 
+        [mediaId]="mediaId" [width]="width" [height]="height"
+        [isMenuOpen]="isMenuOpen(mediaId)"
+      >
+        <div mediaMenu (click)="$event.preventDefault(); $event.stopPropagation()">
+          <ng-container *ngTemplateOutlet="itemMenu; context: { mediaId: mediaId }"></ng-container>
+        </div>
+      </app-media-row>
+    </a> -->
+
+  </ng-template>
+</app-generic-list>
