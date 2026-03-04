@@ -10,6 +10,7 @@ import { CollectionService } from '@services/collection.service';
 import { CollectionsActionComponent } from "@components/collections-action/collections-action.component";
 import { CollectionMediaType } from '@app/models/collection.model';
 import { HumanizePipe } from "../../pipe/humanize";
+import { EntityService } from '@app/services/entity.service';
 
 @Component({
   selector: 'app-collections',
@@ -27,6 +28,7 @@ export class CollectionsComponent {
   searchQuery = signal<string>('');
 
   constructor(
+    private entityService: EntityService,
     private collectionService: CollectionService
   ) {
     this.refreshLayout$.pipe(
@@ -36,8 +38,7 @@ export class CollectionsComponent {
     });
 
     effect(() => {
-      this.collectionService.lastUpdate(); 
-
+      this.entityService.lastUpdate(); 
       untracked(() => {
         this.refreshLayout$.next();
       });

@@ -10,11 +10,6 @@ export enum EntityType {
   GAME_MECHANIC = "GAME_MECHANIC",
 }
 
-export interface Entity {
-  id: string;
-  type: EntityType;
-}
-
 export type DetailedEntity = (Media & { type: EntityType.MEDIA }) 
   | (Collection & { type: EntityType.COLLECTION }) 
   | (Person & { type: EntityType.PERSON })

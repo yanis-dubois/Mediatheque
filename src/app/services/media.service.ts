@@ -1,47 +1,25 @@
-import { Injectable, signal, WritableSignal } from '@angular/core';
+import { inject, Injectable } from '@angular/core';
 
 import { invoke } from '@tauri-apps/api/core';
 
 import { ExternalMedia, Media, MediaStatus } from '@models/media.model';
+import { EntityService } from './entity.service';
+import { EntityType } from '@app/models/entity.model';
 
 @Injectable({ providedIn: 'root' })
 export class MediaService {
 
-  /* cache */
+  private entityService = inject(EntityService);
 
-  private readonly MAX_CACHE_SIZE = 500;
-  private mediaCache = new Map<string, WritableSignal<Media | null>>();
-  private cacheOrder: string[] = [];
-  lastUpdate = signal<number>(Date.now());
+  updateCache(id: string, partial: Partial<Media>) {
+    this.entityService.updateEntity<Media & { type: EntityType.MEDIA }>(
+      EntityType.MEDIA, 
+      id, 
+      partial
+    );
 
-  getMediaSignal(id: string): WritableSignal<Media | null> {
-    if (!this.mediaCache.has(id)) {
-      this.mediaCache.set(id, signal<Media | null>(null));
-    }
-
-    return this.mediaCache.get(id)!;
-  }
-
-  setMedia(media: Media) {
-    const s = this.getMediaSignal(media.id);
-    s.set(media);
-    this.updateCacheOrder(media.id);
-  }
-
-  private updateCacheOrder(id: string) {
-    // delete id if exist to make it more recent
-    this.cacheOrder = this.cacheOrder.filter(itemId => itemId !== id);
-    this.cacheOrder.push(id);
-
-    // cleaning if max size reached
-    if (this.cacheOrder.length > this.MAX_CACHE_SIZE) {
-      const oldestId = this.cacheOrder.shift();
-      if (oldestId) {
-        const s = this.mediaCache.get(oldestId);
-        if (s) s.set(null); 
-        this.mediaCache.delete(oldestId);
-      }
-    }
+    // On garde le lastUpdate pour la réactivité de l'écran de recherche
+    // this.lastUpdate.set(Date.now());
   }
 
   /* get media */
@@ -59,30 +37,22 @@ export class MediaService {
 
   async toggleFavorite(id: string, isFavorite: boolean) {
     await invoke('toggle_media_favorite', { id, isFavorite });
-
-    this.getMediaSignal(id).update(m => m ? { ...m, favorite: isFavorite } : null);
-    this.lastUpdate.set(Date.now());
+    this.updateCache(id, { favorite: isFavorite } );
   }
 
   async updateStatus(id: string, status: MediaStatus): Promise<void> {
     await invoke('update_media_status', { id, status });
-
-    this.getMediaSignal(id).update(m => m ? { ...m, status: status } : null);
-    this.lastUpdate.set(Date.now());
+    this.updateCache(id, { status: status } );
   }
 
   async updateNotes(id: string, notes: string): Promise<void> {
     await invoke('update_media_notes', { id, notes });
-
-    this.getMediaSignal(id).update(m => m ? { ...m, notes: notes } : null);
-    this.lastUpdate.set(Date.now());
+    this.updateCache(id, { notes: notes } );
   }
 
   async updateScore(id: string, score?: number): Promise<void> {
     await invoke('update_media_score', { id, score });
-
-    this.getMediaSignal(id).update(m => m ? { ...m, score: score } : null);
-    this.lastUpdate.set(Date.now());
+    this.updateCache(id, { score: score } );
   }
 
   /* add media */

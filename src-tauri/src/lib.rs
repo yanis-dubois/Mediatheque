@@ -43,6 +43,7 @@ pub fn run() {
       commands::pin::pin_collection,
       commands::pin::unpin_collection,
       commands::pin::update_pinned_collections,
+      commands::entity::search_in_library,
     ])
     .run(tauri::generate_context!())
     .expect("error while running tauri application");

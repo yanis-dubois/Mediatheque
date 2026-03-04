@@ -172,6 +172,21 @@ pub enum CollectionLayout {
   List,
 }
 
+#[derive(Debug, Serialize, Deserialize, PartialEq, Clone)]
+#[serde(rename_all = "SCREAMING_SNAKE_CASE")]
+#[derive(strum::Display, strum::EnumString)]
+#[strum(serialize_all = "SCREAMING_SNAKE_CASE")]
+#[derive(Default)]
+pub enum EntityType {
+  #[default]
+  Media,
+  Collection,
+  Person,
+  Company,
+  Genre,
+  GameMechanic,
+}
+
 /* Convertion */
 
 // convert SQL TEXT -> Enums
@@ -213,5 +228,16 @@ pub fn match_collection_view(s: &str) -> CollectionLayout {
     "COLUMN" => CollectionLayout::Column,
     "LIST" => CollectionLayout::List,
     _ => CollectionLayout::Grid,
+  }
+}
+pub fn match_entity_type(s: &str) -> EntityType {
+  match s {
+    "MEDIA" => EntityType::Media,
+    "COLLECTION" => EntityType::Collection,
+    "PERSON" => EntityType::Person,
+    "COMPANY" => EntityType::Company,
+    "GENRE" => EntityType::Genre,
+    "GAME_MECHANIC" => EntityType::GameMechanic,
+    _ => EntityType::Media,
   }
 }

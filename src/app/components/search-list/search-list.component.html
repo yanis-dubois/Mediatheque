@@ -6,17 +6,59 @@
   (windowResize)="updateDimensions()" 
 >
   <ng-template #rowRef let-item let-index="index">
-    
-    <!-- <a [routerLink]="['/media', mediaId]" style="text-decoration: none; color: inherit;">
-      <app-media-row 
-        [mediaId]="mediaId" [width]="width" [height]="height"
-        [isMenuOpen]="isMenuOpen(mediaId)"
-      >
-        <div mediaMenu (click)="$event.preventDefault(); $event.stopPropagation()">
-          <ng-container *ngTemplateOutlet="itemMenu; context: { mediaId: mediaId }"></ng-container>
-        </div>
-      </app-media-row>
-    </a> -->
+    @let entityId = item[0];
+    @let entityType = item[1];
 
+    @switch (entityType) {
+      @case (EntityType.MEDIA) {
+        <a [routerLink]="['/media', entityId]">
+          <app-media-row 
+            [mediaId]="entityId" 
+            [width]="containerWidth()" 
+            [height]="containerHeight() + gap()"
+            [isMenuOpen]="false"
+            [display]="'search'"
+          >
+            <app-dropdown
+              mediaMenu
+              (click)="$event.preventDefault(); $event.stopPropagation()"
+              [isOpenExternal]="false"
+            >
+              <app-media-action 
+                [mediaId]="entityId"
+                [canDeleteFromCollection]="false"
+              />
+            </app-dropdown>
+          </app-media-row>
+        </a>
+      }
+      @case (EntityType.COLLECTION) {
+        <a [routerLink]="['/collection', entityId]">
+          <app-collection-row-item
+            [collectionId]="entityId" 
+            [width]="containerWidth()" 
+            [height]="containerHeight() + gap()" 
+            [isMenuOpen]="false"
+            [display]="'search'"
+          >
+            <app-dropdown
+              collectionMenu
+              (click)="$event.preventDefault(); $event.stopPropagation()"
+              [isOpenExternal]="false"
+            >
+              <app-collection-action 
+                [collectionId]="entityId"
+              />
+            </app-dropdown>
+          </app-collection-row-item>
+        </a>
+      }
+      @case ('person') {
+        <!-- <app-person-row [person]="data"></app-person-row> -->
+      }
+      @default {
+        <div class="unknown-type">Unsupported entity type : {{ entityType }}</div>
+      }
+    }
   </ng-template>
 </app-generic-list>

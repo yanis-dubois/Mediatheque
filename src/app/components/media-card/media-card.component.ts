@@ -4,6 +4,7 @@ import { RouterModule } from '@angular/router';
 
 import { PosterPathPipe } from '@pipe/image-path.pipe';
 import { MediaService } from '@app/services/media.service';
+import { EntityService } from '@app/services/entity.service';
 
 @Component({
   selector: 'app-media-card',
@@ -18,7 +19,7 @@ export class MediaCardComponent {
   mediaId = input.required<string>();
   isMenuOpen = input.required<boolean>();
 
-  private mediaService = inject(MediaService);
+  private entityService = inject(EntityService);
 
-  media = computed(() => this.mediaService.getMediaSignal(this.mediaId())());
+  media = computed(() => this.entityService.getMedia(this.mediaId()));
 }

@@ -4,7 +4,8 @@ import { CommonModule } from '@angular/common';
 import { PosterPathPipe } from '@pipe/image-path.pipe';
 import { HumanizePipe } from "@pipe/humanize";
 import { EmojizePipe } from "@pipe/emojize";
-import { MediaService } from '@app/services/media.service';
+import { EntityService } from '@app/services/entity.service';
+import { EntityType } from '@app/models/entity.model';
 
 @Component({
   selector: 'app-media-row',
@@ -18,10 +19,14 @@ export class MediaRowComponent {
   @Input({ required: true }) height! : number;
   mediaId = input.required<string>();
   isMenuOpen = input.required<boolean>();
+  display = input<string>('default');
 
   customIcon = contentChild<ElementRef>('icon');
 
-  private mediaService = inject(MediaService);
+  private entityService = inject(EntityService);
+  protected readonly EntityType = EntityType;
 
-  media = computed(() => this.mediaService.getMediaSignal(this.mediaId())());
+  media = computed(() => {
+    return this.entityService.getMedia(this.mediaId());
+  });
 }

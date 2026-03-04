@@ -8,9 +8,10 @@ import { DropdownComponent } from '@components/dropdown/dropdown.component';
 import { CollectionActionComponent } from '@components/collection-action/collection-action.component';
 import { CollectionComponent } from "@components/collection/collection.component";
 
-import { Collection, CollectionDisplayMode } from '@models/collection.model';
+import { CollectionDisplayMode } from '@models/collection.model';
 
-import { CollectionService } from '@services/collection.service';
+import { EntityService } from '@app/services/entity.service';
+import { EntityType } from '@app/models/entity.model';
 
 @Component({
   selector: 'app-collections-virtualization',
@@ -21,6 +22,8 @@ import { CollectionService } from '@services/collection.service';
 })
 export class CollectionsVirtualizationComponent {
   @ViewChild('scrollElement') scrollElement!: ElementRef<HTMLElement>;
+
+  private entityService = inject(EntityService);
 
   private scrollSubject = new Subject<string[]>();
   private el = inject(ElementRef);
@@ -50,7 +53,7 @@ export class CollectionsVirtualizationComponent {
     const visibleIds = virtualItems.map(vItem => this.collectionIds()[vItem.index]);
 
     const missingIds = visibleIds.filter(id => {
-      return this.collectionService.getCollectionSignal(id)() === null;
+      return this.entityService.getCollection(id) === null;
     });
 
     if (missingIds.length > 0) {
@@ -58,9 +61,7 @@ export class CollectionsVirtualizationComponent {
     }
   }
 
-  constructor(
-    private collectionService: CollectionService
-  ) {
+  constructor() {
     effect(() => {
       const data = this.collectionIds();
       const scrollEl = this.scrollElement?.nativeElement;
@@ -76,21 +77,18 @@ export class CollectionsVirtualizationComponent {
       debounceTime(50),
       switchMap(async (ids) => {
         // only gets the missing medias
-        const missingIds = ids.filter(id => this.collectionService.getCollectionSignal(id)() === null);
+        const missingIds = ids.filter(id => this.entityService.getCollection(id) === null);
         if (missingIds.length === 0) return [];
 
         try {
           // retrieve data
-          return await this.collectionService.getCollectionBatch(missingIds);
+          return await this.entityService.loadBatch(EntityType.COLLECTION, missingIds);
         } catch (e) {
           console.error("Batch load failed", e);
           return [];
         }
       })
-    ).subscribe((collections: Collection[]) => {
-      // fill the cache
-      collections.forEach(c => this.collectionService.setCollection(c));
-    });
+    ).subscribe();
   }
 
   ngAfterViewInit() {

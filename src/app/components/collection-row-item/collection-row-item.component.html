@@ -17,9 +17,11 @@
 
     <div class="infos">
       <div class="text-group">
-        <h3 class="title">{{ collection.name }}</h3>
-        <p class="type">{{ collection.mediaType | emojize }}</p>
-      </div>          
+        <h3 class="title">{{ (collection.collectionType | emojize) + " " + collection.name }}</h3>
+        @if (display() === 'search') {
+          <p class="date">{{ (collection.mediaType | emojize) + " " + (EntityType.COLLECTION | humanize) }}</p>
+        }
+      </div>
 
       <div class="icon-slot">
         <ng-content select="[icon]"></ng-content>
@@ -30,7 +32,7 @@
     </div>
 
     <div class="menu-slot">
-      <ng-content select="[mediaMenu]"></ng-content>
+      <ng-content select="[collectionMenu]"></ng-content>
     </div>
   }
   @else {

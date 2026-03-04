@@ -6,6 +6,7 @@ import { MediaPickerComponent } from "../media-picker/media-picker.component";
 import { DOCUMENT } from '@angular/common';
 import { PinService } from '@app/services/pin.service';
 import { HumanizePipe } from "../../pipe/humanize";
+import { EntityService } from '@app/services/entity.service';
 
 @Component({
   selector: 'app-collection-action',
@@ -26,11 +27,12 @@ export class CollectionActionComponent {
 
   deleteRequest = output<string>();
 
+  private entityService = inject(EntityService);
   private collectionService = inject(CollectionService);
   private pinService = inject(PinService);
 
   collection = computed(() => 
-    this.collectionService.getCollectionSignal(this.collectionId())()
+    this.entityService.getCollection(this.collectionId())
   );
 
   // for pins

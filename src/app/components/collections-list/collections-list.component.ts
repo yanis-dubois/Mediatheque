@@ -6,6 +6,8 @@ import { debounceTime, Subject, switchMap } from 'rxjs';
 import { GenericListComponent } from "../generic-list/generic-list.component";
 import { CollectionService } from '@app/services/collection.service';
 import { Collection } from '@app/models/collection.model';
+import { EntityService } from '@app/services/entity.service';
+import { EntityType } from '@app/models/entity.model';
 
 @Component({
   selector: 'app-collections-list',
@@ -15,6 +17,8 @@ import { Collection } from '@app/models/collection.model';
 })
 export class CollectionsListComponent {
   @ContentChild('rowRef') rowTemplate!: TemplateRef<any>;
+
+  private entityService = inject(EntityService);
 
   // all collection id
   collectionIds = input.required<string[]>();
@@ -29,7 +33,7 @@ export class CollectionsListComponent {
   protected onVisibleItemsChanged(visibleIds: string[]) {
 
     const missingIds = visibleIds.filter(id => {
-      return this.collectionService.getCollectionSignal(id)() === null;
+      return this.entityService.getCollection(id) === null;
     });
 
     if (missingIds.length > 0) {
@@ -37,28 +41,23 @@ export class CollectionsListComponent {
     }
   }
 
-  constructor(
-    private collectionService: CollectionService,
-  ) {
+  constructor() {
     this.scrollSubject.pipe(
       debounceTime(50),
       switchMap(async (ids) => {
         // only gets the missing medias
-        const missingIds = ids.filter(id => this.collectionService.getCollectionSignal(id)() === null);
+        const missingIds = ids.filter(id => this.entityService.getCollection(id) === null);
         if (missingIds.length === 0) return [];
 
         try {
           // retrieve data
-          return await this.collectionService.getCollectionBatch(missingIds);
+          return await this.entityService.loadBatch(EntityType.COLLECTION, missingIds);
         } catch (e) {
           console.error("Batch load failed", e);
           return [];
         }
       })
-    ).subscribe((collections: Collection[]) => {
-      // fill the cache
-      collections.forEach(c => this.collectionService.setCollection(c));
-    });
+    ).subscribe();
   }
 
   protected updateDimensions() {

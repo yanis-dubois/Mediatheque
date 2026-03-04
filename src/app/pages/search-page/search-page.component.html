@@ -1,6 +1,6 @@
 <app-action-bar></app-action-bar>
 
-<section class="settings-group">
+<section class="settings-group page-container">
   <h1>Search</h1>
 
   <div class="search-box">
@@ -16,4 +16,9 @@
     />
   </div>
 
+  <app-search-list 
+    class="virtual-host virtual-host-list"
+    [layoutData]="layoutData()" 
+  >
+  </app-search-list>
 </section>

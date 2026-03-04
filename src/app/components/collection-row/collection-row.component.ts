@@ -9,6 +9,8 @@ import { Media } from '@models/media.model';
 import { CollectionService } from '@services/collection.service';
 import { debounceTime, Subject, switchMap } from 'rxjs';
 import { MediaService } from '@app/services/media.service';
+import { EntityService } from '@app/services/entity.service';
+import { EntityType } from '@app/models/entity.model';
 
 interface PositionedMedia {
   uniqueKey: string,
@@ -28,6 +30,8 @@ interface PositionedMedia {
 export class CollectionRowComponent {
   @ViewChild('scrollElement') scrollElement!: ElementRef<HTMLElement>;
   @ContentChild('itemRef') itemTemplate!: TemplateRef<any>;
+
+  private entityService = inject(EntityService);
 
   // all media infos (id, width, height)
   mediaLayoutData = input.required<[string, number, number][]>();
@@ -115,9 +119,7 @@ export class CollectionRowComponent {
     this.scrollSubject.next(visibleIds);
   }
 
-  constructor(
-    private mediaService: MediaService,
-  ) {
+  constructor() {
     effect(() => {
       this.rows().length;
       this.containerWidth();
@@ -135,21 +137,18 @@ export class CollectionRowComponent {
       debounceTime(100),
       switchMap(async (ids) => {
         // only gets the missing medias
-        const missingIds = ids.filter(id => this.mediaService.getMediaSignal(id)() === null);
+        const missingIds = ids.filter(id => this.entityService.getMedia(id) === null);
         if (missingIds.length === 0) return [];
 
         try {
           // retrieve data
-          return await this.mediaService.getMediaBatch(missingIds);
+          return await this.entityService.loadBatch(EntityType.MEDIA, missingIds);
         } catch (e) {
           console.error("Batch load failed", e);
           return [];
         }
       })
-    ).subscribe((medias: Media[]) => {
-      // fill the cache
-      medias.forEach(m => this.mediaService.setMedia(m));
-    });
+    ).subscribe();
   }
 
   ngAfterViewInit() {

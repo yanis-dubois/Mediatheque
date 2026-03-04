@@ -19,7 +19,11 @@
       <div class="text-group">
         <h3 class="title">{{ media.title }}</h3>
         <p class="type">{{ media.mediaType | emojize }} - {{ media.status | humanize }}</p>
-        <p class="date">{{ media.releaseDate | date:'mediumDate' }}</p>
+        @if (display() === 'default') {
+          <p class="date">{{ media.releaseDate | date:'mediumDate' }}</p>
+        } @else {
+          <p class="date">{{ EntityType.MEDIA | humanize }}</p>
+        }
       </div>          
 
       <div class="icon-slot">

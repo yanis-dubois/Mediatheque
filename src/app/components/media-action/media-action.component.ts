@@ -5,6 +5,7 @@ import { HumanizePipe } from "../../pipe/humanize";
 import { CollectionPickerComponent } from "../collection-picker/collection-picker.component";
 import { DOCUMENT } from '@angular/common';
 import { CollectionService } from '@app/services/collection.service';
+import { EntityService } from '@app/services/entity.service';
 
 @Component({
   selector: 'app-media-action',
@@ -27,12 +28,13 @@ export class MediaActionComponent {
 
   statusOptions = Object.values(MediaStatus);
 
+  private entityService = inject(EntityService);
   private mediaService = inject(MediaService);
   private collectionService = inject(CollectionService);
-  
-  media = computed(() => 
-    this.mediaService.getMediaSignal(this.mediaId())()
-  );
+
+  media = computed(() => {
+    return this.entityService.getMedia(this.mediaId());
+  });
 
   openPicker(event: MouseEvent) {
     event.stopPropagation();

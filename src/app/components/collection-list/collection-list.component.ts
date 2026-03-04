@@ -7,6 +7,8 @@ import { Media } from '@models/media.model';
 
 import { MediaService } from '@app/services/media.service';
 import { GenericListComponent } from "../generic-list/generic-list.component";
+import { EntityService } from '@app/services/entity.service';
+import { EntityType } from '@app/models/entity.model';
 
 @Component({
   selector: 'app-collection-list',
@@ -17,6 +19,8 @@ import { GenericListComponent } from "../generic-list/generic-list.component";
 })
 export class CollectionListComponent {
   @ContentChild('rowRef') rowTemplate!: TemplateRef<any>;
+
+  private entityService = inject(EntityService);
 
   // all media infos (id, width, height)
   mediaLayoutData = input.required<[string, number, number][]>();
@@ -32,7 +36,7 @@ export class CollectionListComponent {
     const visibleIds = visibleData.map(data => data[0]);
 
     const missingIds = visibleIds.filter(id => {
-      return this.mediaService.getMediaSignal(id)() === null;
+      return this.entityService.getMedia(id) === null;
     });
 
     if (missingIds.length > 0) {
@@ -40,28 +44,23 @@ export class CollectionListComponent {
     }
   }
 
-  constructor(
-    private mediaService: MediaService,
-  ) {
+  constructor() {
     this.scrollSubject.pipe(
       debounceTime(50),
       switchMap(async (ids) => {
         // only gets the missing medias
-        const missingIds = ids.filter(id => this.mediaService.getMediaSignal(id)() === null);
+        const missingIds = ids.filter(id => this.entityService.getMedia(id) === null);
         if (missingIds.length === 0) return [];
 
         try {
           // retrieve data
-          return await this.mediaService.getMediaBatch(missingIds);
+          return await this.entityService.loadBatch(EntityType.MEDIA, missingIds);
         } catch (e) {
           console.error("Batch load failed", e);
           return [];
         }
       })
-    ).subscribe((medias: Media[]) => {
-      // fill the cache
-      medias.forEach(m => this.mediaService.setMedia(m));
-    });
+    ).subscribe();
   }
 
   protected updateDimensions() {

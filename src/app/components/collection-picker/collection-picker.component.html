@@ -11,7 +11,7 @@
     [collectionIds]="collectionResults()" 
   >
     <ng-template #rowRef let-collectionId="collectionId" let-width="width" let-height="height">
-      <div (click)="picker.toggleSelection(collectionId)" class="selectable-row">
+      <div (click)="picker.toggleSelection(collectionId)">
         <app-collection-row-item [collectionId]="collectionId" [width]="width" [height]="height"
           [isMenuOpen]="false"
         >

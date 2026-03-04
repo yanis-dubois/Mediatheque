@@ -24,10 +24,10 @@ import { MediaFilter, MediaOrder } from '@models/media-query.model';
 
 import { HumanizePipe } from "@pipe/humanize";
 import { CollectionService } from '@services/collection.service';
-import { MediaService } from '@services/media.service';
 import { CollectionActionComponent } from "../collection-action/collection-action.component";
 import { PinService } from '@app/services/pin.service';
 import { EmojizePipe } from "../../pipe/emojize";
+import { EntityService } from '@app/services/entity.service';
 
 @Component({
   selector: 'app-collection',
@@ -55,7 +55,7 @@ export class CollectionComponent {
   collectionLayoutOption = Object.values(CollectionLayout);
 
   collection = computed(() => {
-    return this.collectionService.getCollectionSignal(this.id(), true)();
+    return this.entityService.getCollection(this.id(), true);
   });
   name = computed(() => this.collection()?.name ?? 'Unnamed Collection');
   favorite = computed(() => this.collection()?.favorite ?? false);
@@ -83,7 +83,7 @@ export class CollectionComponent {
   private refreshLayout$ = new Subject<void>();
 
   constructor(
-    private mediaService: MediaService,
+    private entityService: EntityService,
     private collectionService: CollectionService,
     private pinService: PinService
   ) {
@@ -95,8 +95,7 @@ export class CollectionComponent {
 
     effect(() => {
       this.id();
-      this.mediaService.lastUpdate();
-      this.collectionService.lastUpdate();
+      this.entityService.lastUpdate();
       untracked(() => {
         this.refreshLayout$.next();
       });

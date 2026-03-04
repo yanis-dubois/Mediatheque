@@ -2,12 +2,15 @@ import { Component, computed, contentChild, ElementRef, inject, input, Input } f
 import { CommonModule } from '@angular/common';
 
 import { EmojizePipe } from "@pipe/emojize";
-import { CollectionService } from '@app/services/collection.service';
+import { EntityService } from '@app/services/entity.service';
+import { EntityType } from '@app/models/entity.model';
+import { Collection } from '@app/models/collection.model';
+import { HumanizePipe } from "../../pipe/humanize";
 
 @Component({
   selector: 'app-collection-row-item',
   standalone: true,
-  imports: [CommonModule, EmojizePipe],
+  imports: [CommonModule, EmojizePipe, HumanizePipe],
   templateUrl: './collection-row-item.component.html',
   styleUrls: ['./collection-row-item.component.css']
 })
@@ -16,10 +19,14 @@ export class CollectionRowItemComponent {
   @Input({ required: true }) height! : number;
   collectionId = input.required<string>();
   isMenuOpen = input.required<boolean>();
+  display = input<string>('default');
 
   customIcon = contentChild<ElementRef>('icon');
 
-  private collectionService = inject(CollectionService);
+  private entityService = inject(EntityService);
+  protected readonly EntityType = EntityType;
 
-  collection = computed(() => this.collectionService.getCollectionSignal(this.collectionId())());
+  collection = computed(() => {
+    return this.entityService.getCollection(this.collectionId());
+  });
 }

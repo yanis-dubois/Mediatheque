@@ -11,7 +11,7 @@
     [mediaLayoutData]="mediaResults()" 
   >
     <ng-template #rowRef let-mediaId="mediaId" let-width="width" let-height="height">
-      <div (click)="picker.toggleSelection(mediaId)" class="selectable-row">
+      <div (click)="picker.toggleSelection(mediaId)">
         <app-media-row [mediaId]="mediaId" [width]="width" [height]="height"
           [isMenuOpen]="false"
         >
