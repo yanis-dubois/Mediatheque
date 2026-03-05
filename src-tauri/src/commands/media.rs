@@ -1,7 +1,9 @@
+use std::collections::HashMap;
+
 use crate::db::DbState;
 use crate::models::enums::{
   match_media_status, match_media_type, CollectionMediaType, CollectionType, MediaOrderField,
-  MediaStatus, MediaType,
+  MediaStatus, MediaType, MetadataType,
 };
 use crate::models::external_media::ExternalMediaRequest;
 use crate::models::media::{AnyMedia, Media, Movie, Series, TabletopGame};
@@ -13,6 +15,7 @@ pub fn map_row_to_media(row: &rusqlite::Row) -> rusqlite::Result<Media> {
   let type_str: String = row.get(1)?;
   let status_str: String = row.get(8)?;
   let fav_int: i32 = row.get(9)?;
+  let contextual_roles: Option<String> = row.get(12).unwrap_or(None);
 
   Ok(Media {
     id: row.get(0)?,
@@ -27,6 +30,7 @@ pub fn map_row_to_media(row: &rusqlite::Row) -> rusqlite::Result<Media> {
     favorite: fav_int == 1, // 0/1 -> bool
     notes: row.get(10)?,
     score: row.get(11)?,
+    contextual_roles: contextual_roles,
   })
 }
 
@@ -484,6 +488,40 @@ pub fn get_media_batch(
     .map_err(|e| e.to_string())?;
 
   Ok(list)
+}
+
+#[tauri::command]
+pub fn get_all_roles_for_descriptor(
+  state: tauri::State<'_, DbState>,
+  descriptor_type: MetadataType,
+  descriptor_id: u32,
+) -> Result<HashMap<String, Vec<String>>, String> {
+  let connection = state.connection.lock().map_err(|_| "Lock failed")?;
+
+  let (table, id_col) = match descriptor_type {
+    MetadataType::Person => ("media_person", "person_id"),
+    MetadataType::Company => ("media_company", "company_id"),
+    _ => return Ok(HashMap::new()),
+  };
+
+  let sql = format!("SELECT media_id, role FROM {} WHERE {} = ?1", table, id_col);
+
+  let mut stmt = connection.prepare(&sql).map_err(|e| e.to_string())?;
+
+  let rows = stmt
+    .query_map([descriptor_id], |row| {
+      Ok((row.get::<_, String>(0)?, row.get::<_, String>(1)?))
+    })
+    .map_err(|e| e.to_string())?;
+
+  let mut roles_map: HashMap<String, Vec<String>> = HashMap::new();
+
+  for row in rows {
+    let (m_id, role) = row.map_err(|e| e.to_string())?;
+    roles_map.entry(m_id).or_insert_with(Vec::new).push(role);
+  }
+
+  Ok(roles_map)
 }
 
 /* -- UPDATE media -- */

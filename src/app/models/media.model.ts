@@ -42,6 +42,7 @@ export interface Media {
   favorite: boolean;
   notes: string;
   score?: number;
+  contextual_roles?: string;
 }
 
 export interface ExternalMedia {

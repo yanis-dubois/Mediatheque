@@ -1,4 +1,4 @@
-import { Component, input } from '@angular/core';
+import { Component, computed, inject, input } from '@angular/core';
 import { CommonModule } from '@angular/common';
 
 import { PosterPathPipe } from '@pipe/image-path.pipe';
@@ -13,10 +13,22 @@ import { EntityRowLayoutComponent } from "../entity-row-layout/entity-row-layout
   selector: 'app-media-row',
   standalone: true,
   imports: [CommonModule, PosterPathPipe, HumanizePipe, EmojizePipe, EntityRowLayoutComponent],
+  providers: [HumanizePipe],
   templateUrl: './media-row.component.html',
   styleUrls: ['../../../style/entity-row.scss']
 })
 export class MediaRowComponent extends EntityRow<Media & {type: EntityType.MEDIA}> {
   override entityId = input.required<string>({ alias: 'mediaId' });
   type = EntityType.MEDIA;
+  roles = input<string[]>([]);
+
+  private humanizePipe = inject(HumanizePipe);
+
+  formattedRoles = computed(() => {
+    const rolesList = this.roles();
+    if (rolesList.length === 0) return '';
+    return rolesList
+      .map(role => this.humanizePipe.transform(role))
+      .join(', ');
+  });
 }

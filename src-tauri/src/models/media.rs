@@ -19,8 +19,9 @@ pub struct Media {
   pub status: MediaStatus,
   pub favorite: bool,
   pub notes: String,
-
   pub score: Option<u32>,
+
+  pub contextual_roles: Option<String>,
 }
 
 #[derive(Debug, Serialize)]

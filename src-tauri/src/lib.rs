@@ -22,6 +22,7 @@ pub fn run() {
       commands::media::update_media_notes,
       commands::media::update_media_score,
       commands::media::add_media_to_library,
+      commands::media::get_all_roles_for_descriptor,
       commands::collection::search_layout_data,
       commands::collection::search_in_collection,
       commands::collection::get_collection_by_id,

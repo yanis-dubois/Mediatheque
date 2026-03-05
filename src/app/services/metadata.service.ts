@@ -28,6 +28,12 @@ export class MetadataService {
     return await invoke<[string, EntityType][]>('get_metadata_layout', { metadataType: type, query });
   }
 
+  async getDescriptorRolesMap(type: MetadataType, id: number): Promise<Record<string, string[]>> {
+    return await invoke<Record<string, string[]>>('get_all_roles_for_descriptor', {
+      descriptorType: type, descriptorId: id
+    });
+  }
+
   async getPersonById(id: string): Promise<Person> {
     return await invoke<Person>('get_person_by_id', { id });
   }

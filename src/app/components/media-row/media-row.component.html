@@ -22,10 +22,12 @@
     @if (media) {
       <p class="title">{{ media.title }}</p>
       <p class="info">{{ media.mediaType | emojize }} - {{ media.status | humanize }}</p>
-      @if (display() === 'default') {
-        <p class="sub-info">{{ media.releaseDate | date:'mediumDate' }}</p>
-      } @else {
+      @if (display() === 'search') {
         <p class="sub-info">{{ type | humanize }}</p>
+      } @else if (display() === 'roles') {
+        <p class="sub-info">{{ formattedRoles() }}</p>
+      } @else {
+        <p class="sub-info">{{ media.releaseDate | date:'mediumDate' }}</p>
       }
     } @else {
       <div class="skeleton-text title"></div>

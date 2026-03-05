@@ -130,6 +130,8 @@
               <app-media-row 
                 [mediaId]="mediaId" [width]="width" [height]="height"
                 [isMenuOpen]="isMenuOpen(mediaId)" [gap]="gap()"
+                [display]="'roles'"
+                [roles]="getRolesForMedia(mediaId)"
               >
                 <div menu (click)="$event.preventDefault(); $event.stopPropagation()">
                   <ng-container *ngTemplateOutlet="itemMenu; context: { mediaId: mediaId }"></ng-container>

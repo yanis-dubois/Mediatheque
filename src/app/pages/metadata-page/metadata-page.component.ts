@@ -45,6 +45,7 @@ export class MetadataPageComponent {
   preferredLayout = signal<CollectionLayout>(CollectionLayout.ROW);
   gap = signal<number>(8);
   activeMediaMenuId = signal<string | null>(null);
+  rolesMap = signal<Record<string, string[]>>({});
 
   mediaLayoutData = signal<[string, number, number][]>([]);
   sortOrder = signal<MediaOrder[]>([]);
@@ -97,7 +98,15 @@ export class MetadataPageComponent {
       // load info in cache
       await this.entityService.loadById(this.entityType(), this.id());
 
+      // load layout data
       this.loadLayoutData();
+
+      // load roles
+      const roles = await this.metadataService.getDescriptorRolesMap(
+        this.type(), 
+        parseInt(idParam, 10)
+      );
+      this.rolesMap.set(roles);
     }
   }
 
@@ -112,6 +121,10 @@ export class MetadataPageComponent {
         this.context()
       )
     );
+  }
+
+  getRolesForMedia(mediaId: string): string[] {
+    return this.rolesMap()[mediaId] || [];
   }
 
   onFilterChanged(filter: MediaFilter) {
