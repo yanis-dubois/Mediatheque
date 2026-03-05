@@ -1,0 +1,28 @@
+img {
+  border-radius: 6px;
+  object-fit: cover;
+}
+.title {
+  margin: 0px;
+  margin-bottom: 1px;
+
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-size: 0.9rem;
+  height: 1.2rem;
+}
+.info {
+  margin: 0px;
+  margin-bottom: 2px;
+
+  color: var(--color-light-soft);
+  font-size: 0.8rem;
+  height: 1rem;
+}
+.sub-info {
+  margin: 0px;
+  color: var(--color-light-dark);
+  font-size: 0.7rem;
+  height: 1rem;
+}

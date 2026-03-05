@@ -39,11 +39,21 @@ pub fn run() {
       commands::collection::remove_media_from_collection,
       commands::collection::create_collection,
       commands::collection::delete_collection,
+      commands::collection::search_in_meta_data,
       commands::pin::get_all_pins,
       commands::pin::pin_collection,
       commands::pin::unpin_collection,
       commands::pin::update_pinned_collections,
       commands::entity::search_in_library,
+      commands::metadata::get_person_batch,
+      commands::metadata::get_person_by_id,
+      commands::metadata::get_company_batch,
+      commands::metadata::get_company_by_id,
+      commands::metadata::get_genre_batch,
+      commands::metadata::get_genre_by_id,
+      commands::metadata::get_game_mechanic_batch,
+      commands::metadata::get_game_mechanic_by_id,
+      commands::metadata::get_metadata_layout
     ])
     .run(tauri::generate_context!())
     .expect("error while running tauri application");

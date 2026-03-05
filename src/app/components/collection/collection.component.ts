@@ -44,6 +44,7 @@ export class CollectionComponent {
   private route = inject(ActivatedRoute);
   private router = inject(Router);
   private hasFocused = false;
+  gap = signal<number>(8);
 
   // media data needed for virtualizing (id, width, height)
   mediaLayoutData = signal<[string, number, number][]>([]);

@@ -3,9 +3,6 @@ import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { debounceTime, Subject, switchMap } from 'rxjs';
 
-import { Media } from '@models/media.model';
-
-import { MediaService } from '@app/services/media.service';
 import { GenericListComponent } from "../generic-list/generic-list.component";
 import { EntityService } from '@app/services/entity.service';
 import { EntityType } from '@app/models/entity.model';
@@ -30,7 +27,7 @@ export class CollectionListComponent {
 
   containerHeight = signal(120);
   containerWidth = signal(100);
-  gap = signal(8);
+  gap = input.required<number>();
 
   protected onVisibleItemsChanged(visibleData: [string, number, number][]) {
     const visibleIds = visibleData.map(data => data[0]);

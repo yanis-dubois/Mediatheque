@@ -2,7 +2,7 @@ import { Component, inject } from '@angular/core';
 import { Router } from '@angular/router';
 import { CollectionType, ExternalCollection } from '@app/models/collection.model';
 import { CollectionService } from '@app/services/collection.service';
-import { NavService } from '@app/services/nav.service copy';
+import { NavService } from '@app/services/nav.service';
 import { HumanizePipe } from "../../pipe/humanize";
 
 @Component({

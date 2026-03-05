@@ -12,8 +12,7 @@ import { debounceTime, Subject } from 'rxjs';
   selector: 'app-search-page',
   standalone: true,
   imports: [CommonModule, RouterModule, ActionBarComponent, SearchListComponent],
-  templateUrl: './search-page.component.html',
-  styleUrl: './search-page.component.css'
+  templateUrl: './search-page.component.html'
 })
 export class SearchPageComponent { 
 
@@ -30,7 +29,7 @@ export class SearchPageComponent {
       this.loadLayoutData();
     });
 
-    effect(async () => {
+    effect(() => {
       this.searchQuery();
       this.entityService.lastUpdate();
       this.refreshLayout$.next();

@@ -23,6 +23,7 @@ export class MediaPickerComponent {
   mediaResults = signal<[string, number, number][]>([]);
   searchQuery = signal('');
   mediaType = signal<CollectionMediaType>({type: "ALL"});
+  gap = signal<number>(8);
 
   constructor(
     private collectionService: CollectionService

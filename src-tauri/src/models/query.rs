@@ -21,19 +21,25 @@ pub struct MediaFilter {
   pub genres: Option<Vec<String>>,
   pub serie: Option<String>,
   // [...]
-
   // TODO: not realy usefull so ...
   // release_date
   // added_date
   // duration
   // seasons
   // episodes
+
+  // metadata collection
+  pub person_id: Option<u32>,
+  pub company_id: Option<u32>,
+  pub genre_id: Option<u32>,
+  pub game_mechanic_id: Option<u32>,
 }
 
 impl Default for MediaFilter {
   fn default() -> Self {
     Self {
       collection_id: None,
+
       media_type: None,
       status: None,
       favorite_only: None,
@@ -43,6 +49,11 @@ impl Default for MediaFilter {
       person: None,
       genres: None,
       serie: None,
+
+      person_id: None,
+      company_id: None,
+      genre_id: None,
+      game_mechanic_id: None,
     }
   }
 }

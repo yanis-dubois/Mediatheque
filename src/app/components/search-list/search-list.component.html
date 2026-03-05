@@ -15,12 +15,13 @@
           <app-media-row 
             [mediaId]="entityId" 
             [width]="containerWidth()" 
-            [height]="containerHeight() + gap()"
+            [height]="containerHeight()"
+            [gap]="gap()"
             [isMenuOpen]="false"
             [display]="'search'"
           >
             <app-dropdown
-              mediaMenu
+              menu
               (click)="$event.preventDefault(); $event.stopPropagation()"
               [isOpenExternal]="false"
             >
@@ -37,12 +38,13 @@
           <app-collection-row-item
             [collectionId]="entityId" 
             [width]="containerWidth()" 
-            [height]="containerHeight() + gap()" 
+            [height]="containerHeight()" 
+            [gap]="gap()"
             [isMenuOpen]="false"
             [display]="'search'"
           >
             <app-dropdown
-              collectionMenu
+              menu
               (click)="$event.preventDefault(); $event.stopPropagation()"
               [isOpenExternal]="false"
             >
@@ -53,8 +55,57 @@
           </app-collection-row-item>
         </a>
       }
-      @case ('person') {
-        <!-- <app-person-row [person]="data"></app-person-row> -->
+      @case (EntityType.PERSON) {
+        <a [routerLink]="['/metadata', EntityType.PERSON, entityId]">
+          <app-person-row
+            [id]="entityId" 
+            [width]="containerWidth()" 
+            [height]="containerHeight()" 
+            [gap]="gap()"
+            [isMenuOpen]="false"
+            [display]="'search'"
+          >
+          </app-person-row>
+        </a>
+      }
+      @case (EntityType.COMPANY) {
+        <a [routerLink]="['/metadata', EntityType.COMPANY, entityId]">
+          <app-company-row
+            [id]="entityId" 
+            [width]="containerWidth()" 
+            [height]="containerHeight()" 
+            [gap]="gap()"
+            [isMenuOpen]="false"
+            [display]="'search'"
+          >
+          </app-company-row>
+        </a>
+      }
+      @case (EntityType.GENRE) {
+        <a [routerLink]="['/metadata', EntityType.GENRE, entityId]">
+          <app-genre-row
+            [id]="entityId" 
+            [width]="containerWidth()" 
+            [height]="containerHeight()" 
+            [gap]="gap()"
+            [isMenuOpen]="false"
+            [display]="'search'"
+          >
+          </app-genre-row>
+        </a>
+      }
+      @case (EntityType.GAME_MECHANIC) {
+        <a [routerLink]="['/metadata', EntityType.GAME_MECHANIC, entityId]">
+          <app-game-mechanic-row
+            [id]="entityId" 
+            [width]="containerWidth()" 
+            [height]="containerHeight()" 
+            [gap]="gap()"
+            [isMenuOpen]="false"
+            [display]="'search'"
+          >
+          </app-game-mechanic-row>
+        </a>
       }
       @default {
         <div class="unknown-type">Unsupported entity type : {{ entityType }}</div>

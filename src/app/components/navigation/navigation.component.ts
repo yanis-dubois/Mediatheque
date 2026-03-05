@@ -3,7 +3,7 @@ import { Router, RouterModule } from '@angular/router';
 
 import { MediaType } from '@models/media.model';
 import { EmojizePipe } from "../../pipe/emojize";
-import { NavService } from '@app/services/nav.service copy';
+import { NavService } from '@app/services/nav.service';
 
 @Component({
   selector: 'app-navigation',

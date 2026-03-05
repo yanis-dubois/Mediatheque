@@ -1,4 +1,4 @@
-import { Component, computed } from '@angular/core';
+import { Component, computed, input } from '@angular/core';
 import { Location } from '@angular/common';
 import { Router } from '@angular/router';
 
@@ -10,11 +10,7 @@ import { Router } from '@angular/router';
   styleUrl: './action-bar.component.css'
 })
 export class ActionBarComponent {
-
-  isHomePage = computed(() => {
-    const url = this.router.url;
-    return url === '/' || url.startsWith('/home');
-  });
+  leftButtonType = input<string>('back');
 
   constructor(
     private location: Location,
@@ -23,6 +19,10 @@ export class ActionBarComponent {
 
   goToSettings() {
     this.router.navigateByUrl('/settings');
+  }
+
+  goToHome() {
+    this.router.navigateByUrl('/home');
   }
 
   goToPreviousPage() {

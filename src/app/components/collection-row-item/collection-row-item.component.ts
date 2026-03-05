@@ -1,32 +1,21 @@
-import { Component, computed, contentChild, ElementRef, inject, input, Input } from '@angular/core';
+import { Component, input } from '@angular/core';
 import { CommonModule } from '@angular/common';
 
 import { EmojizePipe } from "@pipe/emojize";
-import { EntityService } from '@app/services/entity.service';
 import { EntityType } from '@app/models/entity.model';
-import { Collection } from '@app/models/collection.model';
 import { HumanizePipe } from "../../pipe/humanize";
+import { EntityRow } from '@app/directive/entity-row.component';
+import { Collection } from '@app/models/collection.model';
+import { EntityRowLayoutComponent } from "../entity-row-layout/entity-row-layout.component";
 
 @Component({
   selector: 'app-collection-row-item',
   standalone: true,
-  imports: [CommonModule, EmojizePipe, HumanizePipe],
+  imports: [CommonModule, EmojizePipe, HumanizePipe, EntityRowLayoutComponent],
   templateUrl: './collection-row-item.component.html',
-  styleUrls: ['./collection-row-item.component.css']
+  styleUrls: ['../../../style/entity-row.scss']
 })
-export class CollectionRowItemComponent {
-  @Input({ required: true }) width! : number;
-  @Input({ required: true }) height! : number;
-  collectionId = input.required<string>();
-  isMenuOpen = input.required<boolean>();
-  display = input<string>('default');
-
-  customIcon = contentChild<ElementRef>('icon');
-
-  private entityService = inject(EntityService);
-  protected readonly EntityType = EntityType;
-
-  collection = computed(() => {
-    return this.entityService.getCollection(this.collectionId());
-  });
+export class CollectionRowItemComponent extends EntityRow<Collection & {type: EntityType.COLLECTION}> {
+  override entityId = input.required<string>({ alias: 'collectionId' });
+  type = EntityType.COLLECTION;
 }

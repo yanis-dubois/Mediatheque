@@ -323,10 +323,10 @@ fn build_media_query_parts(
   if let Some(person_name) = &filter.person {
     conditions.push(
       "EXISTS (
-          SELECT 1 FROM media_person mp 
-          JOIN person p ON mp.person_id = p.id 
-          WHERE mp.media_id = m.id AND p.name LIKE ?
-        )"
+        SELECT 1 FROM media_person mp 
+        JOIN person p ON mp.person_id = p.id 
+        WHERE mp.media_id = m.id AND p.name LIKE ?
+      )"
       .to_string(),
     );
     params.push(Box::new(format!("%{}%", person_name)));
@@ -349,6 +349,38 @@ fn build_media_query_parts(
     }
   }
   // TODO [...]
+  // metadata collection
+  // Person
+  if let Some(p_id) = &filter.person_id {
+    conditions.push(
+      "EXISTS (SELECT 1 FROM media_person mp WHERE mp.media_id = m.id AND mp.person_id = ?)"
+        .to_string(),
+    );
+    params.push(Box::new(*p_id));
+  }
+  // Company
+  if let Some(c_id) = &filter.company_id {
+    conditions.push(
+      "EXISTS (SELECT 1 FROM media_company mc WHERE mc.media_id = m.id AND mc.company_id = ?)"
+        .to_string(),
+    );
+    params.push(Box::new(*c_id));
+  }
+  // Genre
+  if let Some(g_id) = &filter.genre_id {
+    conditions.push(
+      "EXISTS (SELECT 1 FROM media_genre mg WHERE mg.media_id = m.id AND mg.genre_id = ?)"
+        .to_string(),
+    );
+    params.push(Box::new(*g_id));
+  }
+  // Game Mechanic
+  if let Some(gm_id) = &filter.game_mechanic_id {
+    conditions.push(
+      "EXISTS (SELECT 1 FROM media_game_mechanic mgm WHERE mgm.media_id = m.id AND mgm.game_mechanic_id = ?)".to_string()
+    );
+    params.push(Box::new(*gm_id));
+  }
 
   let where_clause = if conditions.is_empty() {
     String::new()

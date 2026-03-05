@@ -1,10 +1,11 @@
 import { inject, Injectable, Injector, signal, WritableSignal } from "@angular/core";
-import { DetailedEntity, EntityType } from "@app/models/entity.model";
+import { Company, DetailedEntity, EntityType, MetadataType, Person, Tag } from "@app/models/entity.model";
 import { MediaService } from "./media.service";
 import { CollectionService } from "./collection.service";
 import { invoke } from "@tauri-apps/api/core";
 import { Collection } from "@app/models/collection.model";
 import { Media } from "@app/models/media.model";
+import { MetadataService } from "./metadata.service";
 
 @Injectable({ providedIn: 'root' })
 export class EntityService {
@@ -31,6 +32,18 @@ export class EntityService {
   }
   getCollection(id: string, forceLoad = false): Collection | null {
     return this.getEntitySignal(EntityType.COLLECTION, id, forceLoad)() as Collection | null; 
+  }
+  getPerson(id: string, forceLoad = false): Person | null {
+    return this.getEntitySignal(EntityType.COLLECTION, id, forceLoad)() as Person | null; 
+  }
+  getCompany(id: string, forceLoad = false): Company | null {
+    return this.getEntitySignal(EntityType.COLLECTION, id, forceLoad)() as Company | null; 
+  }
+  getGenre(id: string, forceLoad = false): Tag | null {
+    return this.getEntitySignal(EntityType.COLLECTION, id, forceLoad)() as Tag | null; 
+  }
+  getGameMechanic(id: string, forceLoad = false): Tag | null {
+    return this.getEntitySignal(EntityType.COLLECTION, id, forceLoad)() as Tag | null; 
   }
 
   getEntitySignal(type: EntityType, id: string, forceLoad = false): WritableSignal<DetailedEntity | null> {
@@ -83,6 +96,8 @@ export class EntityService {
   }
 
   async loadBatch(type: EntityType, ids: string[]): Promise<void> {
+    const metadataService = this.injector.get(MetadataService);
+
     switch (type) {
       case EntityType.MEDIA:
         const mediaService = this.injector.get(MediaService);
@@ -95,14 +110,27 @@ export class EntityService {
         collections.forEach(c => this.setEntity({ ...c, type: EntityType.COLLECTION }));
         break;
       case EntityType.PERSON:
-        // const persons = await invoke<Person[]>('get_person_batch', { ids });
-        // persons.forEach(p => this.setEntity({ ...p, type: EntityType.PERSON }));
+        const persons = await metadataService.getPersonBatch(ids);
+        persons.forEach(p => this.setEntity({ ...p, type: EntityType.PERSON }));
         break;
-      // TODO
+      case EntityType.COMPANY:
+        const companies = await metadataService.getCompanyBatch(ids);
+        companies.forEach(c => this.setEntity({ ...c, type: EntityType.COMPANY }));
+        break;
+      case EntityType.GENRE:
+        const genre = await metadataService.getGenreBatch(ids);
+        genre.forEach(g => this.setEntity({ ...g, type: EntityType.GENRE }));
+        break;
+      case EntityType.GAME_MECHANIC:
+        const mechanics = await metadataService.getGameMechanicBatch(ids);
+        mechanics.forEach(m => this.setEntity({ ...m, type: EntityType.GAME_MECHANIC }));
+        break;
     }
   }
 
   async loadById(type: EntityType, id: string): Promise<void> {
+    const metadataService = this.injector.get(MetadataService);
+
     switch (type) {
       case EntityType.MEDIA:
         const mediaService = this.injector.get(MediaService);
@@ -115,9 +143,21 @@ export class EntityService {
         this.setEntity({ ...collection, type: EntityType.COLLECTION });
         break;
       case EntityType.PERSON:
-        // TODO
+        const person = await metadataService.getPersonById(id);
+        this.setEntity({ ...person, type: EntityType.PERSON });
         break;
-      // TODO
+      case EntityType.COMPANY:
+        const company = await metadataService.getCompanyById(id);
+        this.setEntity({ ...company, type: EntityType.COMPANY });
+        break;
+      case EntityType.GENRE:
+        const genre = await metadataService.getGenreById(id);
+        this.setEntity({ ...genre, type: EntityType.GENRE });
+        break;
+      case EntityType.GAME_MECHANIC:
+        const mechanic = await metadataService.getGameMechanicById(id);
+        this.setEntity({ ...mechanic, type: EntityType.GAME_MECHANIC });
+        break;
     }
   }
 

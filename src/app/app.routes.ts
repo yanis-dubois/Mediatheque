@@ -6,6 +6,8 @@ import { CollectionPageComponent } from '@pages/collection-page/collection-page.
 import { MediaPageComponent } from '@pages/media-page/media-page.component';
 import { SettingsPageComponent } from "./pages/settings-page/settings-page.component";
 import { SearchPageComponent } from "./pages/search-page/search-page.component";
+import { MetadataPageComponent } from "./pages/metadata-page/metadata-page.component";
+import { MetadataListPageComponent } from "./pages/metadata-list-page/metadata-list-page.component";
 
 export const routes: Routes = [
   {
@@ -36,6 +38,14 @@ export const routes: Routes = [
   {
     path: 'media/:id',
     component: MediaPageComponent
+  },
+  {
+    path: 'metadata-list/:type',
+    component: MetadataListPageComponent
+  },
+  {
+    path: 'metadata/:type/:id',
+    component: MetadataPageComponent
   },
   {
     path: 'settings',

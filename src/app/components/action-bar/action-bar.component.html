@@ -1,13 +1,21 @@
 <div class="action action-left">
   
-  @if (isHomePage()) {
-    <button class="action-button" (click)="goToSettings()">
-      <img class="chevron" src="assets/icons/settings.svg"/>
-    </button>
-  } @else {
-    <button class="action-button" (click)="goToPreviousPage()">
-      <img class="chevron" src="assets/icons/chevron.svg"/>
-    </button>
+  @switch (leftButtonType()) {
+    @case ('settings') {
+      <button class="action-button" (click)="goToSettings()">
+        <img class="chevron" src="assets/icons/settings.svg"/>
+      </button>
+    }
+    @case ('home') {
+      <button class="action-button" (click)="goToHome()">
+        <img class="chevron" src="assets/icons/plus.svg" style="transform: rotate(45deg);"/>
+      </button>
+    }
+    @default {
+      <button class="action-button" (click)="goToPreviousPage()">
+        <img class="chevron" src="assets/icons/chevron.svg"/>
+      </button>
+    }
   }
 </div>
 

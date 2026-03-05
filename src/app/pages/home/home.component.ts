@@ -10,8 +10,9 @@ import { CollectionActionComponent } from "@app/components/collection-action/col
 import { PinService } from '@app/services/pin.service';
 import { ActionBarComponent } from "@app/components/action-bar/action-bar.component";
 import { CollectionsActionComponent } from "@app/components/collections-action/collections-action.component";
-import { NavService } from '@app/services/nav.service copy';
+import { NavService } from '@app/services/nav.service';
 import { HumanizePipe } from "../../pipe/humanize";
+import { MetadataType } from '@app/models/entity.model';
 
 @Component({
   selector: 'app-home',
@@ -22,6 +23,7 @@ import { HumanizePipe } from "../../pipe/humanize";
 })
 export class HomeComponent {
   protected readonly CollectionDisplayMode = CollectionDisplayMode;
+  protected readonly MetadataType = MetadataType;
 
   context = this.navService.context;
   collectionIds = computed(() => {

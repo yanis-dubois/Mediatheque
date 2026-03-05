@@ -10,6 +10,13 @@ export enum EntityType {
   GAME_MECHANIC = "GAME_MECHANIC",
 }
 
+export enum MetadataType {
+  PERSON = "PERSON",
+  COMPANY = "COMPANY",
+  GENRE = "GENRE",
+  GAME_MECHANIC = "GAME_MECHANIC",
+}
+
 export type DetailedEntity = (Media & { type: EntityType.MEDIA }) 
   | (Collection & { type: EntityType.COLLECTION }) 
   | (Person & { type: EntityType.PERSON })
@@ -28,6 +35,7 @@ export interface Company {
   id: string;
   name: string;
 }
+
 export interface Tag {
   id: string;
   name: string;

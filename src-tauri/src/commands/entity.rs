@@ -14,7 +14,6 @@ pub fn search_in_library(
     .map_err(|_| "Failed to lock database")?;
   let sql_query = format!("%{}%", search_query);
 
-  // Requête unifiée pour tous les types d'entités
   let mut stmt = connection
     .prepare(
       "
@@ -46,6 +45,5 @@ pub fn search_in_library(
     .collect::<rusqlite::Result<Vec<_>>>()
     .map_err(|e| e.to_string())?;
 
-  println!("data length : {}", data.len());
   Ok(data)
 }

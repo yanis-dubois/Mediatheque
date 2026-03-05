@@ -1,32 +1,22 @@
-import { Component, computed, contentChild, ElementRef, inject, input, Input } from '@angular/core';
+import { Component, input } from '@angular/core';
 import { CommonModule } from '@angular/common';
 
 import { PosterPathPipe } from '@pipe/image-path.pipe';
 import { HumanizePipe } from "@pipe/humanize";
 import { EmojizePipe } from "@pipe/emojize";
-import { EntityService } from '@app/services/entity.service';
 import { EntityType } from '@app/models/entity.model';
+import { Media } from '@app/models/media.model';
+import { EntityRow } from '@app/directive/entity-row.component';
+import { EntityRowLayoutComponent } from "../entity-row-layout/entity-row-layout.component";
 
 @Component({
   selector: 'app-media-row',
   standalone: true,
-  imports: [CommonModule, PosterPathPipe, HumanizePipe, EmojizePipe],
+  imports: [CommonModule, PosterPathPipe, HumanizePipe, EmojizePipe, EntityRowLayoutComponent],
   templateUrl: './media-row.component.html',
-  styleUrls: ['./media-row.component.css']
+  styleUrls: ['../../../style/entity-row.scss']
 })
-export class MediaRowComponent {
-  @Input({ required: true }) width! : number;
-  @Input({ required: true }) height! : number;
-  mediaId = input.required<string>();
-  isMenuOpen = input.required<boolean>();
-  display = input<string>('default');
-
-  customIcon = contentChild<ElementRef>('icon');
-
-  private entityService = inject(EntityService);
-  protected readonly EntityType = EntityType;
-
-  media = computed(() => {
-    return this.entityService.getMedia(this.mediaId());
-  });
+export class MediaRowComponent extends EntityRow<Media & {type: EntityType.MEDIA}> {
+  override entityId = input.required<string>({ alias: 'mediaId' });
+  type = EntityType.MEDIA;
 }

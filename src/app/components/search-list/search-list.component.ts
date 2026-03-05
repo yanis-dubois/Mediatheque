@@ -1,7 +1,7 @@
 import { Component, ContentChild, ElementRef, inject, input, signal, TemplateRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
-import { catchError, debounceTime, EMPTY, from, mergeMap, Subject } from 'rxjs';
+import { debounceTime, EMPTY, mergeMap, Subject } from 'rxjs';
 
 import { GenericListComponent } from "../generic-list/generic-list.component";
 import { EntityType } from '@app/models/entity.model';
@@ -11,11 +11,15 @@ import { CollectionRowItemComponent } from "../collection-row-item/collection-ro
 import { DropdownComponent } from "../dropdown/dropdown.component";
 import { MediaActionComponent } from "../media-action/media-action.component";
 import { CollectionActionComponent } from "../collection-action/collection-action.component";
+import { PersonRowComponent } from "../person-row/person-row.component";
+import { CompanyRowComponent } from "../company-row/company-row.component";
+import { GenreRowComponent } from "../tag-row/genre-row.component";
+import { GameMechanicRowComponent } from "../tag-row/game-mechanic-row.component";
 
 @Component({
   selector: 'app-search-list',
   standalone: true,
-  imports: [CommonModule, RouterModule, GenericListComponent, MediaRowComponent, CollectionRowItemComponent, DropdownComponent, MediaActionComponent, CollectionActionComponent],
+  imports: [CommonModule, RouterModule, GenericListComponent, MediaRowComponent, CollectionRowItemComponent, DropdownComponent, MediaActionComponent, CollectionActionComponent, PersonRowComponent, CompanyRowComponent, GenreRowComponent, GameMechanicRowComponent],
   templateUrl: './search-list.component.html',
   styleUrls: ['./search-list.component.css']
 })
@@ -60,16 +64,17 @@ export class SearchListComponent {
     this.loadSubject.pipe(
       debounceTime(50),
       // launch a load for each type independently
-      mergeMap(({ type, ids }) => {
+      mergeMap(async ({ type, ids }) => {
         const missingIds = ids.filter(id => this.entityService.getEntitySignal(type, id)() === null);
         if (missingIds.length === 0) return EMPTY;
 
-        return from(this.entityService.loadBatch(type, missingIds)).pipe(
-          catchError(err => {
-            console.error(`Error while cloading batch ${type}`, err);
-            return EMPTY;
-          })
-        );
+        try {
+          // retrieve data
+          return await this.entityService.loadBatch(type, missingIds);
+        } catch (e) {
+          console.error("Batch load failed", e);
+          return EMPTY;
+        }
       })
     ).subscribe();
   }

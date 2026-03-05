@@ -3,7 +3,7 @@ import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 
 import { CollectionsComponent } from '@components/collections/collections.component';
-import { NavService } from '@app/services/nav.service copy';
+import { NavService } from '@app/services/nav.service';
 
 @Component({
   selector: 'app-collections-page',

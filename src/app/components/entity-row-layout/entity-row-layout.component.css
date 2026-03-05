@@ -1,25 +1,25 @@
-.row-content {
-  display: flex;
-  width: 100vw;
-  padding: 0 4px;
+.row-container {
+  width: 100%;
 }
-
-.row-content {
+.row-container {
   transition: background-color 0.3s ease;
 }
-.row-content:hover,
+.row-container:hover,
 .is-menu-open  {
   background: var(--color-dark-soft);
   transition: background-color 0.2ms ease-out;
 }
 
-.card {
+.row-content {
+  display: flex;
+  padding: 0px 16px;
+  height: 100%;
+}
+
+.card-slot {
   display: flex;
   align-items: center;
-}
-.card img {
-  border-radius: 6px;
-  object-fit: cover;
+  align-content: center;
 }
 
 .infos {
@@ -35,23 +35,7 @@
   width: 100%;
   align-content: center;
 }
-.title {
-  margin: 0px;
-  margin-bottom: 4px;
 
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-.type {
-  margin: 0px;
-  color: var(--color-light-soft);
-}
-.date {
-  margin: 0px;
-  color: var(--color-light-dark);
-  font-size: 0.9rem;
-}
 .icon-slot {
   flex: none;
   width: 32px;
@@ -61,8 +45,8 @@
 
 .menu-slot {
   position: absolute;
-  top: 4px;
-  right: 6px;
+  top: 8px;
+  right: 8px;
   z-index: 10;
 }
 
@@ -81,25 +65,4 @@
   --dots-bg: none;
   --dots-hover: rgba(255, 255, 255, 0.2);
   --dots-blur: none;
-}
-
-.skeleton-text {
-  border-radius: 4px;
-
-  &.title {
-    height: 1.5rem;
-    width: 60%;
-    margin-bottom: 8px;
-  }
-
-  &.type {
-    height: 1rem;
-    width: 40%;
-    margin-bottom: 4px;
-  }
-
-  &.date {
-    height: 0.9rem;
-    width: 25%;
-  }
 }

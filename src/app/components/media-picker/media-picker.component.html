@@ -9,11 +9,12 @@
   <app-collection-list 
     class="virtual-host virtual-host-list picker-content"
     [mediaLayoutData]="mediaResults()" 
+    [gap]="gap()"
   >
     <ng-template #rowRef let-mediaId="mediaId" let-width="width" let-height="height">
       <div (click)="picker.toggleSelection(mediaId)">
         <app-media-row [mediaId]="mediaId" [width]="width" [height]="height"
-          [isMenuOpen]="false"
+          [isMenuOpen]="false" [gap]="gap()"
         >
           <span #icon icon class="check-icon"> {{ picker.getSelectionIcon(mediaId) }} </span>
         </app-media-row>

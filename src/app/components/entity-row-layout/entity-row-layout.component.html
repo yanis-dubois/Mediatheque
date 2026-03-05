@@ -1,0 +1,22 @@
+<div class="row-container" [class.is-menu-open]="isMenuOpen()" [style.height.px]="height() + gap()">
+  <div class="row-content">
+    <div class="card-slot">
+      <ng-content select="[card]"></ng-content>
+    </div>
+
+    <div class="infos">
+      <div class="text-group">
+        <ng-content select="[text]"></ng-content>
+      </div>
+
+      <div class="icon-slot">
+        <ng-content select="[icons]"></ng-content>
+      </div>
+    </div>
+
+    <div class="menu-slot">
+      <ng-content select="[menu]"></ng-content>
+    </div>
+  </div>
+  <hr class="separator"/>
+</div>

@@ -187,6 +187,19 @@ pub enum EntityType {
   GameMechanic,
 }
 
+#[derive(Debug, Serialize, Deserialize, PartialEq, Clone)]
+#[serde(rename_all = "SCREAMING_SNAKE_CASE")]
+#[derive(strum::Display, strum::EnumString)]
+#[strum(serialize_all = "SCREAMING_SNAKE_CASE")]
+#[derive(Default)]
+pub enum MetadataType {
+  #[default]
+  Person,
+  Company,
+  Genre,
+  GameMechanic,
+}
+
 /* Convertion */
 
 // convert SQL TEXT -> Enums

@@ -5,7 +5,7 @@ use crate::db::DbState;
 use crate::models::collection::{Collection, ExternalCollection};
 use crate::models::enums::{
   match_collection_media_type, match_collection_type, match_collection_view, CollectionLayout,
-  CollectionMediaType, CollectionType, MediaType,
+  CollectionMediaType, CollectionType, MediaType, MetadataType,
 };
 use crate::models::query::{MediaFilter, MediaOrder};
 
@@ -170,6 +170,42 @@ pub fn search_layout_data(
     CollectionMediaType::All,
     filter,
     vec![],
+  )?;
+
+  Ok(data)
+}
+
+#[tauri::command]
+pub fn search_in_meta_data(
+  state: tauri::State<'_, DbState>,
+  metadata_type: MetadataType,
+  metadata_id: u32,
+  query: String,
+  order: Vec<MediaOrder>,
+  mut filter: MediaFilter,
+  media_type: CollectionMediaType,
+) -> Result<Vec<(String, u16, u16)>, String> {
+  println!("search_in_meta_data : {}", query);
+
+  filter.search_query = if query.is_empty() { None } else { Some(query) };
+  // filter.media_type = match media_type {
+  //   CollectionMediaType::All => None,
+  //   CollectionMediaType::Specific(mt) => Some(mt),
+  // };
+
+  match metadata_type {
+    MetadataType::Person => filter.person_id = Some(metadata_id),
+    MetadataType::Company => filter.company_id = Some(metadata_id),
+    MetadataType::Genre => filter.genre_id = Some(metadata_id),
+    MetadataType::GameMechanic => filter.game_mechanic_id = Some(metadata_id),
+  }
+
+  let data = get_media_layout_list(
+    state,
+    CollectionType::Dynamic,
+    CollectionMediaType::All,
+    filter,
+    order,
   )?;
 
   Ok(data)

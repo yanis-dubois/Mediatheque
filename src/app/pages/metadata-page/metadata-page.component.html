@@ -1,0 +1,157 @@
+<app-action-bar>
+
+  <div class="action-button layout-selector">
+    @switch (preferredLayout()) {
+      @case (CollectionLayout.GRID) {
+        <img src="assets/icons/layout_grid.svg" alt="Grid" class="layout-icon" />
+      }
+      @case (CollectionLayout.ROW) {
+        <img src="assets/icons/layout_row.svg" alt="Row" class="layout-icon" />
+      }
+      @case (CollectionLayout.COLUMN) {
+        <img src="assets/icons/layout_row.svg" alt="Column" class="layout-icon" style="transform: scaleX(-1) rotate(90deg);"/>
+      }
+      @case (CollectionLayout.LIST) {
+        <img src="assets/icons/layout_list.svg" alt="List" class="layout-icon" />
+      }
+    }
+
+    <select 
+      [value]="preferredLayout()" 
+      (change)="onLayoutChange($any($event.target).value)"
+      style="appearance: none;"
+    >
+      @for (opt of collectionLayoutOption; track opt) {
+        <option [value]="opt" [selected]="opt === preferredLayout()">{{ opt | humanize }}</option>
+      }
+    </select>
+  </div>
+
+  <app-sort-manager 
+    [sortOrder]="sortOrder()" 
+    (sortOrderChange)="onSortChanged($event)"
+  />
+
+  <app-filter-manager 
+    [filter]="filter()" 
+    (filterChange)="onFilterChanged($event)"
+  />
+
+</app-action-bar>
+
+<section class="page-container">
+
+  <div class="page-header">
+
+    <div style="display: flex; justify-content: center;">
+      <h1>{{ name() }}</h1>
+      <!--  [TODO: add name] -->
+    </div>
+
+    <div class="search-box">
+      <input 
+        #searchInput
+        class="input-search"
+        type="text"
+        placeholder="Search on the collection..."
+        [value]="searchQuery()"
+        (input)="searchQuery.set($any($event.target).value)"
+        (keydown.enter)="searchInput.blur()"
+        (keydown.escape)="searchQuery.set(''); searchInput.blur()"
+      />
+    </div>
+
+  </div>
+
+  @if (mediaLayoutData().length < 1) {
+    <p> No media match these filters. </p>
+  }
+  @else {
+    @switch (preferredLayout()) {
+      @case (CollectionLayout.GRID) {
+        <app-collection-grid
+          class="virtual-host"
+          [mediaLayoutData]="mediaLayoutData()"
+        >
+          <ng-template #itemRef let-mediaId="mediaId" let-width="width" let-height="height">
+            <app-media-card 
+              [mediaId]="mediaId" [width]="width" [height]="height"
+              [isMenuOpen]="isMenuOpen(mediaId)"
+            >
+              <div mediaMenu (click)="$event.preventDefault(); $event.stopPropagation()">
+                <ng-container *ngTemplateOutlet="itemMenu; context: { mediaId: mediaId }"></ng-container>
+              </div>
+            </app-media-card>
+          </ng-template>
+        </app-collection-grid>
+      }
+      @case (CollectionLayout.ROW) {
+        <app-collection-row
+          class="virtual-host"
+          [mediaLayoutData]="mediaLayoutData()"
+        >
+          <ng-template #itemRef let-mediaId="mediaId" let-width="width" let-height="height">
+            <app-media-card 
+              [mediaId]="mediaId" [width]="width" [height]="height"
+              [isMenuOpen]="isMenuOpen(mediaId)"
+            >
+              <div mediaMenu (click)="$event.preventDefault(); $event.stopPropagation()">
+                <ng-container *ngTemplateOutlet="itemMenu; context: { mediaId: mediaId }"></ng-container>
+              </div>
+            </app-media-card>
+          </ng-template>
+        </app-collection-row>
+      }
+      @case (CollectionLayout.COLUMN) {
+        <app-collection-column
+          class="virtual-host"
+          [mediaLayoutData]="mediaLayoutData()"
+        >
+          <ng-template #itemRef let-mediaId="mediaId" let-width="width" let-height="height">
+            <app-media-card 
+              [mediaId]="mediaId" [width]="width" [height]="height"
+              [isMenuOpen]="isMenuOpen(mediaId)"
+            >
+              <div mediaMenu (click)="$event.preventDefault(); $event.stopPropagation()">
+                <ng-container *ngTemplateOutlet="itemMenu; context: { mediaId: mediaId }"></ng-container>
+              </div>
+            </app-media-card>
+          </ng-template>
+        </app-collection-column>
+      }
+      @case (CollectionLayout.LIST) {
+        <app-collection-list 
+          class="virtual-host virtual-host-list"
+          [mediaLayoutData]="mediaLayoutData()" 
+          [gap]="gap()"
+        >
+          <ng-template #rowRef let-mediaId="mediaId" let-width="width" let-height="height">
+            <a [routerLink]="['/media', mediaId]" style="text-decoration: none; color: inherit;">
+              <app-media-row 
+                [mediaId]="mediaId" [width]="width" [height]="height"
+                [isMenuOpen]="isMenuOpen(mediaId)" [gap]="gap()"
+              >
+                <div menu (click)="$event.preventDefault(); $event.stopPropagation()">
+                  <ng-container *ngTemplateOutlet="itemMenu; context: { mediaId: mediaId }"></ng-container>
+                </div>
+              </app-media-row>
+            </a>
+          </ng-template>
+        </app-collection-list>
+      }
+    }
+  }
+</section>
+
+<ng-template #itemMenu let-mediaId="mediaId">
+  <app-dropdown
+    (click)="$event.preventDefault(); $event.stopPropagation()"
+    [isOpenExternal]="activeMediaMenuId() === mediaId"
+    (opened)="activeMediaMenuId.set(mediaId)"
+    (closed)="activeMediaMenuId.set(null)"
+  >
+    <app-media-action 
+      [mediaId]="mediaId"
+    />
+  </app-dropdown>
+</ng-template>

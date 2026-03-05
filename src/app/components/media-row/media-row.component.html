@@ -1,59 +1,52 @@
-<div class="row-content" 
-  [class.is-menu-open]="isMenuOpen()"
-  [style.height.px]="height"
->
-  @if (media(); as media) {
-    <div class="card"
-    [style.--scale-width]="1 + (8 / width)"
-    [style.--scale-height]="1 + (8 / height)"
-    >
+<app-entity-row-layout [height]="height()" [gap]="gap()" [isMenuOpen]="isMenuOpen()">
+
+  @let media = entity();
+
+  <div card [style.height.px]="height()">
+    @if (media) {
       <img 
-        [src]="media.id | posterPath"
-        [alt]="media.title"
-        [style.width.px]="width"
-        [style.height.px]="height - 8"
+        [src]="media.id | posterPath" 
+        [alt]="media.title" 
+        [style.width.px]="width()" 
+        [style.height.px]="height()"
       >
-    </div>
-
-    <div class="infos">
-      <div class="text-group">
-        <h3 class="title">{{ media.title }}</h3>
-        <p class="type">{{ media.mediaType | emojize }} - {{ media.status | humanize }}</p>
-        @if (display() === 'default') {
-          <p class="date">{{ media.releaseDate | date:'mediumDate' }}</p>
-        } @else {
-          <p class="date">{{ EntityType.MEDIA | humanize }}</p>
-        }
-      </div>          
-
-      <div class="icon-slot">
-        <ng-content select="[icon]"></ng-content>
-        @if (!customIcon()) {
-          <span class="fav-icon">{{ media.favorite | emojize }}</span>
-        }
-      </div>
-    </div>
-
-    <div class="menu-slot">
-      <ng-content select="[mediaMenu]"></ng-content>
-    </div>
-  }
-  @else {
-    <div class="card">
+    } @else {
       <div class="skeleton-card" 
-        [style.width.px]="width" 
-        [style.height.px]="height - 8">
+        [style.width.px]="width()" 
+        [style.height.px]="height()">
       </div>
-    </div>
+    }
+  </div>
 
-    <div class="infos">
-      <div class="text-group">
-        <div class="skeleton-text title"></div>
-        <div class="skeleton-text type"></div>
-        <div class="skeleton-text date"></div>
-      </div>
-    </div>
-  }
+  <div text>
+    @if (media) {
+      <p class="title">{{ media.title }}</p>
+      <p class="info">{{ media.mediaType | emojize }} - {{ media.status | humanize }}</p>
+      @if (display() === 'default') {
+        <p class="sub-info">{{ media.releaseDate | date:'mediumDate' }}</p>
+      } @else {
+        <p class="sub-info">{{ type | humanize }}</p>
+      }
+    } @else {
+      <div class="skeleton-text title"></div>
+      <div class="skeleton-text info"></div>
+      <div class="skeleton-text sub-info"></div>
+    }
+  </div>
 
-  <hr class="separator"/>
-</div>
+  <div icons>
+    @if (media) {
+      <ng-content select="[icon]"></ng-content>
+      @if (!customIcon()) {
+        <span>{{ media.favorite | emojize }}</span>
+      }
+    }
+  </div>
+
+  <div menu>
+    @if (media) {
+      <ng-content select="[menu]"></ng-content>
+    }
+  </div>
+
+</app-entity-row-layout>

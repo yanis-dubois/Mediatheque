@@ -1,7 +1,7 @@
-<app-action-bar [leftButtonType]="'home'"></app-action-bar>
+<app-action-bar></app-action-bar>
 
 <section class="page-container">
-  <h1>Search</h1>
+  <h1>{{ type() | humanize}}</h1>
 
   <div class="search-box">
     <input 

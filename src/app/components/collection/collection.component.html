@@ -215,14 +215,15 @@
               <app-collection-list 
                 class="virtual-host virtual-host-list"
                 [mediaLayoutData]="mediaLayoutData()" 
+                [gap]="gap()"
               >
                 <ng-template #rowRef let-mediaId="mediaId" let-width="width" let-height="height">
                   <a [routerLink]="['/media', mediaId]" style="text-decoration: none; color: inherit;">
                     <app-media-row 
                       [mediaId]="mediaId" [width]="width" [height]="height"
-                      [isMenuOpen]="isMenuOpen(mediaId)"
+                      [isMenuOpen]="isMenuOpen(mediaId)" [gap]="gap()"
                     >
-                      <div mediaMenu (click)="$event.preventDefault(); $event.stopPropagation()">
+                      <div menu (click)="$event.preventDefault(); $event.stopPropagation()">
                         <ng-container *ngTemplateOutlet="itemMenu; context: { mediaId: mediaId }"></ng-container>
                       </div>
                     </app-media-row>
