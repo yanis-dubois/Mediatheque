@@ -5,9 +5,6 @@ import { debounceTime, Subject, switchMap } from 'rxjs';
 
 import { injectVirtualizer, VirtualItem } from '@tanstack/angular-virtual';
 
-import { Media } from '@models/media.model';
-
-import { MediaService } from '@app/services/media.service';
 import { EntityService } from '@app/services/entity.service';
 import { EntityType } from '@app/models/entity.model';
 
@@ -108,7 +105,6 @@ export class CollectionGridComponent {
     const ro = new ResizeObserver((entries) => {
       const width = entries[0].contentRect.width;
       this.containerWidth.set(width);
-      
       this.virtualizer.measure();
     });
 
@@ -125,7 +121,6 @@ export class CollectionGridComponent {
 
     const style = getComputedStyle(this.el.nativeElement);
     const cssWidth = style.getPropertyValue('--card-width-grid').trim();
-  
     if (cssWidth) {
       this.minColumnWidth.set(parseInt(cssWidth, 10));
     }

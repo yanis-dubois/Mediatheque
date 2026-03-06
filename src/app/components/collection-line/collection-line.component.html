@@ -23,7 +23,7 @@
       }
     } @else {
       <div
-        class="scroll-container"
+        [style.width.px]="virtualizer.getTotalSize()"
         style="height: 100%; position: relative;"
       >
         @for (vItem of virtualizer.getVirtualItems(); track vItem.key) {
@@ -46,5 +46,7 @@
     }
   </div>
 
+  <div class="blur-edge left"></div>
+  <div class="blur-edge right"></div>
 
 </section>

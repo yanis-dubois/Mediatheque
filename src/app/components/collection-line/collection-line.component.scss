@@ -1,7 +1,7 @@
 .title {
   text-align: left;
   margin: 0;
-  margin-left: 4px;
+  margin-left: var(--side-margin);
 
   white-space: nowrap;
   overflow: hidden;
@@ -25,6 +25,32 @@
   /* Chrome + Safari + Opera */
   &::-webkit-scrollbar {
     display: none;
+  }
+}
+
+@media (min-width: 600px) {
+  $fade-width: calc(1.5 * var(--side-margin));
+  $easing-mask: linear-gradient(
+    to right,
+    transparent 0px,
+    rgba(0, 0, 0, 0.05) calc(0.125 * $fade-width),
+    rgba(0, 0, 0, 0.15) calc(0.33 * $fade-width),
+    rgba(0, 0, 0, 0.3) calc(0.5 * $fade-width),
+    rgba(0, 0, 0, 0.8) calc(0.75 * $fade-width),
+    rgba(0, 0, 0, 0.95) calc(0.9 * $fade-width),
+    black $fade-width,
+    black calc(100% - $fade-width),
+    rgba(0, 0, 0, 0.95) calc(100% - (0.9 * $fade-width)),
+    rgba(0, 0, 0, 0.8) calc(100% - (0.75 * $fade-width)),
+    rgba(0, 0, 0, 0.3) calc(100% - (0.5 * $fade-width)),
+    rgba(0, 0, 0, 0.15) calc(100% - (0.33 * $fade-width)),
+    rgba(0, 0, 0, 0.05) calc(100% - (0.125 * $fade-width)),
+    transparent 100%
+  );
+
+  .viewport-container {
+    -webkit-mask-image: $easing-mask;
+    mask-image: $easing-mask;
   }
 }
 

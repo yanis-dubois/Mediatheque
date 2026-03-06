@@ -23,6 +23,8 @@
   --card-width-grid: 80px;
   --card-width-line: 80px;
   --card-width-list: 30px;
+  /* margin & gap */
+  --side-margin: 16px;
   /* animation */
   --scale-card-in: 0.225s;
   --scale-card-out: 0.6s;
@@ -41,7 +43,7 @@
   /* dark */
   --color-dark-light: #454545;
   --color-dark-soft: #333;
-  --color-dark: #1A1A1A; /* DEFAULT */
+  --color-dark: #161616; /* DEFAULT */ //#161616
   --color-dark-deep: #101010;
 }
 
@@ -60,6 +62,7 @@
     --card-width-list: 40px;
     /* action button step */
     --action-step: 4px;
+    --side-margin: 16px;
   }
 }
 
@@ -67,10 +70,11 @@
 @media (min-width: 1025px) {
   :root {
     --card-width-grid: 100px;
-    --card-width-line: 90px;
+    --card-width-line: 100px;
     --card-width-list: 40px;
     /* action button step */
     --action-step: 8px;
+    --side-margin: 32px;
   }
 }
 
@@ -219,6 +223,11 @@ a:hover .title-chevron img {
     background: rgba(255, 68, 68, 0.1) !important;
   }
 }
+.collection-action {
+  display: flex;
+  margin-right: var(--side-margin);
+  gap: 0 4px;
+}
 
 .search-box {
   display: flex;
@@ -288,10 +297,13 @@ select {
   flex-grow: 1;
   min-height: 0;
   position: relative;
-  padding: 4px;
+  padding: 4px var(--side-margin);
 }
 .virtual-host-list {
-  padding: 0;
+  padding: 0 var(--side-margin);
+}
+.viewport-wrapper {
+  padding: 0 var(--side-margin);
 }
 .viewport-container {
   overflow-y: auto;

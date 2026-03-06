@@ -15,7 +15,7 @@ import { EntityType } from '@app/models/entity.model';
   standalone: true,
   imports: [CommonModule, RouterModule, EmojizePipe],
   templateUrl: './collection-line.component.html',
-  styleUrl: './collection-line.component.css'
+  styleUrl: './collection-line.component.scss'
 })
 export class CollectionLineComponent {
   @Input({ required: true }) collection!: Collection;
@@ -32,6 +32,7 @@ export class CollectionLineComponent {
   private el = inject(ElementRef);
 
   containerHeight = signal(0);
+  sideMargin = signal(8);
 
   protected getMediaLayout(index: number) {
     const data = this.mediaLayoutData()[index];
@@ -58,7 +59,9 @@ export class CollectionLineComponent {
       return this.getElementWidth(index) + gap;
     },
     horizontal: true,
-    overscan: 5,
+    overscan: 10,
+    scrollMargin: this.sideMargin(),
+    paddingEnd: 2*this.sideMargin(),
     onChange: (instance) => {
       this.syncVisibleMedia(instance.getVirtualItems());
     }
@@ -125,11 +128,16 @@ export class CollectionLineComponent {
     if (!this.scrollElement) return;
 
     const style = getComputedStyle(this.el.nativeElement);
-    const cssWidth = style.getPropertyValue('--card-width-line').trim();
 
+    const cssWidth = style.getPropertyValue('--card-width-line').trim();
     if (cssWidth) {
       const height = parseInt(cssWidth, 10) * 1.5;
       this.containerHeight.set(height);
+    }
+
+    const cssSideMargin = style.getPropertyValue('--side-margin').trim();
+    if (cssSideMargin) {
+      this.sideMargin.set(parseInt(cssSideMargin, 10));
     }
   }
 }
