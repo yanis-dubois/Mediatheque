@@ -45,8 +45,6 @@ export class SettingsService {
         ...current,
         ...this.mapSettings(allSettings)
       }));
-
-      console.log("Settings loaded:", this.state());
     } catch (e) {
       console.error("Failed to load settings from DB, using defaults.", e);
     }

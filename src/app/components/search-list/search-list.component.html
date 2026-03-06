@@ -81,6 +81,19 @@
           </app-company-row>
         </a>
       }
+      @case (EntityType.SAGA) {
+        <a [routerLink]="['/metadata', EntityType.SAGA, entityId]">
+          <app-saga-row
+            [id]="entityId" 
+            [width]="containerWidth()" 
+            [height]="containerHeight()" 
+            [gap]="gap()"
+            [isMenuOpen]="false"
+            [display]="'search'"
+          >
+          </app-saga-row>
+        </a>
+      }
       @case (EntityType.GENRE) {
         <a [routerLink]="['/metadata', EntityType.GENRE, entityId]">
           <app-genre-row

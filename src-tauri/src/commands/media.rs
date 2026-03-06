@@ -6,7 +6,7 @@ use crate::models::enums::{
   MediaStatus, MediaType, MetadataType,
 };
 use crate::models::external_media::ExternalMediaRequest;
-use crate::models::media::{AnyMedia, Media, Movie, Series, TabletopGame};
+use crate::models::media::{AnyMedia, Descriptor, Media, Movie, Series, TabletopGame};
 use crate::models::query::{MediaFilter, MediaOrder};
 
 // convert SQL -> Media
@@ -36,9 +36,25 @@ pub fn map_row_to_media(row: &rusqlite::Row) -> rusqlite::Result<Media> {
 
 /* -- GET media -- */
 
-fn group_concat_to_vec(s: Option<String>) -> Vec<String> {
-  s.map(|s| s.split(',').map(String::from).collect())
-    .unwrap_or_default()
+fn parse_descriptors(raw: Option<String>) -> Vec<Descriptor> {
+  match raw {
+    Some(s) if !s.is_empty() => s
+      .split('|')
+      .filter_map(|part| {
+        let sub_parts: Vec<&str> = part.splitn(2, ':').collect();
+        if sub_parts.len() == 2 {
+          if let Ok(id) = sub_parts[0].parse::<i32>() {
+            return Some(Descriptor {
+              id,
+              name: sub_parts[1].to_string(),
+            });
+          }
+        }
+        None
+      })
+      .collect(),
+    _ => vec![],
+  }
 }
 
 #[tauri::command]
@@ -64,11 +80,14 @@ pub fn get_media_by_id(state: tauri::State<'_, DbState>, id: String) -> Result<A
     MediaType::Movie => {
       let movie = connection
         .query_row(
-          "SELECT m.duration, m.serie,
-            (SELECT GROUP_CONCAT(p.name) FROM person p 
+          "SELECT m.duration,
+            (SELECT GROUP_CONCAT(p.id || ':' || p.name, '|') FROM person p 
               JOIN media_person mp ON p.id = mp.person_id 
               WHERE mp.media_id = ?1 AND mp.role = 'DIRECTOR') as directors,
-            (SELECT GROUP_CONCAT(g.name) FROM genre g 
+            (SELECT GROUP_CONCAT(s.id || ':' || s.name, '|') FROM saga s 
+              JOIN media_saga ms ON s.id = ms.saga_id 
+              WHERE ms.media_id = ?1) as sagas,
+            (SELECT GROUP_CONCAT(g.id || ':' || g.name, '|') FROM genre g 
               JOIN media_genre mg ON g.id = mg.genre_id 
               WHERE mg.media_id = ?1) as genres
             FROM movie m WHERE m.media_id = ?1",
@@ -77,9 +96,9 @@ pub fn get_media_by_id(state: tauri::State<'_, DbState>, id: String) -> Result<A
             Ok(Movie {
               base,
               duration: row.get("duration")?,
-              serie: row.get("serie")?,
-              directors: group_concat_to_vec(row.get("directors")?),
-              genre: group_concat_to_vec(row.get("genres")?),
+              directors: parse_descriptors(row.get("directors")?),
+              saga: parse_descriptors(row.get("sagas")?),
+              genre: parse_descriptors(row.get("genres")?),
             })
           },
         )
@@ -92,10 +111,10 @@ pub fn get_media_by_id(state: tauri::State<'_, DbState>, id: String) -> Result<A
       let series = connection
         .query_row(
           "SELECT s.seasons, s.episodes,
-            (SELECT GROUP_CONCAT(p.name) FROM person p 
+            (SELECT GROUP_CONCAT(p.id || ':' || p.name, '|') FROM person p 
               JOIN media_person mp ON p.id = mp.person_id 
               WHERE mp.media_id = ?1 AND mp.role = 'CREATOR') as creators,
-            (SELECT GROUP_CONCAT(g.name) FROM genre g 
+            (SELECT GROUP_CONCAT(g.id || ':' || g.name, '|') FROM genre g 
               JOIN media_genre mg ON g.id = mg.genre_id 
               WHERE mg.media_id = ?1) as genres
             FROM series s WHERE s.media_id = ?1",
@@ -105,8 +124,8 @@ pub fn get_media_by_id(state: tauri::State<'_, DbState>, id: String) -> Result<A
               base,
               seasons: row.get("seasons")?,
               episodes: row.get("episodes")?,
-              creators: group_concat_to_vec(row.get("creators")?),
-              genre: group_concat_to_vec(row.get("genres")?),
+              creators: parse_descriptors(row.get("creators")?),
+              genre: parse_descriptors(row.get("genres")?),
             })
           },
         )
@@ -119,16 +138,16 @@ pub fn get_media_by_id(state: tauri::State<'_, DbState>, id: String) -> Result<A
       let game = connection
         .query_row(
           "SELECT tg.player_count, tg.playing_time,
-            (SELECT GROUP_CONCAT(p.name) FROM person p 
+            (SELECT GROUP_CONCAT(p.id || ':' || p.name, '|') FROM person p 
               JOIN media_person mp ON p.id = mp.person_id 
               WHERE mp.media_id = ?1 AND mp.role = 'DESIGNER') as designers,
-            (SELECT GROUP_CONCAT(p.name) FROM person p 
+            (SELECT GROUP_CONCAT(p.id || ':' || p.name, '|') FROM person p 
               JOIN media_person mp ON p.id = mp.person_id 
               WHERE mp.media_id = ?1 AND mp.role = 'ARTIST') as artists,
-            (SELECT GROUP_CONCAT(c.name) FROM company c 
+            (SELECT GROUP_CONCAT(c.id || ':' || c.name, '|') FROM company c 
               JOIN media_company mc ON c.id = mc.company_id 
               WHERE mc.media_id = ?1 AND mc.role = 'PUBLISHER') as publishers,
-            (SELECT GROUP_CONCAT(gm.name) FROM game_mechanic gm 
+            (SELECT GROUP_CONCAT(gm.id || ':' || gm.name, '|') FROM game_mechanic gm 
               JOIN media_game_mechanic mgm ON gm.id = mgm.game_mechanic_id 
               WHERE mgm.media_id = ?1) as mechanics
             FROM tabletop_game tg WHERE tg.media_id = ?1",
@@ -138,10 +157,10 @@ pub fn get_media_by_id(state: tauri::State<'_, DbState>, id: String) -> Result<A
               base,
               player_count: row.get("player_count")?,
               playing_time: row.get("playing_time")?,
-              designers: group_concat_to_vec(row.get("designers")?),
-              artists: group_concat_to_vec(row.get("artists")?),
-              publishers: group_concat_to_vec(row.get("publishers")?),
-              game_mechanics: group_concat_to_vec(row.get("mechanics")?),
+              designers: parse_descriptors(row.get("designers")?),
+              artists: parse_descriptors(row.get("artists")?),
+              publishers: parse_descriptors(row.get("publishers")?),
+              game_mechanics: parse_descriptors(row.get("mechanics")?),
             })
           },
         )
@@ -369,6 +388,14 @@ fn build_media_query_parts(
         .to_string(),
     );
     params.push(Box::new(*c_id));
+  }
+  // Saga
+  if let Some(s_id) = &filter.saga_id {
+    conditions.push(
+      "EXISTS (SELECT 1 FROM media_saga ms WHERE ms.media_id = m.id AND ms.saga_id = ?)"
+        .to_string(),
+    );
+    params.push(Box::new(*s_id));
   }
   // Genre
   if let Some(g_id) = &filter.genre_id {
@@ -648,10 +675,11 @@ pub fn insert_external_media(
   match data {
     ExternalMediaRequest::Movie(m) => {
       tx.execute(
-        "INSERT INTO movie (media_id, duration, serie) VALUES (?1, ?2, ?3)",
-        params![media_uuid, m.duration, m.serie],
+        "INSERT INTO movie (media_id, duration) VALUES (?1, ?2)",
+        params![media_uuid, m.duration],
       )?;
       insert_relations_person(tx, media_uuid, m.directors, "DIRECTOR")?;
+      insert_relations_saga(tx, media_uuid, m.saga)?;
       insert_relations_genre(tx, media_uuid, m.genre)?;
     }
 
@@ -691,6 +719,21 @@ fn insert_relations_person(
       "INSERT INTO media_person (media_id, person_id, role) 
       SELECT ?1, id, ?3 FROM person WHERE name = ?2",
       params![media_id, name, role],
+    )?;
+  }
+  Ok(())
+}
+fn insert_relations_saga(
+  tx: &Transaction,
+  media_id: &str,
+  sagas: Vec<String>,
+) -> Result<(), rusqlite::Error> {
+  for saga in sagas {
+    tx.execute("INSERT OR IGNORE INTO saga (name) VALUES (?1)", [&saga])?;
+    tx.execute(
+      "INSERT INTO media_saga (media_id, saga_id) 
+      SELECT ?1, id FROM saga WHERE name = ?2",
+      params![media_id, saga],
     )?;
   }
   Ok(())

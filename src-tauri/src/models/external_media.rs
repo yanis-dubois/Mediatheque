@@ -43,7 +43,7 @@ pub struct ExternalMovie {
   // movie specific fields
   pub directors: Vec<String>,
   pub genre: Vec<String>,
-  pub serie: Option<String>,
+  pub saga: Vec<String>,
   pub duration: i32,
 }
 

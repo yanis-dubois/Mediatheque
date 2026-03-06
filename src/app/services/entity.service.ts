@@ -117,6 +117,10 @@ export class EntityService {
         const companies = await metadataService.getCompanyBatch(ids);
         companies.forEach(c => this.setEntity({ ...c, type: EntityType.COMPANY }));
         break;
+      case EntityType.SAGA:
+        const sagas = await metadataService.getSagaBatch(ids);
+        sagas.forEach(s => this.setEntity({ ...s, type: EntityType.SAGA }));
+        break;
       case EntityType.GENRE:
         const genre = await metadataService.getGenreBatch(ids);
         genre.forEach(g => this.setEntity({ ...g, type: EntityType.GENRE }));
@@ -149,6 +153,10 @@ export class EntityService {
       case EntityType.COMPANY:
         const company = await metadataService.getCompanyById(id);
         this.setEntity({ ...company, type: EntityType.COMPANY });
+        break;
+      case EntityType.SAGA:
+        const saga = await metadataService.getSagaById(id);
+        this.setEntity({ ...saga, type: EntityType.SAGA });
         break;
       case EntityType.GENRE:
         const genre = await metadataService.getGenreById(id);

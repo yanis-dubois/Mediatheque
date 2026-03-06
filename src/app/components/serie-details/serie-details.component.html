@@ -1,6 +1,14 @@
 <div class="info">
-  <p class="directors" *ngFor="let creator of serie.creators">{{ creator }}</p>
-  <p class="genre" *ngFor="let g of serie.genre">{{ g }}</p>
+  @for (creator of serie.creators; track creator) {
+    <a [routerLink]="['/metadata', metadataType.PERSON, creator.id]">
+      <p class="directors">{{ creator.name }}</p>
+    </a>
+  }
+  @for (g of serie.genre; track g) {
+    <a [routerLink]="['/metadata', metadataType.GENRE, g.id]">
+      <p class="directors">{{ g.name }}</p>
+    </a>
+  }
   <p class="seasons">seasons {{ serie.seasons }}</p>
   <p class="episodes">episodes {{ serie.episodes }}</p>
 </div>

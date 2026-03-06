@@ -50,6 +50,8 @@ pub fn run() {
       commands::metadata::get_person_by_id,
       commands::metadata::get_company_batch,
       commands::metadata::get_company_by_id,
+      commands::metadata::get_saga_batch,
+      commands::metadata::get_saga_by_id,
       commands::metadata::get_genre_batch,
       commands::metadata::get_genre_by_id,
       commands::metadata::get_game_mechanic_batch,

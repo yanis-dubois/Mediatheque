@@ -15,11 +15,12 @@ import { PersonRowComponent } from "../person-row/person-row.component";
 import { CompanyRowComponent } from "../company-row/company-row.component";
 import { GenreRowComponent } from "../tag-row/genre-row.component";
 import { GameMechanicRowComponent } from "../tag-row/game-mechanic-row.component";
+import { SagaRowComponent } from "../saga-row/saga-row.component";
 
 @Component({
   selector: 'app-search-list',
   standalone: true,
-  imports: [CommonModule, RouterModule, GenericListComponent, MediaRowComponent, CollectionRowItemComponent, DropdownComponent, MediaActionComponent, CollectionActionComponent, PersonRowComponent, CompanyRowComponent, GenreRowComponent, GameMechanicRowComponent],
+  imports: [CommonModule, RouterModule, GenericListComponent, MediaRowComponent, CollectionRowItemComponent, DropdownComponent, MediaActionComponent, CollectionActionComponent, PersonRowComponent, CompanyRowComponent, GenreRowComponent, GameMechanicRowComponent, SagaRowComponent],
   templateUrl: './search-list.component.html',
   styleUrls: ['./search-list.component.css']
 })

@@ -1,6 +1,6 @@
 use crate::db::DbState;
 use crate::models::enums::{EntityType, MetadataType};
-use crate::models::metadata::{Company, Person, Tag};
+use crate::models::metadata::{Company, Person, Saga, Tag};
 
 // convert SQL -> Metadata
 pub fn map_row_to_person(row: &rusqlite::Row) -> rusqlite::Result<Person> {
@@ -15,6 +15,14 @@ pub fn map_row_to_company(row: &rusqlite::Row) -> rusqlite::Result<Company> {
   let id_numeric: i32 = row.get(0)?;
 
   Ok(Company {
+    id: id_numeric.to_string(),
+    name: row.get(1)?,
+  })
+}
+pub fn map_row_to_saga(row: &rusqlite::Row) -> rusqlite::Result<Saga> {
+  let id_numeric: i32 = row.get(0)?;
+
+  Ok(Saga {
     id: id_numeric.to_string(),
     name: row.get(1)?,
   })
@@ -49,6 +57,7 @@ fn fetch_layout_data(
   let entity_type = match metadata_type {
     MetadataType::Person => EntityType::Person,
     MetadataType::Company => EntityType::Company,
+    MetadataType::Saga => EntityType::Saga,
     MetadataType::Genre => EntityType::Genre,
     MetadataType::GameMechanic => EntityType::GameMechanic,
   };
@@ -140,6 +149,20 @@ pub fn get_company_by_id(state: tauri::State<'_, DbState>, id: String) -> Result
 }
 
 #[tauri::command]
+pub fn get_saga_batch(
+  state: tauri::State<'_, DbState>,
+  ids: Vec<String>,
+) -> Result<Vec<Saga>, String> {
+  let connection = state.connection.lock().map_err(|_| "Lock failed")?;
+  fetch_batch(&connection, "saga", ids, map_row_to_saga)
+}
+#[tauri::command]
+pub fn get_saga_by_id(state: tauri::State<'_, DbState>, id: String) -> Result<Saga, String> {
+  let connection = state.connection.lock().map_err(|_| "Lock failed")?;
+  fetch_by_id(&connection, "saga", id, map_row_to_saga)
+}
+
+#[tauri::command]
 pub fn get_genre_batch(
   state: tauri::State<'_, DbState>,
   ids: Vec<String>,
@@ -179,6 +202,7 @@ pub fn get_metadata_layout(
   let table = match metadata_type {
     MetadataType::Person => "person",
     MetadataType::Company => "company",
+    MetadataType::Saga => "saga",
     MetadataType::Genre => "genre",
     MetadataType::GameMechanic => "game_mechanic",
   };

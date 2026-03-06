@@ -183,6 +183,7 @@ pub enum EntityType {
   Collection,
   Person,
   Company,
+  Saga,
   Genre,
   GameMechanic,
 }
@@ -196,6 +197,7 @@ pub enum MetadataType {
   #[default]
   Person,
   Company,
+  Saga,
   Genre,
   GameMechanic,
 }
@@ -249,6 +251,7 @@ pub fn match_entity_type(s: &str) -> EntityType {
     "COLLECTION" => EntityType::Collection,
     "PERSON" => EntityType::Person,
     "COMPANY" => EntityType::Company,
+    "SAGA" => EntityType::Saga,
     "GENRE" => EntityType::Genre,
     "GAME_MECHANIC" => EntityType::GameMechanic,
     _ => EntityType::Media,

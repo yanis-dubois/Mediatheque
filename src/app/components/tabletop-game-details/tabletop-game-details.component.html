@@ -1,8 +1,24 @@
 <div class="info">
-  <p class="designers" *ngFor="let designer of game.designers">{{ designer }}</p>
-  <p class="artists" *ngFor="let artist of game.artists">{{ artist }}</p>
-  <p class="publisher" *ngFor="let publisher of game.publishers">{{ publisher }}</p>
-  <p class="mechanics" *ngFor="let mechanic of game.gameMechanics">{{ mechanic }}</p>
+  @for (designer of game.designers; track designer) {
+    <a [routerLink]="['/metadata', metadataType.PERSON, designer.id]">
+      <p class="designers">{{ designer.name }}</p>
+    </a>
+  }
+  @for (artist of game.artists; track artist) {
+    <a [routerLink]="['/metadata', metadataType.PERSON, artist.id]">
+      <p class="artists">{{ artist.name }}</p>
+    </a>
+  }
+  @for (publisher of game.publishers; track publisher) {
+    <a [routerLink]="['/metadata', metadataType.COMPANY, publisher.id]">
+      <p class="designers">{{ publisher.name }}</p>
+    </a>
+  }
+  @for (mechanic of game.gameMechanics; track mechanic) {
+    <a [routerLink]="['/metadata', metadataType.GAME_MECHANIC, mechanic.id]">
+      <p class="designers">{{ mechanic.name }}</p>
+    </a>
+  }
   <p class="player_count">{{ game.playerCount }}</p>
   <p class="playing_time">{{ game.playingTime }}</p>
 </div>

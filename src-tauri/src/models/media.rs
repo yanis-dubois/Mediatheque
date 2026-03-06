@@ -3,6 +3,13 @@ use serde::Serialize;
 
 #[derive(Debug, Serialize)]
 #[serde(rename_all = "camelCase")]
+pub struct Descriptor {
+  pub id: i32,
+  pub name: String,
+}
+
+#[derive(Debug, Serialize)]
+#[serde(rename_all = "camelCase")]
 pub struct Media {
   pub id: String,
   pub media_type: MediaType,
@@ -44,9 +51,9 @@ pub struct Movie {
   pub base: Media,
 
   // movie specific fields
-  pub directors: Vec<String>,
-  pub genre: Vec<String>,
-  pub serie: Option<String>,
+  pub directors: Vec<Descriptor>,
+  pub genre: Vec<Descriptor>,
+  pub saga: Vec<Descriptor>,
   pub duration: i32,
 }
 
@@ -58,8 +65,8 @@ pub struct Series {
   pub base: Media,
 
   // series specific fields
-  pub creators: Vec<String>,
-  pub genre: Vec<String>,
+  pub creators: Vec<Descriptor>,
+  pub genre: Vec<Descriptor>,
   pub seasons: i32,
   pub episodes: i32,
 }
@@ -72,10 +79,10 @@ pub struct TabletopGame {
   pub base: Media,
 
   // series specific fields
-  pub designers: Vec<String>,
-  pub artists: Vec<String>,
-  pub publishers: Vec<String>,
-  pub game_mechanics: Vec<String>,
+  pub designers: Vec<Descriptor>,
+  pub artists: Vec<Descriptor>,
+  pub publishers: Vec<Descriptor>,
+  pub game_mechanics: Vec<Descriptor>,
   pub player_count: String,
   pub playing_time: String,
 }

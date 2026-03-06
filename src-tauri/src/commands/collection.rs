@@ -188,14 +188,14 @@ pub fn search_in_meta_data(
   println!("search_in_meta_data : {}", query);
 
   filter.search_query = if query.is_empty() { None } else { Some(query) };
-  // filter.media_type = match media_type {
-  //   CollectionMediaType::All => None,
-  //   CollectionMediaType::Specific(mt) => Some(mt),
-  // };
+  if let CollectionMediaType::Specific(mt) = media_type {
+    filter.media_type = Some(mt);
+  }
 
   match metadata_type {
     MetadataType::Person => filter.person_id = Some(metadata_id),
     MetadataType::Company => filter.company_id = Some(metadata_id),
+    MetadataType::Saga => filter.saga_id = Some(metadata_id),
     MetadataType::Genre => filter.genre_id = Some(metadata_id),
     MetadataType::GameMechanic => filter.game_mechanic_id = Some(metadata_id),
   }

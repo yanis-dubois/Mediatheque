@@ -21,13 +21,10 @@ export class AppComponent {
   // TMP
   constructor(private mediaService: MediaService) {}
   async ngOnInit() {
-    console.log("🚀 App initialisée, lancement des tests...");
-
     try {
       // await this.simulateInitialData();
-      console.log("✅ Données de test insérées.");
-    } catch (err) {
-      console.error("❌ Échec du seed :", err);
+    } catch (e) {
+      console.error("Error while seeding external data :", e);
     }
   }
   async simulateInitialData() {

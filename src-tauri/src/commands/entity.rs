@@ -25,6 +25,8 @@ pub fn search_in_library(
       UNION ALL
       SELECT CAST(id AS TEXT), 'COMPANY' as type FROM company WHERE name LIKE ?1
       UNION ALL
+      SELECT CAST(id AS TEXT), 'SAGA' as type FROM saga WHERE name LIKE ?1
+      UNION ALL
       SELECT CAST(id AS TEXT), 'GENRE' as type FROM genre WHERE name LIKE ?1
       UNION ALL
       SELECT CAST(id AS TEXT), 'GAME_MECHANIC' as type FROM game_mechanic WHERE name LIKE ?1

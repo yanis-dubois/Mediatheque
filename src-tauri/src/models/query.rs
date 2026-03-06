@@ -31,6 +31,7 @@ pub struct MediaFilter {
   // metadata collection
   pub person_id: Option<u32>,
   pub company_id: Option<u32>,
+  pub saga_id: Option<u32>,
   pub genre_id: Option<u32>,
   pub game_mechanic_id: Option<u32>,
 }
@@ -52,6 +53,7 @@ impl Default for MediaFilter {
 
       person_id: None,
       company_id: None,
+      saga_id: None,
       genre_id: None,
       game_mechanic_id: None,
     }

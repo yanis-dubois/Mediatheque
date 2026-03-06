@@ -173,7 +173,6 @@ pub fn init_db(connection: &mut Connection) -> Result<()> {
       media_id TEXT PRIMARY KEY,
 
       duration INTEGER NOT NULL,
-      serie TEXT,
 
       FOREIGN KEY (media_id) REFERENCES media(id) ON DELETE CASCADE
     );
@@ -206,6 +205,11 @@ pub fn init_db(connection: &mut Connection) -> Result<()> {
     );
 
     CREATE TABLE IF NOT EXISTS company (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      name TEXT NOT NULL UNIQUE
+    );
+
+    CREATE TABLE IF NOT EXISTS saga (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       name TEXT NOT NULL UNIQUE
     );
@@ -248,6 +252,15 @@ pub fn init_db(connection: &mut Connection) -> Result<()> {
       FOREIGN KEY (company_id) REFERENCES company(id) ON DELETE CASCADE
     );
 
+    -- Saga
+    CREATE TABLE IF NOT EXISTS media_saga (
+      media_id TEXT NOT NULL,
+      saga_id INTEGER NOT NULL,
+      PRIMARY KEY (media_id, saga_id),
+      FOREIGN KEY (media_id) REFERENCES media(id) ON DELETE CASCADE,
+      FOREIGN KEY (saga_id) REFERENCES saga(id) ON DELETE CASCADE
+    );
+
     -- Genre
     CREATE TABLE IF NOT EXISTS media_genre (
       media_id TEXT NOT NULL,
@@ -286,6 +299,7 @@ pub fn init_db(connection: &mut Connection) -> Result<()> {
 
     CREATE INDEX IF NOT EXISTS idx_media_person_reverse ON media_person(person_id, role);
     CREATE INDEX IF NOT EXISTS idx_media_company_reverse ON media_company(company_id, role);
+    CREATE INDEX IF NOT EXISTS idx_media_saga_reverse ON media_saga(saga_id);
     CREATE INDEX IF NOT EXISTS idx_media_genre_reverse ON media_genre(genre_id);
     CREATE INDEX IF NOT EXISTS idx_media_game_mechanic_reverse ON media_game_mechanic(game_mechanic_id);
     "
@@ -462,10 +476,13 @@ pub fn seed_data(connection: &mut Connection) -> Result<()> {
     // movies
     if let Some(details) = m.movie_details {
       tx.execute(
-        "INSERT INTO movie (media_id, duration, serie) VALUES (?1, ?2, ?3)",
-        params![media_id_str, details.duration, details.serie],
+        "INSERT INTO movie (media_id, duration) VALUES (?1, ?2)",
+        params![media_id_str, details.duration],
       )?;
       seed_persons(&tx, &media_id_str, details.directors, "DIRECTOR")?;
+      if let Some(serie) = details.serie {
+        seed_saga(&tx, &media_id_str, vec![serie])?;
+      }
       seed_genres(&tx, &media_id_str, details.genres)?;
     }
     // series
@@ -577,6 +594,17 @@ fn seed_genres(
       "INSERT INTO media_genre (media_id, genre_id)
         SELECT ?1, id FROM genre WHERE name = ?2",
       params![media_id, genre],
+    )?;
+  }
+  Ok(())
+}
+fn seed_saga(tx: &rusqlite::Transaction, media_id: &str, sagas: Vec<&str>) -> rusqlite::Result<()> {
+  for saga in sagas {
+    tx.execute("INSERT OR IGNORE INTO saga (name) VALUES (?1)", [saga])?;
+    tx.execute(
+      "INSERT INTO media_saga (media_id, saga_id)
+        SELECT ?1, id FROM saga WHERE name = ?2",
+      params![media_id, saga],
     )?;
   }
   Ok(())
