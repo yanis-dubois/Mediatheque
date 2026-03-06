@@ -2,7 +2,12 @@
   <section class="header">
 
     <div>
-      <img class="image" [src]="media.id | posterPath" [alt]="media.title"/>
+      <img 
+        class="image" 
+        [src]="media.id | posterPath" 
+        [alt]="media.title" 
+        (click)="isLightboxOpen.set(true)"
+      />
       <p>({{ media.imageWidth }} x {{ media.imageHeight }})</p>
     </div>
 
@@ -71,5 +76,16 @@
       </div>
 
     </div>
+
+    @if (isLightboxOpen()) {
+      <app-poster-lightbox 
+        [mediaId]="media.id"
+        [title]="media.title"
+        [width]="media.imageWidth"
+        [height]="media.imageHeight"
+        (close)="isLightboxOpen.set(false)"
+      />
+    }
+
   </section>
 }

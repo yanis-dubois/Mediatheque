@@ -11,11 +11,12 @@ import { Movie, Series, TabletopGame } from '@models/media-details.model';
 import { MediaService } from '@services/media.service'
 import { PosterPathPipe } from "@pipe/image-path.pipe";
 import { ScoreDisplayComponent } from "@app/components/score-display/score-display.component";
+import { PosterLightboxComponent } from "../poster-lightbox/poster-lightbox.component";
 
 @Component({
   selector: 'app-media-details',
   standalone: true,
-  imports: [CommonModule, MovieDetailsComponent, SerieDetailsComponent, TabletopGameDetailsComponent, PosterPathPipe, ScoreDisplayComponent],
+  imports: [CommonModule, MovieDetailsComponent, SerieDetailsComponent, TabletopGameDetailsComponent, PosterPathPipe, ScoreDisplayComponent, PosterLightboxComponent],
   templateUrl: './media-details.component.html',
   styleUrl: './media-details.component.css'
 })
@@ -34,6 +35,8 @@ export class MediaDetailsComponent {
   isSavingNotes = signal(false);
   status = signal<MediaStatus>(MediaStatus.TO_DISCOVER);
   score = signal<number | undefined>(undefined);
+
+  isLightboxOpen = signal(false);
 
   constructor(
     private mediaService: MediaService
