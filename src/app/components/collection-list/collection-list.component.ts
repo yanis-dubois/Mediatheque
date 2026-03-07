@@ -27,7 +27,6 @@ export class CollectionListComponent {
 
   containerHeight = signal(120);
   containerWidth = signal(100);
-  gap = input.required<number>();
 
   protected onVisibleItemsChanged(visibleData: [string, number, number][]) {
     const visibleIds = visibleData.map(data => data[0]);

@@ -1,0 +1,53 @@
+.select-wrapper {
+  position: relative;
+  display: inline-grid;
+  grid-template-columns: minmax(0, 1fr);
+  align-items: center;
+  justify-items: center;
+  border-radius: 4px;
+  height: 1rem;
+  width: fit-content;
+  overflow: hidden;
+  line-height: 1;
+}
+
+.shadow-text {
+  grid-area: 1 / 1;
+  visibility: hidden;
+  white-space: nowrap;
+  font-size: 0.7rem;
+  padding: 0 8px;
+  line-height: 1;
+  display: block;
+}
+
+.status-select {
+  grid-area: 1 / 1;
+  width: 100%;
+  min-width: 0;
+  height: 100%;
+  
+  appearance: none;
+  -webkit-appearance: none;
+  background: transparent;
+  border: none;
+  color: var(--color-light);
+  font-size: 0.7rem;
+  font-family: inherit;
+  cursor: pointer;
+  text-align: center;
+  padding: 0;
+  outline: none;
+
+  text-align-last: center; 
+}
+.status-select::-ms-expand {
+  display: none;
+}
+
+:host {
+  display: inline-flex; // Permet au composant de coller à la taille de son contenu
+  vertical-align: middle; // Aligne le bloc au centre s'il y a du texte autour
+  line-height: 1; // Supprime l'espace réservé aux interlignes
+  height: 1rem; // Force la hauteur pour correspondre à votre design
+}

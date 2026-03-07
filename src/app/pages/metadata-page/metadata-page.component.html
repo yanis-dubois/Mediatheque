@@ -123,13 +123,12 @@
         <app-collection-list 
           class="virtual-host virtual-host-list"
           [mediaLayoutData]="mediaLayoutData()" 
-          [gap]="gap()"
         >
           <ng-template #rowRef let-mediaId="mediaId" let-width="width" let-height="height">
             <a [routerLink]="['/media', mediaId]" style="text-decoration: none; color: inherit;">
               <app-media-row 
                 [mediaId]="mediaId" [width]="width" [height]="height"
-                [isMenuOpen]="isMenuOpen(mediaId)" [gap]="gap()"
+                [isMenuOpen]="isMenuOpen(mediaId)"
                 [display]="'roles'"
                 [roles]="getRolesForMedia(mediaId)"
               >

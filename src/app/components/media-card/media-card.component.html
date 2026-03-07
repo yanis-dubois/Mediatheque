@@ -6,21 +6,31 @@
   [style.height.px]="height"
 >
   @if (media(); as media) {
-  <a 
-    class="item-content"
-    [routerLink]="['/media', media.id]"
-  >
-    <img 
-      [src]="media.id | posterPath"
-      [alt]="media.title"
-      [style.width.px]="width"
-      [style.height.px]="height"
+    <a 
+      class="item-content"
+      [routerLink]="['/media', media.id]"
     >
-  </a>
+      <img 
+        [src]="media.id | posterPath"
+        [alt]="media.title"
+        [style.width.px]="width"
+        [style.height.px]="height"
+      >
+    </a>
 
-  <div class="menu-slot">
-    <ng-content select="[mediaMenu]"></ng-content>
-  </div>
+    <div class="fav-slot">
+      @if (media.favorite) {
+        <span>{{ media.favorite | emojize }}</span>
+      }
+    </div>
+
+    <div class="status-container">
+      <app-media-status-action [mediaId]="media.id"></app-media-status-action>
+    </div>
+
+    <div class="menu-slot">
+      <ng-content select="[mediaMenu]"></ng-content>
+    </div>
   } 
   @else {
     <div class="skeleton-card" 

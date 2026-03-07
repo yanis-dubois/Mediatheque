@@ -23,14 +23,7 @@
       />
 
       <div class="fieldset-container status-box">
-        <select 
-          [value]="status()" 
-          (change)="onStatusChange($any($event.target).value)"
-        >
-          @for (opt of statusOptions; track opt) {
-            <option [value]="opt" [selected]="opt === status()">{{ opt }}</option>
-          }
-        </select>
+        <app-media-status-action [mediaId]="media.id"></app-media-status-action>
       </div>
 
       <button (click)="onToggleFavorite()" [class.is-favorite]="favorite()">

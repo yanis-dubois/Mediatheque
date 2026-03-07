@@ -5,7 +5,6 @@ import { ActivatedRoute, RouterModule } from '@angular/router';
 import { ActionBarComponent } from "@app/components/action-bar/action-bar.component";
 import { SearchListComponent } from "@app/components/search-list/search-list.component";
 import { EntityType, MetadataType } from '@app/models/entity.model';
-import { EntityService } from '@app/services/entity.service';
 import { debounceTime, Subject } from 'rxjs';
 import { MetadataService } from '@app/services/metadata.service';
 import { HumanizePipe } from "../../pipe/humanize";

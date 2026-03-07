@@ -1,4 +1,4 @@
-<div class="row-container" [class.is-menu-open]="isMenuOpen()" [style.height.px]="height() + gap()">
+<div class="row-container" [class.is-menu-open]="isMenuOpen()" [style.height.px]="height() + 2*listPadding()">
   <div class="row-content">
     <div class="card-slot">
       <ng-content select="[card]"></ng-content>

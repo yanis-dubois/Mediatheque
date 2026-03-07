@@ -159,7 +159,7 @@ pub fn init_db(connection: &mut Connection) -> Result<()> {
       added_date TEXT NOT NULL,
 
       status TEXT NOT NULL CHECK(
-        status IN ('TO_DISCOVER', 'IN_PROGRESS', 'FINISHED', 'DROPPED')
+        status IN ('FINISHED', 'IN_PROGRESS', 'TO_DISCOVER', 'DROPPED')
       ),
       favorite INTEGER NOT NULL DEFAULT 0 CHECK(favorite IN (0, 1)),
       notes TEXT NOT NULL DEFAULT '',

@@ -5,7 +5,7 @@
   <div [style.height.px]="virtualizer.getTotalSize()" style="width: 100%; position: relative;">
     @for (vItem of virtualizer.getVirtualItems(); track vItem.key) {
       <div
-        [style.height.px]="itemHeight() + gap()"
+        [style.height.px]="itemHeight() + listPadding()"
         [style.transform]="'translateY(' + vItem.start + 'px)'"
         style="position: absolute; top: 0; left: 0; width: 100%;"
       >

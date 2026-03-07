@@ -13,6 +13,15 @@ export enum MediaStatus {
   DROPPED = 'DROPPED'
 }
 
+export const getStatusColor = (status: MediaStatus): string => {
+  switch (status) {
+    case MediaStatus.FINISHED: return 'var(--color-status-finished)';
+    case MediaStatus.IN_PROGRESS: return 'var(--color-status-in-progress)';
+    case MediaStatus.TO_DISCOVER: return 'var(--color-status-to-discover)';
+    case MediaStatus.DROPPED: return 'var(--color-status-dropped)';
+  }
+};
+
 /** "IN_PROGRESS" -> "in-progress" */
 export const enumToPath = (str: string): string => {
   return str.toLowerCase().replace(/_/g, '-');

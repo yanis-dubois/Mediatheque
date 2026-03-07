@@ -1,22 +1,6 @@
-<app-entity-row-layout [height]="height()" [gap]="gap()" [isMenuOpen]="isMenuOpen()">
+<app-entity-row-layout [height]="height()" [isMenuOpen]="isMenuOpen()">
 
   @let collection = entity();
-
-  <!-- <div card [style.height.px]="height()">
-    @if (collection) {
-      <img 
-        [src]="collection.id | posterPath" 
-        [alt]="collection.name" 
-        [style.width.px]="width()" 
-        [style.height.px]="height()"
-      >
-    } @else {
-      <div class="skeleton-card" 
-        [style.width.px]="width()" 
-        [style.height.px]="height()">
-      </div>
-    }
-  </div> -->
 
   <div text>
     @let isSearch = display() === 'search';

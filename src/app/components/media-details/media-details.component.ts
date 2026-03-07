@@ -12,11 +12,12 @@ import { MediaService } from '@services/media.service'
 import { PosterPathPipe } from "@pipe/image-path.pipe";
 import { ScoreDisplayComponent } from "@app/components/score-display/score-display.component";
 import { PosterLightboxComponent } from "../poster-lightbox/poster-lightbox.component";
+import { MediaStatusActionComponent } from "../media-status-action/media-status-action.component";
 
 @Component({
   selector: 'app-media-details',
   standalone: true,
-  imports: [CommonModule, MovieDetailsComponent, SerieDetailsComponent, TabletopGameDetailsComponent, PosterPathPipe, ScoreDisplayComponent, PosterLightboxComponent],
+  imports: [CommonModule, MovieDetailsComponent, SerieDetailsComponent, TabletopGameDetailsComponent, PosterPathPipe, ScoreDisplayComponent, PosterLightboxComponent, MediaStatusActionComponent],
   templateUrl: './media-details.component.html',
   styleUrl: './media-details.component.css'
 })

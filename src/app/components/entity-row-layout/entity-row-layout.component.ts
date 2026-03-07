@@ -1,4 +1,4 @@
-import { Component, input } from '@angular/core';
+import { Component, ElementRef, HostListener, inject, input, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 
 @Component({
@@ -10,6 +10,25 @@ import { CommonModule } from '@angular/common';
 })
 export class EntityRowLayoutComponent {
   height = input.required<number>();
-  gap = input<number>(0);
+  listPadding = signal<number>(0);
   isMenuOpen = input<boolean>(false);
+
+  private el = inject(ElementRef);
+
+  ngAfterViewInit() {
+    this.getPadding();
+  }
+
+  @HostListener('window:resize')
+  onResize() {
+    this.getPadding();
+  }
+
+  getPadding() {
+    const style = getComputedStyle(this.el.nativeElement);
+    const cssPadding = style.getPropertyValue('--list-padding').trim();
+    if (cssPadding) {
+      this.listPadding.set(parseInt(cssPadding, 10));
+    }
+  }
 }

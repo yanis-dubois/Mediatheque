@@ -1,5 +1,7 @@
 .row-container {
   width: 100%;
+  border-radius: 8px;
+  contain: strict;
 }
 .row-container {
   transition: background-color 0.3s ease;
@@ -12,7 +14,7 @@
 
 .row-content {
   display: flex;
-  padding: 0px 16px;
+  padding: 0px var(--list-padding);
   height: 100%;
 }
 

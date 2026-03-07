@@ -1,7 +1,7 @@
 import { Pipe, PipeTransform } from '@angular/core';
 import { CollectionMediaType, CollectionType, isCollectionMediaType } from '@app/models/collection.model';
 import { FiveStep, ThreeStep } from '@app/models/score.model';
-import { MediaType } from '@models/media.model';
+import { MediaStatus, MediaType } from '@models/media.model';
 
 @Pipe({
   name: 'emojize',
@@ -10,6 +10,7 @@ import { MediaType } from '@models/media.model';
 export class EmojizePipe implements PipeTransform {
 
   transform(value: boolean): string;
+  transform(value: MediaStatus): string;
   transform(value: MediaType): string;
   transform(value: CollectionMediaType): string;
   transform(value: CollectionType): string;
@@ -19,6 +20,16 @@ export class EmojizePipe implements PipeTransform {
     // is favorite
     if (typeof value === 'boolean') {
       return value ? "❤️" : "🩶";
+    }
+
+    // status
+    if (Object.values(MediaStatus).includes(value)) {
+      switch (value) {
+        case MediaStatus.FINISHED: return "✅";
+        case MediaStatus.IN_PROGRESS: return "⏳";
+        case MediaStatus.TO_DISCOVER: return "🔖";
+        case MediaStatus.DROPPED: return "❌";
+      }
     }
 
     // collection media type

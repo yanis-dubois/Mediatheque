@@ -1,29 +1,25 @@
-<button class="dropdown-button" (click)="toggleFavorite()" style="text-align: center;">
-  {{ media()?.favorite ? '❤️' : '🩶' }}
-</button>
-<button class="dropdown-button">
-  <select 
-    (change)="onStatusChange($any($event.target).value)"
-  >
-    @for (opt of statusOptions; track opt) {
-      <option [value]="opt" [selected]="opt === media()?.status">{{ opt | humanize }}</option>
-    }
-  </select>
-</button>
-<button class="dropdown-button" (click)="openPicker($event)">
-  Add to collection
-</button>
-
-@if (canDeleteFromCollection()) {
-  <button class="dropdown-button delete-item" (click)="onDeleteFromCollection()">
-    Delete from collection
+@if (media(); as media) {
+  <button class="dropdown-button" (click)="toggleFavorite()" style="text-align: center;">
+    {{ media.favorite ? '❤️' : '🩶' }}
   </button>
+  <button class="dropdown-button">
+    <app-media-status-action [mediaId]="media.id"></app-media-status-action>
+  </button>
+  <button class="dropdown-button" (click)="openPicker($event)">
+    Add to collection
+  </button>
+  
+  @if (canDeleteFromCollection()) {
+    <button class="dropdown-button delete-item" (click)="onDeleteFromCollection()">
+      Delete from collection
+    </button>
+  }
+  
+  <ng-template #pickerTemplate>
+    <app-collection-picker 
+      [media]="media"
+      (onCancel)="closePicker()"
+      (onConfirm)="addToSelectedCollection($event); closePicker()"
+    />
+  </ng-template>
 }
-
-<ng-template #pickerTemplate>
-  <app-collection-picker 
-    [media]="media()!"
-    (onCancel)="closePicker()"
-    (onConfirm)="addToSelectedCollection($event); closePicker()"
-  />
-</ng-template>

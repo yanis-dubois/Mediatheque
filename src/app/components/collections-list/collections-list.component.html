@@ -1,7 +1,6 @@
 <app-generic-list 
   [items]="collectionIds()"
   [itemHeight]="containerHeight()"
-  [gap]="gap()"
   (visibleItemsChanged)="onVisibleItemsChanged($event)" 
   (windowResize)="updateDimensions()" 
 >

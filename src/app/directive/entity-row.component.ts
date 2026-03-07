@@ -10,7 +10,6 @@ export abstract class EntityRow<T extends DetailedEntity> {
   height = input.required<number>();
   isMenuOpen = input.required<boolean>();
   display = input<string>('default');
-  gap = input.required<number>();
 
   customIcon = contentChild<ElementRef>('icon');
 

@@ -4,8 +4,6 @@ import { RouterModule } from '@angular/router';
 import { debounceTime, Subject, switchMap } from 'rxjs';
 
 import { GenericListComponent } from "../generic-list/generic-list.component";
-import { CollectionService } from '@app/services/collection.service';
-import { Collection } from '@app/models/collection.model';
 import { EntityService } from '@app/services/entity.service';
 import { EntityType } from '@app/models/entity.model';
 

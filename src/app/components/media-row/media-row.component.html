@@ -1,4 +1,4 @@
-<app-entity-row-layout [height]="height()" [gap]="gap()" [isMenuOpen]="isMenuOpen()">
+<app-entity-row-layout [height]="height()" [isMenuOpen]="isMenuOpen()">
 
   @let media = entity();
 
@@ -21,7 +21,10 @@
   <div text>
     @if (media) {
       <p class="title">{{ media.title }}</p>
-      <p class="info">{{ media.mediaType | emojize }} - {{ media.status | humanize }}</p>
+      <div class="info" style="display: flex; align-items: center;">
+        <p class="info">{{ media.mediaType | emojize }} -&nbsp;</p>
+        <app-media-status-action [mediaId]="media.id"></app-media-status-action>
+      </div>
       @if (display() === 'search') {
         <p class="sub-info">{{ type | humanize }}</p>
       } @else if (display() === 'roles') {

@@ -6,11 +6,12 @@ import { CollectionPickerComponent } from "../collection-picker/collection-picke
 import { DOCUMENT } from '@angular/common';
 import { CollectionService } from '@app/services/collection.service';
 import { EntityService } from '@app/services/entity.service';
+import { MediaStatusActionComponent } from "../media-status-action/media-status-action.component";
 
 @Component({
   selector: 'app-media-action',
   standalone: true,
-  imports: [HumanizePipe, CollectionPickerComponent],
+  imports: [HumanizePipe, CollectionPickerComponent, MediaStatusActionComponent],
   templateUrl: './media-action.component.html'
 })
 export class MediaActionComponent {
