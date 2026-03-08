@@ -42,14 +42,14 @@
   flex: none;
   width: 32px;
   align-content: center;
-  margin-right: 16px;
+  margin-right: var(--list-padding);
 }
 
 .menu-slot {
-  position: absolute;
-  top: 8px;
-  right: 8px;
   z-index: 10;
+  flex: none;
+  align-content: center;
+  margin-right: var(--list-padding);
 }
 
 .separator {
@@ -61,10 +61,4 @@
   margin: 0;
   border: none;
   border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-}
-
-:host {
-  --dots-bg: none;
-  --dots-hover: rgba(255, 255, 255, 0.2);
-  --dots-blur: none;
 }

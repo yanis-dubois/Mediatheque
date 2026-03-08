@@ -21,16 +21,19 @@
   <div text>
     @if (media) {
       <p class="title">{{ media.title }}</p>
-      <div class="info" style="display: flex; align-items: center;">
-        <p class="info">{{ media.mediaType | emojize }} -&nbsp;</p>
-        <app-media-status-action [mediaId]="media.id"></app-media-status-action>
-      </div>
-      @if (display() === 'search') {
-        <p class="sub-info">{{ type | humanize }}</p>
+      @if (display() === 'default') {
+        <div class="info" style="display: flex; align-items: center;">
+          <p class="info">{{ media.mediaType | emojize }} -&nbsp;</p>
+          <app-media-status-action [mediaId]="media.id"></app-media-status-action>
+        </div>
+        <p class="sub-info" [class.hide-mobile-default]="display() === 'default'">
+          {{ media.releaseDate | date:'mediumDate' }}
+        </p>
+      }
+      @else if (display() === 'search') {
+        <p class="sub-info">{{ media.mediaType | emojize }} - {{ media.mediaType | humanize }}</p>
       } @else if (display() === 'roles') {
-        <p class="sub-info">{{ formattedRoles() }}</p>
-      } @else {
-        <p class="sub-info">{{ media.releaseDate | date:'mediumDate' }}</p>
+        <p class="sub-info">{{ media.mediaType | emojize }} - {{ formattedRoles() }}</p>
       }
     } @else {
       <div class="skeleton-text title"></div>

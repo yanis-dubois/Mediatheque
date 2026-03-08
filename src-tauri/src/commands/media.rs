@@ -432,6 +432,16 @@ fn build_media_query_parts(
 
     for o in order {
       let mapped_field: String = match o.field {
+        // Status : custom order
+        MediaOrderField::Status => "CASE m.status 
+            WHEN 'FINISHED' THEN 1 
+            WHEN 'IN_PROGRESS' THEN 2 
+            WHEN 'TO_DISCOVER' THEN 3 
+            WHEN 'DROPPED' THEN 4 
+            ELSE 5 
+            END"
+          .to_string(),
+
         // Specific Field
         MediaOrderField::Directors => "p_sorted_DIRECTOR.name".to_string(),
         MediaOrderField::Creators => "p_sorted_CREATOR.name".to_string(),

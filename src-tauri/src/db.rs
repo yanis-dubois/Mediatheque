@@ -82,7 +82,7 @@ pub fn init_db(connection: &mut Connection) -> Result<()> {
 
     -- Default Settings
 
-    INSERT OR IGNORE INTO settings (key, value) VALUES ('SCORE_DISPLAY_MODE', 'PERCENT');
+    INSERT OR IGNORE INTO settings (key, value) VALUES ('SCORE_DISPLAY_MODE', 'STARS');
 
 
 

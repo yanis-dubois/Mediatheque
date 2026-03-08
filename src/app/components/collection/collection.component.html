@@ -13,7 +13,12 @@
             [isMenuOpen]="isMenuOpen(mediaId)"
           >
             <div mediaMenu (click)="$event.preventDefault(); $event.stopPropagation()">
-              <ng-container *ngTemplateOutlet="itemMenu; context: { mediaId: mediaId }"></ng-container>
+              <ng-container *ngTemplateOutlet="itemMenu; 
+                context: { 
+                  mediaId: mediaId, 
+                  customClass: 'dots-button menu-background' 
+                }">
+              </ng-container>
             </div>
           </app-media-card>
         </ng-template>
@@ -22,32 +27,10 @@
     @case (CollectionDisplayMode.DETAILS) {
       <app-action-bar>
 
-        <div class="action-button layout-selector">
-          @switch (preferredLayout()) {
-            @case (CollectionLayout.GRID) {
-              <img src="assets/icons/layout_grid.svg" alt="Grid" class="layout-icon" />
-            }
-            @case (CollectionLayout.ROW) {
-              <img src="assets/icons/layout_row.svg" alt="Row" class="layout-icon" />
-            }
-            @case (CollectionLayout.COLUMN) {
-              <img src="assets/icons/layout_row.svg" alt="Column" class="layout-icon" style="transform: scaleX(-1) rotate(90deg);"/>
-            }
-            @case (CollectionLayout.LIST) {
-              <img src="assets/icons/layout_list.svg" alt="List" class="layout-icon" />
-            }
-          }
-
-          <select 
-            [value]="preferredLayout()" 
-            (change)="onLayoutChange($any($event.target).value)"
-            style="appearance: none;"
-          >
-            @for (opt of collectionLayoutOption; track opt) {
-              <option [value]="opt" [selected]="opt === preferredLayout()">{{ opt | humanize }}</option>
-            }
-          </select>
-        </div>
+        <app-layout-manager 
+          [preferredLayout]="preferredLayout()"
+          (preferredLayoutChange)="onLayoutChange($event)"
+        />
 
         @if (collection.canBeSorted) {
           <app-sort-manager 
@@ -64,12 +47,12 @@
           />
         }
         @else if (collection.collectionType === CollectionType.MANUAL) {
-          <button class="action-button" (click)="showPicker.set(true)">
+          <button class="action-button action-button-right menu-background" (click)="showPicker.set(true)">
             <img src="assets/icons/plus.svg" alt="Plus"/>
           </button>
         }
 
-        <app-dropdown [customClass]="'action-button'" [isOpenExternal]="true">
+        <app-dropdown [customClass]="'action-button action-button-right menu-background'" [isOpenExternal]="true">
           <app-collection-action [collectionId]="id()"/>
         </app-dropdown>
 
@@ -171,7 +154,12 @@
                     [isMenuOpen]="isMenuOpen(mediaId)"
                   >
                     <div mediaMenu (click)="$event.preventDefault(); $event.stopPropagation()">
-                      <ng-container *ngTemplateOutlet="itemMenu; context: { mediaId: mediaId }"></ng-container>
+                      <ng-container *ngTemplateOutlet="itemMenu; 
+                          context: { 
+                            mediaId: mediaId, 
+                            customClass: 'dots-button menu-background' 
+                          }">
+                        </ng-container>
                     </div>
                   </app-media-card>
                 </ng-template>
@@ -188,7 +176,12 @@
                     [isMenuOpen]="isMenuOpen(mediaId)"
                   >
                     <div mediaMenu (click)="$event.preventDefault(); $event.stopPropagation()">
-                      <ng-container *ngTemplateOutlet="itemMenu; context: { mediaId: mediaId }"></ng-container>
+                      <ng-container *ngTemplateOutlet="itemMenu; 
+                          context: { 
+                            mediaId: mediaId, 
+                            customClass: 'dots-button menu-background' 
+                          }">
+                        </ng-container>
                     </div>
                   </app-media-card>
                 </ng-template>
@@ -205,7 +198,12 @@
                     [isMenuOpen]="isMenuOpen(mediaId)"
                   >
                     <div mediaMenu (click)="$event.preventDefault(); $event.stopPropagation()">
-                      <ng-container *ngTemplateOutlet="itemMenu; context: { mediaId: mediaId }"></ng-container>
+                      <ng-container *ngTemplateOutlet="itemMenu; 
+                          context: { 
+                            mediaId: mediaId, 
+                            customClass: 'dots-button menu-background' 
+                          }">
+                        </ng-container>
                     </div>
                   </app-media-card>
                 </ng-template>
@@ -223,7 +221,12 @@
                       [isMenuOpen]="isMenuOpen(mediaId)"
                     >
                       <div menu (click)="$event.preventDefault(); $event.stopPropagation()">
-                        <ng-container *ngTemplateOutlet="itemMenu; context: { mediaId: mediaId }"></ng-container>
+                        <ng-container *ngTemplateOutlet="itemMenu; 
+                          context: { 
+                            mediaId: mediaId, 
+                            customClass: 'dots-button dots-button-simple' 
+                          }">
+                        </ng-container>
                       </div>
                     </app-media-row>
                   </a>
@@ -244,12 +247,13 @@
     }
   }
 
-  <ng-template #itemMenu let-mediaId="mediaId">
+  <ng-template #itemMenu let-mediaId="mediaId" let-customClass="customClass">
     <app-dropdown
       (click)="$event.preventDefault(); $event.stopPropagation()"
       [isOpenExternal]="activeMediaMenuId() === mediaId"
       (opened)="activeMediaMenuId.set(mediaId)"
       (closed)="activeMediaMenuId.set(null)"
+      [customClass]="customClass"
     >
       <app-media-action 
         [mediaId]="mediaId"

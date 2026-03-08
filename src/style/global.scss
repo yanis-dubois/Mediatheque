@@ -18,7 +18,7 @@
 
   /* variables */
   /* action button step */
-  --action-step: 2px;
+  --action-step: 4px;
   /* card size */
   --card-width-grid: 80px;
   --card-width-line: 80px;
@@ -67,7 +67,7 @@
     --card-width-line: 90px;
     --card-width-list: 40px;
     /* action button step */
-    --action-step: 4px;
+    --action-step: 8px;
     /* margin & gap */
     --side-margin: 16px;
     --list-padding: 8px;
@@ -113,23 +113,33 @@ a:hover .title-chevron img {
   filter: brightness(80%);
 } 
 
+/* transparent menu */
+.menu-background {
+  background: rgba(20, 20, 20, 0.85);
+  backdrop-filter: blur(8px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
 /* icons */
 // ...
 
 /* action button (top of the screen) */
+.action-button-left {
+  margin-right: var(--action-step);
+}
+.action-button-right {
+  margin-left: var(--action-step);
+}
 .action-button {
   color: var(--color-light);
-  background: rgba(0, 0, 0, 0.5);
-  backdrop-filter: blur(8px);
   border-radius: 100%;
-  border: none;
   width: 2.6rem;
   height: 2.6rem;
   cursor: pointer;
   font-size: 1.2rem;
   font-weight: 1000;
   z-index: 100;
-  margin: 0 var(--action-step);
+  // margin: 0 var(--action-step);
 
   display: flex;
   justify-content: center;
@@ -176,12 +186,9 @@ a:hover .title-chevron img {
 .dots-button {
   width: 1.4rem;
   height: 1.4rem;
-  border: none;
   border-radius: 100%;
-  background: var(--dots-bg);
-  backdrop-filter: var(--dots-blur);
   &:hover {
-    background: var(--dots-hover);
+    background: rgba(50, 50, 50, 0.8);
   }
   cursor: pointer;
 
@@ -190,6 +197,10 @@ a:hover .title-chevron img {
   display: flex;
   justify-content: center;
   align-items: center;
+}
+.dots-button-simple {
+  border: none;
+  background: none;
 }
 .dots-button img {
   width: 18px;

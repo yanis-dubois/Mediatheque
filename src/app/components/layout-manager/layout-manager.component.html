@@ -1,0 +1,26 @@
+<div class="action-button action-button-right menu-background layout-selector">
+  @switch (preferredLayout()) {
+    @case (CollectionLayout.GRID) {
+      <img src="assets/icons/layout_grid.svg" alt="Grid" class="layout-icon" />
+    }
+    @case (CollectionLayout.ROW) {
+      <img src="assets/icons/layout_row.svg" alt="Row" class="layout-icon" />
+    }
+    @case (CollectionLayout.COLUMN) {
+      <img src="assets/icons/layout_row.svg" alt="Column" class="layout-icon" style="transform: scaleX(-1) rotate(90deg);"/>
+    }
+    @case (CollectionLayout.LIST) {
+      <img src="assets/icons/layout_list.svg" alt="List" class="layout-icon" />
+    }
+  }
+
+  <select 
+    [value]="preferredLayout()" 
+    (change)="onLayoutChange($any($event.target).value)"
+    style="appearance: none;"
+  >
+    @for (opt of collectionLayoutOption; track opt) {
+      <option [value]="opt" [selected]="opt === preferredLayout()">{{ opt | humanize }}</option>
+    }
+  </select>
+</div>

@@ -2,17 +2,17 @@
   
   @switch (leftButtonType()) {
     @case ('settings') {
-      <button class="action-button" (click)="goToSettings()">
+      <button class="action-button menu-background" (click)="goToSettings()">
         <img class="chevron" src="assets/icons/settings.svg"/>
       </button>
     }
     @case ('home') {
-      <button class="action-button" (click)="goToHome()">
+      <button class="action-button menu-background" (click)="goToHome()">
         <img class="chevron" src="assets/icons/plus.svg" style="transform: rotate(45deg);"/>
       </button>
     }
     @default {
-      <button class="action-button" (click)="goToPreviousPage()">
+      <button class="action-button menu-background" (click)="goToPreviousPage()">
         <img class="chevron" src="assets/icons/chevron.svg"/>
       </button>
     }

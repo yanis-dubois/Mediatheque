@@ -1,7 +1,6 @@
 import { Component, computed, EmbeddedViewRef, inject, input, output, Renderer2, TemplateRef, ViewChild, ViewContainerRef } from '@angular/core';
 import { MediaStatus } from '@app/models/media.model';
 import { MediaService } from '@app/services/media.service';
-import { HumanizePipe } from "../../pipe/humanize";
 import { CollectionPickerComponent } from "../collection-picker/collection-picker.component";
 import { DOCUMENT } from '@angular/common';
 import { CollectionService } from '@app/services/collection.service';
@@ -11,7 +10,7 @@ import { MediaStatusActionComponent } from "../media-status-action/media-status-
 @Component({
   selector: 'app-media-action',
   standalone: true,
-  imports: [HumanizePipe, CollectionPickerComponent, MediaStatusActionComponent],
+  imports: [CollectionPickerComponent, MediaStatusActionComponent],
   templateUrl: './media-action.component.html'
 })
 export class MediaActionComponent {

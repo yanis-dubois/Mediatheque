@@ -17,7 +17,7 @@ import { MediaStatusActionComponent } from "../media-status-action/media-status-
   imports: [CommonModule, PosterPathPipe, HumanizePipe, EmojizePipe, EntityRowLayoutComponent, MediaStatusActionComponent],
   providers: [HumanizePipe],
   templateUrl: './media-row.component.html',
-  styleUrls: ['../../../style/entity-row.scss', './media-row.component.scss']
+  styleUrls: ['../../../style/entity-row.scss']
 })
 export class MediaRowComponent extends EntityRow<Media & {type: EntityType.MEDIA}> {
   override entityId = input.required<string>({ alias: 'mediaId' });

@@ -1,12 +1,13 @@
 .action {
-  position: absolute;
+  position: fixed;
+  z-index: 1000;
   top: 12px;
 }
 .action-left {
-  left: var(--action-step);
+  left: var(--side-margin);
 }
 .action-right {
-  right: var(--action-step);
+  right: var(--side-margin);
   display: flex;
   flex-direction: row;
 }

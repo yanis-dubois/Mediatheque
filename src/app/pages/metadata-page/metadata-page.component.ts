@@ -8,7 +8,6 @@ import { NavService } from '@app/services/nav.service';
 import { MetadataService } from '@app/services/metadata.service';
 import { ActionBarComponent } from "@app/components/action-bar/action-bar.component";
 import { CollectionLayout } from '@app/models/collection.model';
-import { HumanizePipe } from "../../pipe/humanize";
 import { SortManagerComponent } from "@app/components/sort-manager/sort-manager.component";
 import { FilterManagerComponent } from "@app/components/filter-manager/filter-manager.component";
 import { MediaFilter, MediaOrder } from '@app/models/media-query.model';
@@ -21,11 +20,12 @@ import { MediaRowComponent } from "@app/components/media-row/media-row.component
 import { DropdownComponent } from "@app/components/dropdown/dropdown.component";
 import { MediaActionComponent } from "@app/components/media-action/media-action.component";
 import { debounceTime, Subject } from 'rxjs';
+import { LayoutManagerComponent } from "../../components/layout-manager/layout-manager.component";
 
 @Component({
   selector: 'app-metadata-page',
   standalone: true,
-  imports: [CommonModule, RouterModule, ActionBarComponent, HumanizePipe, SortManagerComponent, FilterManagerComponent, CollectionGridComponent, CollectionRowComponent, MediaCardComponent, CollectionColumnComponent, CollectionListComponent, MediaRowComponent, DropdownComponent, MediaActionComponent],
+  imports: [CommonModule, RouterModule, ActionBarComponent, SortManagerComponent, FilterManagerComponent, CollectionGridComponent, CollectionRowComponent, MediaCardComponent, CollectionColumnComponent, CollectionListComponent, MediaRowComponent, DropdownComponent, MediaActionComponent, LayoutManagerComponent],
   templateUrl: './metadata-page.component.html',
 })
 export class MetadataPageComponent {
@@ -42,7 +42,7 @@ export class MetadataPageComponent {
   entityType = signal<EntityType>(EntityType.PERSON);
   id = signal<string>('');
   searchQuery = signal<string>('');
-  preferredLayout = signal<CollectionLayout>(CollectionLayout.ROW);
+  preferredLayout = signal<CollectionLayout>(CollectionLayout.LIST);
   gap = signal<number>(8);
   activeMediaMenuId = signal<string | null>(null);
   rolesMap = signal<Record<string, string[]>>({});
@@ -133,10 +133,6 @@ export class MetadataPageComponent {
 
   onSortChanged(sortOrder: MediaOrder[]) {
     this.sortOrder.set(sortOrder);
-  }
-
-  onLayoutChange(newLayout: string) {
-    this.preferredLayout.set(newLayout as CollectionLayout);
   }
 
   protected isMenuOpen(id?: string): boolean {

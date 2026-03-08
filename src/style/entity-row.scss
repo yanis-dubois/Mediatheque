@@ -4,25 +4,30 @@ img {
 }
 .title {
   margin: 0px;
-  margin-bottom: 1px;
+  margin-bottom: 2px;
 
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
   font-size: 0.9rem;
-  // height: 1.2rem;
+  height: 1.3rem;
 }
 .info {
   margin: 0px;
-  margin-bottom: 2px;
+  margin-bottom: 1px;
 
   color: var(--color-light-soft);
   font-size: 0.7rem;
-  // height: 1rem;
+  line-height: 1rem;
 }
 .sub-info {
   margin: 0px;
   color: var(--color-light-dark);
   font-size: 0.6rem;
-  // height: 1rem;
+  line-height: 1rem;
+}
+.sub-info.hide-mobile-default {
+  @media (max-width: 600px) {
+    display: none;
+  }
 }

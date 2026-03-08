@@ -28,7 +28,7 @@
 .card:hover .menu-slot, 
 .card.is-menu-open .menu-slot {
   opacity: 1;
-  pointer-events: auto; /* Réactive le clic */
+  pointer-events: auto;
 }
 
 .menu-slot {
@@ -60,22 +60,18 @@
 }
 
 .status-container {
-  display: flex; // Force l'alignement strict de l'enfant
+  display: flex;
   align-items: center;
   justify-content: center;
 
   backdrop-filter: blur(10px);
   background-color: rgba(0, 0, 0, 0.6);
   position: absolute;
-  bottom: 0;
-  left: 0;
+  bottom: 0px;
+  left: 0px;
   border-top-right-radius: 8px;
+  border-bottom: none !important;
+  border-left: none !important;
 
   padding: 4px;
-}
-
-:host {
-  --dots-bg: rgba(0, 0, 0, 0.8);
-  --dots-hover: rgba(50, 50, 50, 0.8);
-  --dots-blur: blur(4px);
 }
