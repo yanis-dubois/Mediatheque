@@ -23,9 +23,10 @@ export const routes: Routes = [
     path: 'home/:context', 
     component: HomeComponent 
   },
-  {
-    path: 'collections',
-    component: CollectionsPageComponent
+  { 
+    path: 'collections', 
+    pathMatch: 'full', 
+    redirectTo: 'collections/ALL' 
   },
   {
     path: 'collections/:context',
@@ -39,8 +40,13 @@ export const routes: Routes = [
     path: 'media/:id',
     component: MediaPageComponent
   },
+  { 
+    path: 'metadata-list/:type', 
+    pathMatch: 'full', 
+    redirectTo: 'metadata-list/:type/ALL' 
+  },
   {
-    path: 'metadata-list/:type',
+    path: 'metadata-list/:type/:context',
     component: MetadataListPageComponent
   },
   {

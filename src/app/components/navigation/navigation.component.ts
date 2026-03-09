@@ -1,5 +1,5 @@
 import { Component, inject } from '@angular/core';
-import { Router, RouterModule } from '@angular/router';
+import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 
 import { MediaType } from '@models/media.model';
 import { EmojizePipe } from "../../pipe/emojize";
@@ -15,6 +15,7 @@ import { NavService } from '@app/services/nav.service';
 export class NavigationComponent {
 
   private router = inject(Router);
+  private route = inject(ActivatedRoute);
   private navService = inject(NavService);
   currentContext = this.navService.context;
   isInSearch = this.navService.isSearch;
@@ -22,7 +23,6 @@ export class NavigationComponent {
   mediaType = Object.values(MediaType);
 
   handleNavigation(targetType?: MediaType) {
-    const currentUrl = this.router.url;
     const ctx = this.currentContext();
 
     // if click on already selected context -> go to home
@@ -34,12 +34,15 @@ export class NavigationComponent {
       return;
     }
 
-    // change context -> verify if we can switch context on this page
-    if (currentUrl.includes('/collections')) {
-      this.router.navigate(targetType ? ['/collections', targetType] : ['/collections']);
-    } 
-    // else -> go to home
-    else {
+    // detect :context param
+    let activeRoute = this.route;
+    while (activeRoute.firstChild) activeRoute = activeRoute.firstChild;
+    const hasContextParam = activeRoute.snapshot.paramMap.has('context');
+    console.log(activeRoute.snapshot.paramMap);
+
+    if (hasContextParam) {
+      this.router.navigate(targetType ? ['../', targetType] : ['../'], { relativeTo: activeRoute });
+    } else {
       this.router.navigate(targetType ? ['/home', targetType] : ['/home']);
     }
   }

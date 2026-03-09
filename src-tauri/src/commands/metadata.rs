@@ -1,5 +1,5 @@
 use crate::db::DbState;
-use crate::models::enums::{EntityType, MetadataType};
+use crate::models::enums::{CollectionMediaType, EntityType, MetadataType};
 use crate::models::metadata::{Company, Person, Saga, Tag};
 
 // convert SQL -> Metadata
@@ -43,14 +43,30 @@ fn fetch_layout_data(
   table: &str,
   metadata_type: MetadataType,
   search_query: String,
+  context: CollectionMediaType,
 ) -> Result<Vec<(String, EntityType)>, String> {
   let connection = state.connection.lock().map_err(|_| "Lock failed")?;
 
+  let relation_table = format!("media_{}", table);
+  let fk_column = format!("{}_id", table);
   let pattern = format!("%{}%", search_query);
-  let sql = format!(
-    "SELECT CAST(id AS TEXT), name FROM {} WHERE name LIKE ?1 ORDER BY name ASC",
-    table
-  );
+
+  let sql = if context == CollectionMediaType::All {
+    format!(
+      "SELECT CAST(id AS TEXT), name FROM {} WHERE name LIKE ?1 ORDER BY name ASC",
+      table
+    )
+  } else {
+    format!(
+      "SELECT DISTINCT CAST(t.id AS TEXT), t.name 
+       FROM {} t
+       JOIN {} rel ON t.id = rel.{}
+       JOIN media m ON rel.media_id = m.id
+       WHERE t.name LIKE ?1 AND m.media_type = ?2
+       ORDER BY t.name ASC",
+      table, relation_table, fk_column
+    )
+  };
 
   let mut stmt = connection.prepare(&sql).map_err(|e| e.to_string())?;
 
@@ -62,8 +78,17 @@ fn fetch_layout_data(
     MetadataType::GameMechanic => EntityType::GameMechanic,
   };
 
+  let params: Vec<String> = if context == CollectionMediaType::All {
+    vec![pattern]
+  } else {
+    vec![pattern, context.to_db_string()]
+  };
+
+  let params_refs: Vec<&dyn rusqlite::ToSql> =
+    params.iter().map(|s| s as &dyn rusqlite::ToSql).collect();
+
   let rows = stmt
-    .query_map([pattern], |row| {
+    .query_map(&*params_refs, |row| {
       let id: String = row.get(0)?;
       Ok((id, entity_type.clone()))
     })
@@ -198,6 +223,7 @@ pub fn get_metadata_layout(
   state: tauri::State<'_, DbState>,
   metadata_type: MetadataType,
   query: String,
+  context: CollectionMediaType,
 ) -> Result<Vec<(String, EntityType)>, String> {
   let table = match metadata_type {
     MetadataType::Person => "person",
@@ -207,5 +233,5 @@ pub fn get_metadata_layout(
     MetadataType::GameMechanic => "game_mechanic",
   };
 
-  fetch_layout_data(&state, table, metadata_type, query)
+  fetch_layout_data(&state, table, metadata_type, query, context)
 }

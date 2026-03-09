@@ -13,6 +13,13 @@ import { CollectionsActionComponent } from "@app/components/collections-action/c
 import { NavService } from '@app/services/nav.service';
 import { HumanizePipe } from "../../pipe/humanize";
 import { MetadataType } from '@app/models/entity.model';
+import { MediaType } from '@app/models/media.model';
+
+interface MetadataLink {
+  label: string;
+  type: MetadataType;
+  allowedMediaTypes?: MediaType[];
+}
 
 @Component({
   selector: 'app-home',
@@ -31,6 +38,28 @@ export class HomeComponent {
   });
 
   activeMenuId = signal<string | null>(null);
+
+  // defines which metadatas are available for which context
+  readonly metadataLinks: MetadataLink[] = [
+    { label: 'Persons', type: MetadataType.PERSON },
+    { label: 'Companies', type: MetadataType.COMPANY },
+    { label: 'Saga', type: MetadataType.SAGA },
+    { label: 'Genre', type: MetadataType.GENRE },
+    { 
+      label: 'Game Mechanics', 
+      type: MetadataType.GAME_MECHANIC, 
+      allowedMediaTypes: [MediaType.VIDEO_GAME, MediaType.TABLETOP_GAME] 
+    }
+  ];
+  visibleLinks = computed(() => {    
+    return this.metadataLinks.filter(link => {
+      const currentContext = this.context();
+
+      if (currentContext.type === 'ALL' || !link.allowedMediaTypes) return true;
+
+      return link.allowedMediaTypes.includes(currentContext.value as MediaType);
+    });
+  });
 
   constructor(
     private navService: NavService,

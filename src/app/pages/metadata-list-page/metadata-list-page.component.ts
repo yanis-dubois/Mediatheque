@@ -8,6 +8,7 @@ import { EntityType, MetadataType } from '@app/models/entity.model';
 import { debounceTime, Subject } from 'rxjs';
 import { MetadataService } from '@app/services/metadata.service';
 import { HumanizePipe } from "../../pipe/humanize";
+import { NavService } from '@app/services/nav.service';
 
 @Component({
   selector: 'app-metadata-list-page',
@@ -22,9 +23,11 @@ export class MetadataListPageComponent {
   type = signal<MetadataType>(MetadataType.PERSON);
   searchQuery = signal<string>('');
   private refreshLayout$ = new Subject<void>();
+  context = this.navService.context;
 
   constructor(
     private metadataService: MetadataService,
+    private navService: NavService
   ) {
     this.refreshLayout$.pipe(
       debounceTime(50)
@@ -34,6 +37,7 @@ export class MetadataListPageComponent {
 
     effect(() => {
       this.searchQuery();
+      this.context();
       this.refreshLayout$.next();
     });
   }
@@ -49,7 +53,7 @@ export class MetadataListPageComponent {
 
   async loadLayoutData() {
     this.layoutData.set(
-      await this.metadataService.getMetadataLayout(this.type(), this.searchQuery())
+      await this.metadataService.getMetadataLayout(this.type(), this.searchQuery(), this.context())
     );
   }
 

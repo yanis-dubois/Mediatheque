@@ -13,6 +13,26 @@
       Library
     </h1>
 
+    <div class="links">
+      @let cxt = context.type === 'ALL' ? '' : context.value;
+
+      <a [routerLink]="['/collections', cxt]">
+        <h2 class="title-chevron">
+          Collections
+          <img src="assets/icons/chevron.svg" style="height: 1em;"/>
+        </h2>
+      </a>
+
+      @for (link of visibleLinks(); track link.type) {
+        <a [routerLink]="['/metadata-list', link.type, cxt]">
+          <h2 class="title-chevron">
+            {{ link.label }}
+            <img src="assets/icons/chevron.svg" style="height: 1em;"/>
+          </h2>
+        </a>
+      }
+    </div>
+
     <div class="container">
       <div cdkDropList (cdkDropListDropped)="drop($event)">
         @for (id of collectionIds(); track id) {
@@ -41,45 +61,6 @@
             <div *cdkDragPlaceholder class="placeholder"></div>
           </div>
         }
-      </div>
-
-      <div class="links">
-        <a [routerLink]="['/collections', context.type === 'ALL' ? '' : context.value]">
-          <h2 class="title-chevron">
-            Collections
-            <img src="assets/icons/chevron.svg" style="height: 1em;"/>
-          </h2>
-        </a>
-        <a [routerLink]="['/metadata-list', MetadataType.PERSON]">
-          <h2 class="title-chevron">
-            Persons
-            <img src="assets/icons/chevron.svg" style="height: 1em;"/>
-          </h2>
-        </a>
-        <a [routerLink]="['/metadata-list', MetadataType.COMPANY]">
-          <h2 class="title-chevron">
-            Companies
-            <img src="assets/icons/chevron.svg" style="height: 1em;"/>
-          </h2>
-        </a>
-        <a [routerLink]="['/metadata-list', MetadataType.SAGA]">
-          <h2 class="title-chevron">
-            Saga
-            <img src="assets/icons/chevron.svg" style="height: 1em;"/>
-          </h2>
-        </a>
-        <a [routerLink]="['/metadata-list', MetadataType.GENRE]">
-          <h2 class="title-chevron">
-            Genre
-            <img src="assets/icons/chevron.svg" style="height: 1em;"/>
-          </h2>
-        </a>
-        <a [routerLink]="['/metadata-list', MetadataType.GAME_MECHANIC]">
-          <h2 class="title-chevron">
-            Game Mechanics
-            <img src="assets/icons/chevron.svg" style="height: 1em;"/>
-          </h2>
-        </a>
       </div>
     </div>
   }

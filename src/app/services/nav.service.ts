@@ -29,11 +29,11 @@ export class NavService {
       this._isSearch.set(this.router.url === '/search');
 
       // if a context is specified in the path, update it
-      if (ctxParam) {
+      if (ctxParam && ctxParam !== 'ALL') {
         this._context.set({ type: 'SPECIFIC', value: ctxParam as MediaType });
       } 
       // if we are in ALL
-      else if (this.router.url === '/home' || this.router.url === '/collections' || this.router.url === '/') {
+      else if (!ctxParam || ctxParam === 'ALL') {
         this._context.set({ type: 'ALL' });
       }
     });
