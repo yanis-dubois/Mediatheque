@@ -6,7 +6,7 @@ import { CommonModule } from '@angular/common';
   standalone: true,
   imports: [CommonModule],
   templateUrl: './entity-row-layout.component.html',
-  styleUrls: ['./entity-row-layout.component.css']
+  styleUrls: ['./entity-row-layout.component.scss']
 })
 export class EntityRowLayoutComponent {
   height = input.required<number>();

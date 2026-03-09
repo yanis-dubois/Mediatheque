@@ -47,6 +47,8 @@
       <ng-content select="[icon]"></ng-content>
       @if (!customIcon()) {
         <app-media-favorite-action 
+          class="favorite-button"
+          [class.is-favorite]="media.favorite"
           [mediaId]="media.id"
           (click)="$event.preventDefault(); $event.stopPropagation()"
         ></app-media-favorite-action>

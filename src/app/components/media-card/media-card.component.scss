@@ -66,6 +66,11 @@
   font-size: 0.7rem;
 }
 
+.card:hover .status-container,
+.card.is-menu-open .status-container {
+  transform: translateY(0);
+}
+
 .status-container {
   display: flex;
   align-items: center;
@@ -79,6 +84,8 @@
   border-top-right-radius: 8px;
   border-bottom: none !important;
   border-left: none !important;
-
   padding: 4px;
+
+  transform: translateY(12px);
+  transition: opacity 0.3s ease, transform 0.3s ease;
 }

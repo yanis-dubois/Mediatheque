@@ -22,6 +22,8 @@
       <ng-content select="[icon]"></ng-content>
       @if (!customIcon()) {
         <app-collection-favorite-action 
+          class="favorite-button"
+          [class.is-favorite]="collection.favorite"
           [collectionId]="collection.id"
           (click)="$event.preventDefault(); $event.stopPropagation()"
         ></app-collection-favorite-action>

@@ -18,7 +18,7 @@ import { MediaFavoriteActionComponent } from "../media-favorite-action/media-fav
   imports: [CommonModule, PosterPathPipe, HumanizePipe, EmojizePipe, EntityRowLayoutComponent, MediaStatusActionComponent, MediaFavoriteActionComponent],
   providers: [HumanizePipe],
   templateUrl: './media-row.component.html',
-  styleUrls: ['../../../style/entity-row.scss']
+  styleUrls: ['../../../style/entity-row.scss', './media-row.component.scss']
 })
 export class MediaRowComponent extends EntityRow<Media & {type: EntityType.MEDIA}> {
   override entityId = input.required<string>({ alias: 'mediaId' });

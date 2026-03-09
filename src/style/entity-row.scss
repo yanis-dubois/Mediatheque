@@ -31,3 +31,23 @@ img {
     display: none;
   }
 }
+
+// for media & collection favorite button
+.favorite-button {
+  opacity: 0;
+  transition: opacity 0.15s ease, transform 0.15s ease;
+  transform: scale(0.4);
+  pointer-events: none;
+
+  &.is-favorite {
+    opacity: 1;
+    pointer-events: auto;
+    transform: scale(1);
+  }
+}
+:host(:hover) .favorite-button,
+:host([isMenuOpen="true"]) .favorite-button {
+  opacity: 1;
+  transform: scale(1);
+  pointer-events: auto;
+}
