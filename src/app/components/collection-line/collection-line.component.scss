@@ -28,30 +28,12 @@
   }
 }
 
-@media (min-width: 600px) {
-  $fade-width: calc(1.5 * var(--side-margin));
-  $easing-mask: linear-gradient(
-    to right,
-    transparent 0px,
-    rgba(0, 0, 0, 0.05) calc(0.125 * $fade-width),
-    rgba(0, 0, 0, 0.15) calc(0.33 * $fade-width),
-    rgba(0, 0, 0, 0.3) calc(0.5 * $fade-width),
-    rgba(0, 0, 0, 0.8) calc(0.75 * $fade-width),
-    rgba(0, 0, 0, 0.95) calc(0.9 * $fade-width),
-    black $fade-width,
-    black calc(100% - $fade-width),
-    rgba(0, 0, 0, 0.95) calc(100% - (0.9 * $fade-width)),
-    rgba(0, 0, 0, 0.8) calc(100% - (0.75 * $fade-width)),
-    rgba(0, 0, 0, 0.3) calc(100% - (0.5 * $fade-width)),
-    rgba(0, 0, 0, 0.15) calc(100% - (0.33 * $fade-width)),
-    rgba(0, 0, 0, 0.05) calc(100% - (0.125 * $fade-width)),
-    transparent 100%
-  );
-
-  .viewport-container {
-    -webkit-mask-image: $easing-mask;
-    mask-image: $easing-mask;
-  }
+.scroll-button {
+  display: none;
+  border: none;
+  background: none;
+  cursor: pointer;
+  opacity: 0;
 }
 
 .line {
@@ -77,4 +59,120 @@
   margin-right: 4px;
   margin-bottom: 4px;
   scale: 1.2;
+}
+
+@media (min-width: 600px) {
+  $fade-width: calc(1.5 * var(--side-margin));
+  $easing-mask: linear-gradient(
+    to right,
+    transparent 0px,
+    rgba(0, 0, 0, 0.05) calc(0.125 * $fade-width),
+    rgba(0, 0, 0, 0.15) calc(0.33 * $fade-width),
+    rgba(0, 0, 0, 0.3) calc(0.5 * $fade-width),
+    rgba(0, 0, 0, 0.8) calc(0.75 * $fade-width),
+    rgba(0, 0, 0, 0.95) calc(0.9 * $fade-width),
+    black $fade-width,
+    black calc(100% - $fade-width),
+    rgba(0, 0, 0, 0.95) calc(100% - (0.9 * $fade-width)),
+    rgba(0, 0, 0, 0.8) calc(100% - (0.75 * $fade-width)),
+    rgba(0, 0, 0, 0.3) calc(100% - (0.5 * $fade-width)),
+    rgba(0, 0, 0, 0.15) calc(100% - (0.33 * $fade-width)),
+    rgba(0, 0, 0, 0.05) calc(100% - (0.125 * $fade-width)),
+    transparent 100%
+  );
+
+  .viewport-container {
+    -webkit-mask-image: $easing-mask;
+    mask-image: $easing-mask;
+  }
+
+  .scroll-wrapper {
+    position: relative;
+    height: 100%;
+
+    &:hover .scroll-button {
+      opacity: 1;
+    }
+  }
+  .scroll-button {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    z-index: 30;
+    width: calc(1.5 * var(--side-margin));
+    border: none;
+    background: transparent;
+    color: white;
+    cursor: pointer;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    &::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      width: calc(1.5 * var(--side-margin));
+      opacity: 0;
+      transition: opacity 0.3s ease;
+      z-index: -1;
+      background: radial-gradient(at center right, rgba(0,0,0,0.9) 0%, transparent 100%);
+      filter: blur(8px);
+    }
+
+    // show on line hover only if not hidden
+    .scroll-wrapper:hover & {
+      &:not(.hidden) {
+        &::before {
+          opacity: 0.5;
+        }
+        opacity: 1;
+        pointer-events: auto;
+      }
+    }
+
+    &.hidden {
+      opacity: 0 !important;
+      pointer-events: none !important;
+    }
+
+    &.left { 
+      left: 0;
+      img {
+        transform: rotate(180deg);
+      }
+      &::before {
+        background: linear-gradient(to right, rgba(0,0,0,0.8) 25%, transparent);
+      }
+    }
+
+    &.right { 
+      right: 0;
+      &::before {
+        background: linear-gradient(to left, rgba(0,0,0,0.8) 25%, transparent);
+      }
+    }
+
+    &:hover {
+      &::before {
+        opacity: 1 !important;
+      }
+      &.left img {
+        transform: rotate(180deg) scale(1.5); 
+      }
+      &.right img {
+        transform: scale(1.5); 
+      }
+    }
+
+    img {
+      height: 24px;
+      filter: brightness(0) invert(1);
+      transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); 
+      will-change: transform;
+    }
+  }
 }

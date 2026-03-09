@@ -1,4 +1,4 @@
-import { Component, ContentChild, effect, ElementRef, HostListener, inject, input, Input, signal, TemplateRef, ViewChild } from '@angular/core';
+import { Component, computed, ContentChild, effect, ElementRef, HostListener, inject, input, Input, signal, TemplateRef, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { debounceTime, Subject, switchMap } from 'rxjs';
@@ -77,6 +77,26 @@ export class CollectionLineComponent {
     if (missingIds.length > 0) {
       this.scrollSubject.next(missingIds);
     }
+  }
+
+  isAtEnd = computed(() => {
+    const offset = this.virtualizer.scrollOffset()!;
+    const total = this.virtualizer.getTotalSize();
+    const viewportWidth = this.scrollElement?.nativeElement?.clientWidth || 0;
+
+    return offset + viewportWidth >= total - 5;
+  });
+
+  scroll(direction: 'left' | 'right') {
+    const container = this.scrollElement.nativeElement;
+    const scrollAmount = container.clientWidth * 0.8;
+    const currentScroll = container.scrollLeft;
+    
+    const targetOffset = direction === 'left' 
+      ? currentScroll - scrollAmount 
+      : currentScroll + scrollAmount;
+  
+    this.virtualizer.scrollToOffset(targetOffset, { behavior: 'smooth' });
   }
 
   constructor() {

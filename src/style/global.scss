@@ -69,7 +69,7 @@
     /* action button step */
     --action-step: 8px;
     /* margin & gap */
-    --side-margin: 16px;
+    --side-margin: 32px;
     --list-padding: 8px;
   }
 }
@@ -337,6 +337,7 @@ select {
   position: relative;
   contain: strict;
   padding: 4px 0;
+  scroll-behavior: smooth;
 }
 .viewport-container-list {
   padding: 0;

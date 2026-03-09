@@ -1,4 +1,4 @@
-<section style="height: 100%;">
+<section style="height: 100%; position: relative;">
 
   <div class="line-header">
     <a [routerLink]="['/collection', collection.id]">
@@ -14,39 +14,56 @@
     </div>
   </div>
 
-  <div #scrollElement class="viewport-container">
-    @if (mediaLayoutData().length < 1) {
-      @if (collection.collectionType === CollectionType.MANUAL) {
-        <p> You can add media to this collection. </p>
-      } @else {
-        <p> No media match these filters. </p>
-      }
-    } @else {
-      <div
-        [style.width.px]="virtualizer.getTotalSize()"
-        style="height: 100%; position: relative;"
-      >
-        @for (vItem of virtualizer.getVirtualItems(); track vItem.key) {
-          @if (getMediaLayout(vItem.index); as layout) {
-            <div
-              class="line"
-              [style.width.px]="vItem.size"
-              [style.transform]="'translateX(' + vItem.start + 'px)'"
-              style="position: absolute; top: 0; left: 0;"
-            >
-              <ng-container 
-                [ngTemplateOutlet]="itemTemplate" 
-                [ngTemplateOutletContext]="{ mediaId: layout.id, width: getElementWidth(vItem.index), height: containerHeight()}"
-              >
-              </ng-container>
-            </div>
-          }
-        }
-      </div>
-    }
-  </div>
+  <div class="scroll-wrapper" [style.height.px]="containerHeight()">
 
-  <div class="blur-edge left"></div>
-  <div class="blur-edge right"></div>
+    <button 
+      class="scroll-button left" 
+      [class.hidden]="virtualizer.scrollOffset()! <= 0"
+      (click)="scroll('left')"
+    >
+      <img src="assets/icons/chevron.svg"/>
+    </button>
+
+    <div #scrollElement class="viewport-container">
+      @if (mediaLayoutData().length < 1) {
+        @if (collection.collectionType === CollectionType.MANUAL) {
+          <p> You can add media to this collection. </p>
+        } @else {
+          <p> No media match these filters. </p>
+        }
+      } @else {
+        <div
+          [style.width.px]="virtualizer.getTotalSize()"
+          style="height: 100%; position: relative;"
+        >
+          @for (vItem of virtualizer.getVirtualItems(); track vItem.key) {
+            @if (getMediaLayout(vItem.index); as layout) {
+              <div
+                class="line"
+                [style.width.px]="vItem.size"
+                [style.transform]="'translateX(' + vItem.start + 'px)'"
+                style="position: absolute; top: 0; left: 0;"
+              >
+                <ng-container 
+                  [ngTemplateOutlet]="itemTemplate" 
+                  [ngTemplateOutletContext]="{ mediaId: layout.id, width: getElementWidth(vItem.index), height: containerHeight()}"
+                >
+                </ng-container>
+              </div>
+            }
+          }
+        </div>
+      }
+    </div>
+
+    <button 
+      class="scroll-button right" 
+      [class.hidden]="isAtEnd()"
+      (click)="scroll('right')"
+    >
+      <img src="assets/icons/chevron.svg"/>
+    </button>
+
+  </div>
 
 </section>
