@@ -19,9 +19,7 @@
     </a>
 
     <div class="fav-slot">
-      @if (media.favorite) {
-        <span>{{ media.favorite | emojize }}</span>
-      }
+      <app-media-favorite-action [mediaId]="media.id"></app-media-favorite-action>
     </div>
 
     <div class="status-container menu-background">

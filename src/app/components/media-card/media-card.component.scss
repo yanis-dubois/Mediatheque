@@ -26,9 +26,21 @@
 }
 
 .card:hover .menu-slot, 
-.card.is-menu-open .menu-slot {
+.card.is-menu-open .menu-slot,
+.card:hover .fav-slot, 
+.card.is-menu-open .fav-slot,
+.card:hover .status-container, 
+.card.is-menu-open .status-container {
   opacity: 1;
   pointer-events: auto;
+}
+
+.menu-slot, 
+.fav-slot, 
+.status-container {
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s ease;
 }
 
 .menu-slot {
@@ -36,13 +48,10 @@
   top: 4px;
   right: 4px;
   z-index: 20;
-
-  opacity: 0;
-  pointer-events: none;
-  transition: opacity 0.3s ease;
 }
 
 .fav-slot {
+  backdrop-filter: blur(8px);
   position: absolute;
   display: flex;
   align-items: center;
@@ -55,8 +64,6 @@
   width: 1.4rem;
   height: 1.4rem;
   font-size: 0.7rem;
-
-  pointer-events: none;
 }
 
 .status-container {

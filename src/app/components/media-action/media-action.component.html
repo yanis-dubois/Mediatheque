@@ -1,6 +1,6 @@
 @if (media(); as media) {
-  <button class="dropdown-button" (click)="toggleFavorite()" style="text-align: center;">
-    {{ media.favorite ? '❤️' : '🩶' }}
+  <button class="dropdown-button" (click)="favoriteAction.toggleFavorite()" style="text-align: center;">
+    <app-media-favorite-action #favoriteAction [mediaId]="media.id"></app-media-favorite-action>
   </button>
   <button class="dropdown-button">
     <app-media-status-action [mediaId]="media.id"></app-media-status-action>
@@ -8,13 +8,13 @@
   <button class="dropdown-button" (click)="openPicker($event)">
     Add to collection
   </button>
-  
+
   @if (canDeleteFromCollection()) {
     <button class="dropdown-button delete-item" (click)="onDeleteFromCollection()">
       Delete from collection
     </button>
   }
-  
+
   <ng-template #pickerTemplate>
     <app-collection-picker 
       [media]="media"

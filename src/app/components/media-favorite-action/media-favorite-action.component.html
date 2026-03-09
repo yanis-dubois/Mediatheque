@@ -1,0 +1,5 @@
+@if (media(); as media) {
+  <button class="favorite-button" (click)="toggleFavorite()">
+    {{ media.favorite ? '❤️' : '🩶' }}
+  </button>
+}

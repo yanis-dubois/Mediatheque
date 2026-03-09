@@ -21,7 +21,10 @@
     @if (collection) {
       <ng-content select="[icon]"></ng-content>
       @if (!customIcon()) {
-        <span>{{ collection.favorite | emojize }}</span>
+        <app-collection-favorite-action 
+          [collectionId]="collection.id"
+          (click)="$event.preventDefault(); $event.stopPropagation()"
+        ></app-collection-favorite-action>
       }
     }
   </div>

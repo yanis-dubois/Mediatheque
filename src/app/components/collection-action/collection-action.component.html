@@ -1,39 +1,42 @@
-<button class="dropdown-button" (click)="toggleFavorite()" style="text-align: center;">
-  {{ collection()?.favorite ? '❤️' : '🩶' }}
-</button>
-@if (collection()?.collectionType === CollectionType.MANUAL) {
-  <button class="dropdown-button" (click)="openPicker($event)">
-    Add media
+@if (collection(); as collection) {
+  <button class="dropdown-button" (click)="favoriteAction.toggleFavorite()" style="text-align: center;">
+    <app-collection-favorite-action #favoriteAction [collectionId]="collection.id"></app-collection-favorite-action>
   </button>
-}
 
-<button class="dropdown-button" (click)="togglePin({type: 'ALL'})">
-  @if (isPinnedGlobal()) {
-    📌 Unpin from Home
-  } @else {
-    📍 Pin to Home
+  @if (collection.collectionType === CollectionType.MANUAL) {
+    <button class="dropdown-button" (click)="openPicker($event)">
+      Add media
+    </button>
   }
-</button>
-@if (hasSpecificContext(); as mediaType) {
-  <button class="dropdown-button" (click)="togglePin(collection()!.mediaType)">
-    @if (isPinnedSpecific()) {
-      📌 Unpin from {{ mediaType | humanize }} Home
+
+  <button class="dropdown-button" (click)="togglePin({type: 'ALL'})">
+    @if (isPinnedGlobal()) {
+      📌 Unpin from Home
     } @else {
-      📍 Pin to {{ mediaType | humanize}} Home
+      📍 Pin to Home
     }
   </button>
-}
+  @if (hasSpecificContext(); as mediaType) {
+    <button class="dropdown-button" (click)="togglePin(collection.mediaType)">
+      @if (isPinnedSpecific()) {
+        📌 Unpin from {{ mediaType | humanize }} Home
+      } @else {
+        📍 Pin to {{ mediaType | humanize}} Home
+      }
+    </button>
+  }
 
-@if (collection()?.collectionType !== CollectionType.SYSTEM) {
-  <button class="dropdown-button delete-item" (click)="onDelete()">
-    Delete
-  </button>
-}
+  @if (collection.collectionType !== CollectionType.SYSTEM) {
+    <button class="dropdown-button delete-item" (click)="onDelete()">
+      Delete
+    </button>
+  }
 
-<ng-template #pickerTemplate>
-  <app-media-picker 
-    [collection]="collection()!"
-    (onCancel)="closePicker()"
-    (onConfirm)="addSelectedMedia($event); closePicker()"
-  />
-</ng-template>
+  <ng-template #pickerTemplate>
+    <app-media-picker 
+      [collection]="collection"
+      (onCancel)="closePicker()"
+      (onConfirm)="addSelectedMedia($event); closePicker()"
+    />
+  </ng-template>
+}

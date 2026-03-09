@@ -7,11 +7,12 @@ import { HumanizePipe } from "../../pipe/humanize";
 import { EntityRow } from '@app/directive/entity-row.component';
 import { Collection } from '@app/models/collection.model';
 import { EntityRowLayoutComponent } from "../entity-row-layout/entity-row-layout.component";
+import { CollectionFavoriteActionComponent } from "../collection-favorite-action/collection-favorite-action.component";
 
 @Component({
   selector: 'app-collection-row-item',
   standalone: true,
-  imports: [CommonModule, EmojizePipe, HumanizePipe, EntityRowLayoutComponent],
+  imports: [CommonModule, EmojizePipe, HumanizePipe, EntityRowLayoutComponent, CollectionFavoriteActionComponent],
   templateUrl: './collection-row-item.component.html',
   styleUrls: ['../../../style/entity-row.scss']
 })

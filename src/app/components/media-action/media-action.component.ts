@@ -1,16 +1,16 @@
-import { Component, computed, EmbeddedViewRef, inject, input, output, Renderer2, TemplateRef, ViewChild, ViewContainerRef } from '@angular/core';
+import { Component, computed, EmbeddedViewRef, inject, input, output, Renderer2, signal, TemplateRef, ViewChild, ViewContainerRef } from '@angular/core';
 import { MediaStatus } from '@app/models/media.model';
-import { MediaService } from '@app/services/media.service';
 import { CollectionPickerComponent } from "../collection-picker/collection-picker.component";
 import { DOCUMENT } from '@angular/common';
 import { CollectionService } from '@app/services/collection.service';
 import { EntityService } from '@app/services/entity.service';
 import { MediaStatusActionComponent } from "../media-status-action/media-status-action.component";
+import { MediaFavoriteActionComponent } from "../media-favorite-action/media-favorite-action.component";
 
 @Component({
   selector: 'app-media-action',
   standalone: true,
-  imports: [CollectionPickerComponent, MediaStatusActionComponent],
+  imports: [CollectionPickerComponent, MediaStatusActionComponent, MediaFavoriteActionComponent],
   templateUrl: './media-action.component.html'
 })
 export class MediaActionComponent {
@@ -29,7 +29,6 @@ export class MediaActionComponent {
   statusOptions = Object.values(MediaStatus);
 
   private entityService = inject(EntityService);
-  private mediaService = inject(MediaService);
   private collectionService = inject(CollectionService);
 
   media = computed(() => {
@@ -53,29 +52,6 @@ export class MediaActionComponent {
     if (this.embeddedView) {
       this.embeddedView.destroy();
       this.embeddedView = null;
-    }
-  }
-
-  async toggleFavorite() {
-    const media = this.media();
-    if (!media) return;
-
-    try {
-      await this.mediaService.toggleFavorite(this.mediaId(), !media.favorite);
-    } catch (e) {
-      console.error("Error while updating favorite", e);
-    }
-  }
-
-  async onStatusChange(newStatus: string) {
-    const statusEnum = newStatus as MediaStatus;
-    const media = this.media();
-    if (!media) return;
-
-    try {
-      await this.mediaService.updateStatus(this.mediaId(), statusEnum);
-    } catch (e) {
-      console.error("Error while updating status", e);
     }
   }
 

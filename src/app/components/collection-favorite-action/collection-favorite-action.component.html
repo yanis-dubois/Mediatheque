@@ -1,0 +1,5 @@
+@if (collection(); as collection) {
+  <button class="favorite-button" (click)="toggleFavorite()">
+    {{ collection.favorite ? '❤️' : '🩶' }}
+  </button>
+}

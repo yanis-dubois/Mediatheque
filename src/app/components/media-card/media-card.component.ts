@@ -5,13 +5,13 @@ import { RouterModule } from '@angular/router';
 import { PosterPathPipe } from '@pipe/image-path.pipe';
 import { getStatusColor } from '@app/models/media.model';
 import { EntityService } from '@app/services/entity.service';
-import { EmojizePipe } from "../../pipe/emojize";
 import { MediaStatusActionComponent } from "../media-status-action/media-status-action.component";
+import { MediaFavoriteActionComponent } from "../media-favorite-action/media-favorite-action.component";
 
 @Component({
   selector: 'app-media-card',
   standalone: true,
-  imports: [CommonModule, RouterModule, PosterPathPipe, EmojizePipe, MediaStatusActionComponent],
+  imports: [CommonModule, RouterModule, PosterPathPipe, MediaStatusActionComponent, MediaFavoriteActionComponent],
   templateUrl: './media-card.component.html',
   styleUrls: ['./media-card.component.scss']
 })

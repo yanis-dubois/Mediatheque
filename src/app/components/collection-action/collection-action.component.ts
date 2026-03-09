@@ -7,11 +7,12 @@ import { DOCUMENT } from '@angular/common';
 import { PinService } from '@app/services/pin.service';
 import { HumanizePipe } from "../../pipe/humanize";
 import { EntityService } from '@app/services/entity.service';
+import { CollectionFavoriteActionComponent } from "../collection-favorite-action/collection-favorite-action.component";
 
 @Component({
   selector: 'app-collection-action',
   standalone: true,
-  imports: [MediaPickerComponent, HumanizePipe],
+  imports: [MediaPickerComponent, HumanizePipe, CollectionFavoriteActionComponent],
   templateUrl: './collection-action.component.html'
 })
 export class CollectionActionComponent {

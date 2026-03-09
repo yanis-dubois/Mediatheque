@@ -46,7 +46,10 @@
     @if (media) {
       <ng-content select="[icon]"></ng-content>
       @if (!customIcon()) {
-        <span>{{ media.favorite | emojize }}</span>
+        <app-media-favorite-action 
+          [mediaId]="media.id"
+          (click)="$event.preventDefault(); $event.stopPropagation()"
+        ></app-media-favorite-action>
       }
     }
   </div>
