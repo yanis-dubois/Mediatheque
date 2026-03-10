@@ -1,0 +1,20 @@
+<app-generic-list 
+  [items]="layoutData()"
+  [itemHeight]="containerHeight()"
+  (windowResize)="updateDimensions()" 
+>
+  <ng-template #rowRef let-item let-index="index">
+    @let result = item;
+
+    <app-api-search-row 
+      [entity]="result" 
+      [width]="containerWidth()" 
+      [height]="containerHeight()"
+    >
+      <app-api-search-add-action
+        menu
+        [data]="item"
+      ></app-api-search-add-action>
+    </app-api-search-row>
+  </ng-template>
+</app-generic-list>

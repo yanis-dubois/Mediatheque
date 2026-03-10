@@ -1,0 +1,28 @@
+.search-toggle {
+  display: flex;
+  justify-content: center;
+  padding: 8px;
+}
+
+.search-toggle-button {
+  margin: 0 calc(0.5 * var(--side-margin));
+  padding: 4px 32px;
+  background-color: var(--color-dark-soft);
+  border-radius: 8px;
+  color: var(--color-light);
+  border: none;
+  text-align: center;
+
+  &:hover {
+    background-color: var(--color-dark-light);
+    color: var(--color-light-bright);
+  }
+  &.is-active {
+    background-color: var(--color-dark-lighter);
+  }
+}
+
+.select-media {
+  margin-left: 8px;
+  border-radius: 8px;
+}

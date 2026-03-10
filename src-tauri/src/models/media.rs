@@ -12,6 +12,7 @@ pub struct Descriptor {
 #[serde(rename_all = "camelCase")]
 pub struct Media {
   pub id: String,
+  pub external_id: i32,
   pub media_type: MediaType,
 
   pub image_width: u32,

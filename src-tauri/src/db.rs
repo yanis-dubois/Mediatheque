@@ -83,6 +83,7 @@ pub fn init_db(connection: &mut Connection) -> Result<()> {
     -- Default Settings
 
     INSERT OR IGNORE INTO settings (key, value) VALUES ('SCORE_DISPLAY_MODE', 'STARS');
+    INSERT OR IGNORE INTO settings (key, value) VALUES ('LANGUAGE', 'EN');
 
 
 
@@ -145,6 +146,7 @@ pub fn init_db(connection: &mut Connection) -> Result<()> {
 
     CREATE TABLE IF NOT EXISTS media (
       id TEXT PRIMARY KEY NOT NULL,
+      external_id INTEGER NOT NULL,
       media_type TEXT NOT NULL CHECK(
         media_type IN ('BOOK', 'MOVIE', 'SERIES', 'VIDEO_GAME', 'TABLETOP_GAME')
       ),
@@ -288,6 +290,8 @@ pub fn init_db(connection: &mut Connection) -> Result<()> {
 
     -- Media Index
 
+    CREATE INDEX IF NOT EXISTS idx_media_type_external_id ON media(media_type, external_id);
+    CREATE INDEX IF NOT EXISTS idx_media_external_id ON media(external_id);
     CREATE INDEX IF NOT EXISTS idx_media_id ON media(id);
     CREATE INDEX IF NOT EXISTS idx_media_title ON media(title);
     CREATE INDEX IF NOT EXISTS idx_media_release_date ON media(release_date);
@@ -314,6 +318,7 @@ pub fn init_db(connection: &mut Connection) -> Result<()> {
 
 struct SeedMedia<'a> {
   id: i32,
+  external_id: u32,
   media_type: MediaType,
   title: &'a str,
   description: &'a str,
@@ -336,6 +341,7 @@ impl<'a> Default for SeedMedia<'a> {
   fn default() -> Self {
     Self {
       id: 0,
+      external_id: 0,
       media_type: MediaType::Series,
       title: "Sans titre",
       description: "",
@@ -453,10 +459,11 @@ pub fn seed_data(connection: &mut Connection) -> Result<()> {
 
     // insert in parent table Media
     tx.execute(
-      "INSERT INTO media (id, media_type, image_width, image_height, title, description, release_date, added_date, status, favorite, notes, score)
-        VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12)",
+      "INSERT INTO media (id, external_id, media_type, image_width, image_height, title, description, release_date, added_date, status, favorite, notes, score)
+        VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12, ?13)",
       params![
         media_id_str,
+        m.external_id,
         media_type_str,
         m.image_width,
         m.image_height,
@@ -703,8 +710,9 @@ fn seed_media_data() -> Vec<SeedMedia<'static>> {
   vec![
     SeedMedia {
       id: 1,
+      external_id: 438631,
       media_type: MediaType::Movie,
-      title: "Dune",
+      title: "Dune : Première partie",
       description: "L'histoire de Paul Atreides...",
       release_date: "2021-09-15",
       added_date: "2026-02-01",

@@ -1,9 +1,14 @@
+use dotenvy::dotenv;
+
+mod api;
 mod commands;
 mod db;
 mod models;
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
+  dotenv().ok(); // TODO: change that for the release (as .env wouldn't be available in shipping app)
+
   tauri::Builder::default()
     .plugin(tauri_plugin_dialog::init())
     .plugin(tauri_plugin_opener::init())
@@ -56,7 +61,9 @@ pub fn run() {
       commands::metadata::get_genre_by_id,
       commands::metadata::get_game_mechanic_batch,
       commands::metadata::get_game_mechanic_by_id,
-      commands::metadata::get_metadata_layout
+      commands::metadata::get_metadata_layout,
+      commands::api::search_media_on_internet,
+      commands::api::add_media_from_internet,
     ])
     .run(tauri::generate_context!())
     .expect("error while running tauri application");

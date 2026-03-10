@@ -5,6 +5,7 @@ use serde::{Deserialize, Serialize};
 #[serde(rename_all = "camelCase")]
 pub struct ExternalMedia {
   #[serde(skip_deserializing)]
+  pub external_id: u32,
   pub media_type: MediaType,
   pub title: String,
   pub image_url: String,
@@ -13,7 +14,7 @@ pub struct ExternalMedia {
 }
 
 #[derive(Debug, Deserialize)]
-#[serde(tag = "mediaType", rename_all = "camelCase")] // Serde va regarder ce champ pour savoir quoi désérialiser
+#[serde(tag = "mediaType", rename_all = "camelCase")]
 pub enum ExternalMediaRequest {
   #[serde(rename = "MOVIE")]
   Movie(ExternalMovie),

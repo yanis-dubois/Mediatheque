@@ -1,3 +1,4 @@
+pub mod api;
 pub mod collection;
 pub mod enums;
 pub mod external_media;

@@ -3,22 +3,62 @@
 <section class="page-container">
   <h1>Search</h1>
 
-  <div class="search-box">
-    <input 
-      #searchInput
-      class="input-search"
-      type="text"
-      placeholder="Search in the library..."
-      [value]="searchQuery()"
-      (input)="searchQuery.set($any($event.target).value)"
-      (keydown.enter)="searchInput.blur()"
-      (keydown.escape)="searchQuery.set(''); searchInput.blur()"
-    />
+  <div class="search-toggle">
+    <button 
+      class="search-toggle-button" 
+      [class.is-active]="mode() === 'library'"
+      (click)="onModeChange('library')"
+    >
+      Library
+    </button>
+    <button 
+      class="search-toggle-button" 
+      [class.is-active]="mode() === 'internet'"
+      (click)="onModeChange('internet')"
+    >
+      Internet
+    </button>
   </div>
 
-  <app-search-list 
-    class="virtual-host virtual-host-list"
-    [layoutData]="layoutData()" 
-  >
-  </app-search-list>
+  @if (mode(); as mode) {
+    <div class="search-box">
+      <input 
+        #searchInput
+        class="input-search"
+        type="text"
+        [placeholder]="'Search '+(mode === 'library' ? 'in' : 'on')+' the '+mode+'...'"
+        [value]="searchQuery()"
+        (input)="searchQuery.set($any($event.target).value)"
+        (keydown.enter)="searchInput.blur()"
+        (keydown.escape)="searchQuery.set(''); searchInput.blur()"
+      />
+
+      <select class="select-media"
+        [value]="mediaType() || ''" 
+        (change)="onMediaTypeChange($any($event.target).value)"
+      >
+        <!-- <option value="">All</option> -->
+        @for (type of mediaTypeOptions; track type) {
+          <option [value]="type" [selected]="type === mediaType()">
+            {{ type | humanize }}
+          </option>
+        }
+      </select>
+    </div>
+
+    @if (mode === 'library') {
+      <app-search-list 
+        class="virtual-host virtual-host-list"
+        [layoutData]="layoutData()" 
+      >
+      </app-search-list>
+    } @else {
+      <app-api-search-list
+        class="virtual-host virtual-host-list"
+        [layoutData]="apiResults()" 
+      >
+      </app-api-search-list>
+    }
+  }
+
 </section>

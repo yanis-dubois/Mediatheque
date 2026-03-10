@@ -12,24 +12,26 @@ use crate::models::query::{MediaFilter, MediaOrder};
 // convert SQL -> Media
 pub fn map_row_to_media(row: &rusqlite::Row) -> rusqlite::Result<Media> {
   // data that has to be transformed
-  let type_str: String = row.get(1)?;
-  let status_str: String = row.get(8)?;
-  let fav_int: i32 = row.get(9)?;
-  let contextual_roles: Option<String> = row.get(12).unwrap_or(None);
+  let external_id_int: i32 = row.get(1)?;
+  let type_str: String = row.get(2)?;
+  let status_str: String = row.get(9)?;
+  let fav_int: i32 = row.get(10)?;
+  let contextual_roles: Option<String> = row.get(13).unwrap_or(None);
 
   Ok(Media {
     id: row.get(0)?,
+    external_id: external_id_int,
     media_type: match_media_type(&type_str),
-    image_width: row.get(2)?,
-    image_height: row.get(3)?,
-    title: row.get(4)?,
-    description: row.get(5)?,
-    release_date: row.get(6)?,
-    added_date: row.get(7)?,
+    image_width: row.get(3)?,
+    image_height: row.get(4)?,
+    title: row.get(5)?,
+    description: row.get(6)?,
+    release_date: row.get(7)?,
+    added_date: row.get(8)?,
     status: match_media_status(&status_str),
     favorite: fav_int == 1, // 0/1 -> bool
-    notes: row.get(10)?,
-    score: row.get(11)?,
+    notes: row.get(11)?,
+    score: row.get(12)?,
     contextual_roles: contextual_roles,
   })
 }
@@ -664,10 +666,11 @@ pub fn insert_external_media(
 
   // insert in parent media table
   tx.execute(
-    "INSERT INTO media (id, media_type, image_width, image_height, title, description, release_date, added_date, status, favorite, notes)
-      VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11)",
+    "INSERT INTO media (id, external_id, media_type, image_width, image_height, title, description, release_date, added_date, status, favorite, notes)
+      VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12)",
     params![
       media_uuid,
+      base.external_id,
       base.media_type.to_string(),
       image_width,
       image_height,

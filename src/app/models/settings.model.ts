@@ -3,3 +3,8 @@ export enum Theme {
   DARK = "DARK",
   SYSTEM = "SYSTEM",
 }
+
+export enum Language {
+  EN = "EN",
+  FR = "FR"
+}

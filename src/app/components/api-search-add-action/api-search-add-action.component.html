@@ -1,0 +1,14 @@
+@if (data(); as data) {
+  @let isInLibrary = data.isInLibrary;
+
+  <button 
+    class="dots-button dots-button-simple"
+    (click)="onAdd()"
+  >
+    @if (isInLibrary) {
+      <img src="assets/icons/valid.svg"/>
+    } @else {
+      <img src="assets/icons/plus.svg"/>
+    }
+  </button>
+}
