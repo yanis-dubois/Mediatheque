@@ -1,4 +1,4 @@
-import { ExternalMedia, Media } from '@models/media.model';
+import { Media } from '@models/media.model';
 
 export interface Descriptor {
   id: number;
@@ -26,31 +26,6 @@ export interface TabletopGame extends Media {
   artists: Descriptor[];
   publishers: Descriptor[];
   gameMechanics: Descriptor[];
-  playerCount: string;
-  playingTime: string;
-}
-
-/* data that came from API */
-
-export interface ExternalMovie extends ExternalMedia {
-  directors: string[];
-  genre: string[];
-  saga: string[];
-  duration: number;
-}
-
-export interface ExternalSeries extends ExternalMedia {
-  creators: string[];
-  genre: string[];
-  seasons: number;
-  episodes: number;
-}
-
-export interface ExternalTabletopGame extends ExternalMedia {
-  designers: string[];
-  artists: string[];
-  publishers: string[];
-  gameMechanics: string[];
   playerCount: string;
   playingTime: string;
 }

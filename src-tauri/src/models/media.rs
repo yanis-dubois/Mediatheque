@@ -15,8 +15,8 @@ pub struct Media {
   pub external_id: i32,
   pub media_type: MediaType,
 
-  pub image_width: u32,
-  pub image_height: u32,
+  pub poster_width: u32,
+  pub poster_height: u32,
 
   pub title: String,
   pub description: String,
@@ -29,7 +29,8 @@ pub struct Media {
   pub notes: String,
   pub score: Option<u32>,
 
-  pub contextual_roles: Option<String>,
+  pub has_poster: bool,
+  pub has_backdrop: bool,
 }
 
 #[derive(Debug, Serialize)]

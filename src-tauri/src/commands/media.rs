@@ -1,4 +1,5 @@
 use std::collections::HashMap;
+use std::path::PathBuf;
 
 use crate::db::DbState;
 use crate::models::enums::{
@@ -16,14 +17,15 @@ pub fn map_row_to_media(row: &rusqlite::Row) -> rusqlite::Result<Media> {
   let type_str: String = row.get(2)?;
   let status_str: String = row.get(9)?;
   let fav_int: i32 = row.get(10)?;
-  let contextual_roles: Option<String> = row.get(13).unwrap_or(None);
+  let has_poster_int: i32 = row.get(13)?;
+  let has_backdrop_int: i32 = row.get(14)?;
 
   Ok(Media {
     id: row.get(0)?,
     external_id: external_id_int,
     media_type: match_media_type(&type_str),
-    image_width: row.get(3)?,
-    image_height: row.get(4)?,
+    poster_width: row.get(3)?,
+    poster_height: row.get(4)?,
     title: row.get(5)?,
     description: row.get(6)?,
     release_date: row.get(7)?,
@@ -32,7 +34,8 @@ pub fn map_row_to_media(row: &rusqlite::Row) -> rusqlite::Result<Media> {
     favorite: fav_int == 1, // 0/1 -> bool
     notes: row.get(11)?,
     score: row.get(12)?,
-    contextual_roles: contextual_roles,
+    has_poster: has_poster_int == 1,
+    has_backdrop: has_backdrop_int == 1,
   })
 }
 
@@ -484,12 +487,12 @@ pub fn get_media_layout_list(
 
   let sql = if collection_type == CollectionType::Manual {
     format!(
-      "SELECT m.id, m.image_width, m.image_height FROM media m {} {} {}",
+      "SELECT m.id, m.poster_width, m.poster_height FROM media m {} {} {}",
       joins, where_clause, order_clause
     )
   } else {
     format!(
-      "SELECT DISTINCT m.id, m.image_width, m.image_height FROM media m {} {} {}",
+      "SELECT DISTINCT m.id, m.poster_width, m.poster_height FROM media m {} {} {}",
       joins, where_clause, order_clause
     )
   };
@@ -649,15 +652,16 @@ pub fn update_media_score(
 /* ADD media */
 
 use rusqlite::{params, Transaction};
-use std::fs;
 use tauri::Manager;
 
 pub fn insert_external_media(
   tx: &Transaction,
   data: ExternalMediaRequest,
   media_uuid: &str,
-  image_width: u32,
-  image_height: u32,
+  poster_width: u32,
+  poster_height: u32,
+  has_poster: bool,
+  has_backdrop: bool,
 ) -> Result<(), rusqlite::Error> {
   println!("insert_external_media: {}", media_uuid);
 
@@ -666,14 +670,14 @@ pub fn insert_external_media(
 
   // insert in parent media table
   tx.execute(
-    "INSERT INTO media (id, external_id, media_type, image_width, image_height, title, description, release_date, added_date, status, favorite, notes)
-      VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12)",
+    "INSERT INTO media (id, external_id, media_type, poster_width, poster_height, title, description, release_date, added_date, status, favorite, notes, has_poster, has_backdrop)
+      VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12, ?13, ?14)",
     params![
       media_uuid,
       base.external_id,
       base.media_type.to_string(),
-      image_width,
-      image_height,
+      poster_width,
+      poster_height,
       base.title,
       base.description,
       base.release_date,
@@ -681,8 +685,12 @@ pub fn insert_external_media(
       "TO_DISCOVER",
       false,
       "",
+      has_poster,
+      has_backdrop
     ],
   )?;
+  insert_relations_person(tx, media_uuid, &base.persons)?;
+  insert_relations_company(tx, media_uuid, &base.companies)?;
 
   // insert details
   match data {
@@ -691,7 +699,6 @@ pub fn insert_external_media(
         "INSERT INTO movie (media_id, duration) VALUES (?1, ?2)",
         params![media_uuid, m.duration],
       )?;
-      insert_relations_person(tx, media_uuid, m.directors, "DIRECTOR")?;
       insert_relations_saga(tx, media_uuid, m.saga)?;
       insert_relations_genre(tx, media_uuid, m.genre)?;
     }
@@ -701,7 +708,6 @@ pub fn insert_external_media(
         "INSERT INTO series (media_id, seasons, episodes) VALUES (?1, ?2, ?3)",
         params![media_uuid, s.seasons, s.episodes],
       )?;
-      insert_relations_person(tx, media_uuid, s.creators, "CREATOR")?;
       insert_relations_genre(tx, media_uuid, s.genre)?;
     }
 
@@ -710,9 +716,6 @@ pub fn insert_external_media(
         "INSERT INTO tabletop_game (media_id, player_count, playing_time) VALUES (?1, ?2, ?3)",
         params![media_uuid, tg.player_count, tg.playing_time],
       )?;
-      insert_relations_person(tx, media_uuid, tg.designers, "DESIGNER")?;
-      insert_relations_person(tx, media_uuid, tg.artists, "ARTIST")?;
-      insert_relations_company(tx, media_uuid, tg.publishers, "PUBLISHER")?;
       insert_game_mechanic(tx, media_uuid, tg.game_mechanics)?;
     }
   }
@@ -723,16 +726,34 @@ pub fn insert_external_media(
 fn insert_relations_person(
   tx: &Transaction,
   media_id: &str,
-  names: Vec<String>,
-  role: &str,
+  persons: &HashMap<String, Vec<String>>,
 ) -> Result<(), rusqlite::Error> {
-  for name in names {
-    tx.execute("INSERT OR IGNORE INTO person (name) VALUES (?1)", [&name])?;
-    tx.execute(
-      "INSERT INTO media_person (media_id, person_id, role) 
-      SELECT ?1, id, ?3 FROM person WHERE name = ?2",
-      params![media_id, name, role],
-    )?;
+  for (name, roles) in persons {
+    tx.execute("INSERT OR IGNORE INTO person (name) VALUES (?1)", [name])?;
+    for role in roles {
+      tx.execute(
+        "INSERT INTO media_person (media_id, person_id, role) 
+         SELECT ?1, id, ?3 FROM person WHERE name = ?2",
+        params![media_id, name, role],
+      )?;
+    }
+  }
+  Ok(())
+}
+fn insert_relations_company(
+  tx: &Transaction,
+  media_id: &str,
+  companies: &HashMap<String, Vec<String>>,
+) -> Result<(), rusqlite::Error> {
+  for (name, roles) in companies {
+    tx.execute("INSERT OR IGNORE INTO company (name) VALUES (?1)", [name])?;
+    for role in roles {
+      tx.execute(
+        "INSERT INTO media_company (media_id, company_id, role) 
+         SELECT ?1, id, ?3 FROM company WHERE name = ?2",
+        params![media_id, name, role],
+      )?;
+    }
   }
   Ok(())
 }
@@ -766,22 +787,6 @@ fn insert_relations_genre(
   }
   Ok(())
 }
-fn insert_relations_company(
-  tx: &Transaction,
-  media_id: &str,
-  names: Vec<String>,
-  role: &str,
-) -> Result<(), rusqlite::Error> {
-  for name in names {
-    tx.execute("INSERT OR IGNORE INTO company (name) VALUES (?1)", [&name])?;
-    tx.execute(
-      "INSERT INTO media_company (media_id, company_id, role) 
-      SELECT ?1, id, ?3 FROM company WHERE name = ?2",
-      params![media_id, name, role],
-    )?;
-  }
-  Ok(())
-}
 fn insert_game_mechanic(
   tx: &Transaction,
   media_id: &str,
@@ -801,55 +806,61 @@ fn insert_game_mechanic(
   Ok(())
 }
 
+async fn download_media_image(
+  url: &str,
+  target_dir: &PathBuf,
+  file_name: &str,
+) -> Option<(u32, u32)> {
+  if url.is_empty() || url.ends_with("null") {
+    return None;
+  }
+
+  let response = reqwest::get(url).await.ok()?;
+  let bytes = response.bytes().await.ok()?;
+
+  std::fs::create_dir_all(target_dir).ok()?;
+  let file_path = target_dir.join(file_name);
+  std::fs::write(&file_path, &bytes).ok()?;
+
+  imagesize::size(&file_path)
+    .map(|size| (size.width as u32, size.height as u32))
+    .ok()
+}
+
 #[tauri::command]
 pub async fn add_media_to_library(
   app: tauri::AppHandle,
   data: ExternalMediaRequest,
 ) -> Result<(), String> {
-  println!("add_media_to_library");
+  let media_uuid = uuid::Uuid::new_v4().to_string();
+  let app_dir = app.path().app_data_dir().map_err(|e| e.to_string())?;
 
-  // extract basic infos
   let base = data.base();
-  let image_url = &base.image_url;
 
-  // download media image
-  let response = reqwest::get(image_url).await.map_err(|e| e.to_string())?;
-  let bytes = response.bytes().await.map_err(|e| e.to_string())?;
+  let file_name = format!("{}.jpg", media_uuid);
 
-  {
-    // get path to app local file
-    let app_dir = app.path().app_data_dir().map_err(|e| e.to_string())?;
-    let posters_dir = app_dir.join("posters");
-    fs::create_dir_all(&posters_dir).map_err(|e| e.to_string())?;
+  // download poster
+  let poster_dims =
+    download_media_image(&base.image_url, &app_dir.join("posters"), &file_name).await;
 
-    // generate uuid
-    let media_uuid = uuid::Uuid::new_v4().to_string();
+  // download backdrop
+  let backdrop_dims =
+    download_media_image(&base.backdrop_url, &app_dir.join("backdrops"), &file_name).await;
 
-    // store image in local file
-    let file_name = format!("{}.jpg", media_uuid);
-    let file_path = posters_dir.join(&file_name);
-    std::fs::write(&file_path, &bytes).map_err(|e| e.to_string())?;
+  // get db access
+  let state = app.state::<DbState>();
+  let mut connection = state.connection.lock().unwrap();
+  let tx = connection.transaction().map_err(|e| e.to_string())?;
 
-    // get image dimensions
-    let image_size = imagesize::size(&file_path).map_err(|e| e.to_string())?;
+  // retrieve poster dimmension
+  let (p_w, p_h) = poster_dims.unwrap_or((2, 3));
+  let has_poster = poster_dims.is_some();
+  let has_backdrop = backdrop_dims.is_some();
 
-    // DB connection
-    let state = app.state::<DbState>();
-    let mut connection = state.connection.lock().unwrap();
-    let tx = connection.transaction().map_err(|e| e.to_string())?;
-
-    // INSERT media
-    insert_external_media(
-      &tx,
-      data,
-      &media_uuid,
-      image_size.width as u32,
-      image_size.height as u32,
-    )
+  insert_external_media(&tx, data, &media_uuid, p_w, p_h, has_poster, has_backdrop)
     .map_err(|e| e.to_string())?;
 
-    tx.commit().map_err(|e| e.to_string())?;
-  }
+  tx.commit().map_err(|e| e.to_string())?;
 
   Ok(())
 }

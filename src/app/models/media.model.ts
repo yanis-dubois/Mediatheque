@@ -42,8 +42,8 @@ export interface Media {
   id: string;
   externalId: number;
   mediaType: MediaType;
-  imageWidth: number;
-  imageHeight: number;
+  posterWidth: number;
+  posterHeight: number;
   title: string;
   description: string;
   releaseDate: string;
@@ -52,13 +52,6 @@ export interface Media {
   favorite: boolean;
   notes: string;
   score?: number;
-  contextual_roles?: string;
-}
-
-export interface ExternalMedia {
-  mediaType: MediaType;
-  title: string;
-  imageUrl: string;
-  description: string;
-  releaseDate: string;
+  hasPoster: boolean;
+  hasBackdrop: boolean;
 }

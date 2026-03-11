@@ -1,3 +1,5 @@
+use std::collections::HashMap;
+
 use crate::models::enums::MediaType;
 use serde::{Deserialize, Serialize};
 
@@ -9,8 +11,12 @@ pub struct ExternalMedia {
   pub media_type: MediaType,
   pub title: String,
   pub image_url: String,
+  pub backdrop_url: String,
   pub description: String,
   pub release_date: String,
+  // {name : [roles]}
+  pub persons: HashMap<String, Vec<String>>,
+  pub companies: HashMap<String, Vec<String>>,
 }
 
 #[derive(Debug, Deserialize)]
@@ -42,7 +48,6 @@ pub struct ExternalMovie {
   pub base: ExternalMedia,
 
   // movie specific fields
-  pub directors: Vec<String>,
   pub genre: Vec<String>,
   pub saga: Vec<String>,
   pub duration: i32,
@@ -56,7 +61,6 @@ pub struct ExternalSeries {
   pub base: ExternalMedia,
 
   // series specific fields
-  pub creators: Vec<String>,
   pub genre: Vec<String>,
   pub seasons: i32,
   pub episodes: i32,
@@ -70,9 +74,6 @@ pub struct ExternalTabletopGame {
   pub base: ExternalMedia,
 
   // series specific fields
-  pub designers: Vec<String>,
-  pub artists: Vec<String>,
-  pub publishers: Vec<String>,
   pub game_mechanics: Vec<String>,
   pub player_count: String,
   pub playing_time: String,

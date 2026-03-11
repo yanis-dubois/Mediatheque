@@ -151,8 +151,8 @@ pub fn init_db(connection: &mut Connection) -> Result<()> {
         media_type IN ('BOOK', 'MOVIE', 'SERIES', 'VIDEO_GAME', 'TABLETOP_GAME')
       ),
 
-      image_width INTEGER NOT NULL,
-      image_height INTEGER NOT NULL,
+      poster_width INTEGER NOT NULL,
+      poster_height INTEGER NOT NULL,
 
       title TEXT NOT NULL,
       description TEXT NOT NULL,
@@ -165,8 +165,10 @@ pub fn init_db(connection: &mut Connection) -> Result<()> {
       ),
       favorite INTEGER NOT NULL DEFAULT 0 CHECK(favorite IN (0, 1)),
       notes TEXT NOT NULL DEFAULT '',
+      score INTEGER CHECK(score BETWEEN 0 AND 100),
 
-      score INTEGER CHECK(score BETWEEN 0 AND 100)
+      has_poster INTEGER NOT NULL DEFAULT 0 CHECK(has_poster IN (0, 1)),
+      has_backdrop INTEGER NOT NULL DEFAULT 0 CHECK(has_backdrop IN (0, 1))
     );
 
     -- Detailed Media
@@ -234,9 +236,7 @@ pub fn init_db(connection: &mut Connection) -> Result<()> {
     CREATE TABLE IF NOT EXISTS media_person (
       media_id TEXT NOT NULL,
       person_id INTEGER NOT NULL,
-      role TEXT NOT NULL CHECK(
-        role IN ('DIRECTOR', 'CREATOR', 'DESIGNER', 'ARTIST', 'AUTHOR')
-      ),
+      role TEXT NOT NULL,
       PRIMARY KEY (media_id, person_id, role),
       FOREIGN KEY (media_id) REFERENCES media(id) ON DELETE CASCADE,
       FOREIGN KEY (person_id) REFERENCES person(id) ON DELETE CASCADE
@@ -246,9 +246,7 @@ pub fn init_db(connection: &mut Connection) -> Result<()> {
     CREATE TABLE IF NOT EXISTS media_company (
       media_id TEXT NOT NULL,
       company_id INTEGER NOT NULL,
-      role TEXT NOT NULL CHECK(
-        role IN ('PUBLISHER', 'STUDIO', 'DEVELOPER')
-      ),
+      role TEXT NOT NULL,
       PRIMARY KEY (media_id, company_id, role),
       FOREIGN KEY (media_id) REFERENCES media(id) ON DELETE CASCADE,
       FOREIGN KEY (company_id) REFERENCES company(id) ON DELETE CASCADE
@@ -330,6 +328,8 @@ struct SeedMedia<'a> {
   favorite: i32,
   notes: &'a str,
   score: Option<u32>,
+  has_poster: i32,
+  has_backdrop: i32,
 
   // details
   movie_details: Option<SeedMovie<'a>>,
@@ -352,6 +352,8 @@ impl<'a> Default for SeedMedia<'a> {
       status: MediaStatus::ToDiscover,
       favorite: 0,
       notes: "",
+      has_poster: 1,
+      has_backdrop: 0,
       score: None,
       movie_details: None,
       series_details: None,
@@ -459,8 +461,8 @@ pub fn seed_data(connection: &mut Connection) -> Result<()> {
 
     // insert in parent table Media
     tx.execute(
-      "INSERT INTO media (id, external_id, media_type, image_width, image_height, title, description, release_date, added_date, status, favorite, notes, score)
-        VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12, ?13)",
+      "INSERT INTO media (id, external_id, media_type, poster_width, poster_height, title, description, release_date, added_date, status, favorite, notes, score, has_poster, has_backdrop)
+        VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12, ?13, ?14, ?15)",
       params![
         media_id_str,
         m.external_id,
@@ -474,7 +476,9 @@ pub fn seed_data(connection: &mut Connection) -> Result<()> {
         status_str,
         m.favorite,
         m.notes,
-        m.score
+        m.score,
+        m.has_poster,
+        m.has_backdrop
       ],
     )?;
 

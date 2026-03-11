@@ -8,6 +8,7 @@ use strum::EnumIter;
 #[derive(strum::Display, strum::EnumString)]
 #[strum(serialize_all = "SCREAMING_SNAKE_CASE")]
 pub enum SettingsKey {
+  Language,
   ScoreDisplayMode,
   Theme,
 }
@@ -17,6 +18,7 @@ pub enum SettingsKey {
 #[derive(strum::Display)]
 #[strum(serialize_all = "SCREAMING_SNAKE_CASE")]
 pub enum SettingValue {
+  Language(Language),
   ScoreMode(ScoreDisplayMode),
   Theme(Theme),
 }
@@ -24,10 +26,20 @@ pub enum SettingValue {
 impl SettingValue {
   pub fn to_db_string(&self) -> String {
     match self {
+      SettingValue::Language(mode) => mode.to_string(),
       SettingValue::ScoreMode(mode) => mode.to_string(),
       SettingValue::Theme(mode) => mode.to_string(),
     }
   }
+}
+
+#[derive(Debug, Serialize, Deserialize, PartialEq, Clone, EnumIter)]
+#[serde(rename_all = "SCREAMING_SNAKE_CASE")]
+#[derive(strum::Display, strum::EnumString)]
+#[strum(serialize_all = "SCREAMING_SNAKE_CASE")]
+pub enum Language {
+  En,
+  Fr,
 }
 
 #[derive(Debug, Serialize, Deserialize, PartialEq, Clone, EnumIter)]

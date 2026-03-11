@@ -2,9 +2,10 @@ import { inject, Injectable } from '@angular/core';
 
 import { invoke } from '@tauri-apps/api/core';
 
-import { ExternalMedia, Media, MediaStatus } from '@models/media.model';
+import { Media, MediaStatus } from '@models/media.model';
 import { EntityService } from './entity.service';
 import { EntityType } from '@app/models/entity.model';
+import { ExternalMedia } from '@app/models/api.model';
 
 @Injectable({ providedIn: 'root' })
 export class MediaService {

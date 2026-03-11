@@ -8,14 +8,23 @@
         [alt]="media.title" 
         (click)="isLightboxOpen.set(true)"
       />
-      <p>({{ media.imageWidth }} x {{ media.imageHeight }})</p>
+      <p>({{ media.posterWidth }} x {{ media.posterHeight }})</p>
     </div>
 
     <div class="info">
       <h1 class="title">{{ media.title }}</h1>
       <p class="type">{{ media.mediaType }}</p>
-      <p class="releaseDate">release date : {{ media.releaseDate }}</p>
-      <p class="addedDate">added date : {{ media.addedDate }}</p>
+      <p class="releaseDate">release date : {{ media.releaseDate | date:'medium' }}</p>
+      <p class="addedDate">added date : {{ media.addedDate | date:'medium' }}</p>
+
+      <!-- <div class="contributors">
+        @for (person of media.persons | keyvalue; track person.key) {
+          <div class="person-tag">
+            <strong>{{ person.key }}</strong> 
+            <small>({{ person.value.join(', ') }})</small>
+          </div>
+        }
+      </div> -->
 
       <app-score-display 
         [score]="score()" 
@@ -74,8 +83,8 @@
       <app-poster-lightbox 
         [mediaId]="media.id"
         [title]="media.title"
-        [width]="media.imageWidth"
-        [height]="media.imageHeight"
+        [width]="media.posterWidth"
+        [height]="media.posterHeight"
         (close)="isLightboxOpen.set(false)"
       />
     }
