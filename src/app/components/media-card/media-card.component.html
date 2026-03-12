@@ -10,12 +10,14 @@
       class="item-content"
       [routerLink]="['/media', media.id]"
     >
-      <img 
-        [src]="media.id | posterPath"
-        [alt]="media.title"
-        [style.width.px]="width"
-        [style.height.px]="height"
-      >
+      <div [style.width.px]="width" [style.height.px]="height">
+        <app-media-image 
+          [source]="media.id | posterPath"
+          [title]="media.title" 
+          [type]="'poster'" 
+          [hasImage]="media.hasPoster">
+        </app-media-image>
+      </div>
     </a>
 
     <div class="fav-slot">

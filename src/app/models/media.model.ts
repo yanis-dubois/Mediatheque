@@ -1,5 +1,7 @@
 /* ********** Enum ********** */
 
+import { Tag } from "./entity.model";
+
 export enum MediaType {
   BOOK = 'BOOK',
   MOVIE = 'MOVIE',
@@ -30,25 +32,36 @@ export enum TagType {
   GAME_MECHANIC = 'GAME_MECHANIC',
 }
 
+export interface EntityRelation {
+  id: string;
+  values: string[];
+}
+
 /* ********** Data ********** */
 
 // base
-export interface MediaCore {
+export interface MediaBase {
   mediaType: MediaType;
   title: string;
   releaseDate: string;
   description: string;
 }
-export interface MediaRelations {
+
+export interface LibraryMediaRelations {
+  // { name: {id, [roles, ...]} }
+  persons: Record<string, EntityRelation>;
+  companies: Record<string, EntityRelation>;
+  // { type: [{id, tag}, ...] }
+  tags: Partial<Record<TagType, Tag[]>>;
+}
+
+export interface ApiMediaRelations {
   // { name: [roles, ...] }
   persons: Record<string, string[]>;
   companies: Record<string, string[]>;
   // { type: [tags, ...] }
   tags: Partial<Record<TagType, string[]>>;
 }
-export type MediaBase = 
-  MediaCore & 
-  MediaRelations;
 
 // extension
 export interface MovieExtension { 
@@ -94,25 +107,27 @@ export interface ApiState {
 
 /* ********** Type ********** */
 
-// obtained from light API call
+// obtained from light SQL call
 export type LibrarySearchResult = 
-  MediaCore & 
+  MediaBase & 
   LibraryState;
 
-// obtained from SQL call
+// obtained from detailed SQL call
 export type LibraryMedia = 
   MediaData & 
-  LibraryState;
+  LibraryState &
+  LibraryMediaRelations;
 
 // obtained from light API call
 export type ApiSearchResult = 
-  MediaCore & 
+  MediaBase & 
   ApiState;
 
 // obtained from detailed API call
 export type ApiMedia = 
   MediaData &
-  ApiState;
+  ApiState &
+  ApiMediaRelations;
 
 export type DetailedMedia = 
   LibraryMedia |

@@ -1,24 +1,25 @@
 import { Component, computed, inject, input } from '@angular/core';
 import { CommonModule } from '@angular/common';
 
-import { PosterPathPipe } from '@pipe/poster-path.pipe';
 import { HumanizePipe } from "@pipe/humanize";
 import { EmojizePipe } from "@pipe/emojize";
-import { EntityType, MetadataType } from '@app/models/entity.model';
+import { EntityType } from '@app/models/entity.model';
 import { LibraryMedia } from '@app/models/media.model';
 import { EntityRow } from '@app/directive/entity-row.directive';
 import { EntityRowLayoutComponent } from "../entity-row-layout/entity-row-layout.component";
 import { getStatusColor } from '@app/models/media.model';
 import { MediaStatusActionComponent } from "../media-status-action/media-status-action.component";
 import { MediaFavoriteActionComponent } from "../media-favorite-action/media-favorite-action.component";
+import { MediaImageComponent } from "../media-image/media-image.component";
+import { PosterPathPipe } from "../../pipe/poster-path.pipe";
 
 @Component({
   selector: 'app-media-row',
   standalone: true,
-  imports: [CommonModule, PosterPathPipe, HumanizePipe, EmojizePipe, EntityRowLayoutComponent, MediaStatusActionComponent, MediaFavoriteActionComponent],
+  imports: [CommonModule, HumanizePipe, EmojizePipe, EntityRowLayoutComponent, MediaStatusActionComponent, MediaFavoriteActionComponent, MediaImageComponent, PosterPathPipe],
   providers: [HumanizePipe],
   templateUrl: './media-row.component.html',
-  styleUrls: ['../../../style/entity-row.scss', './media-row.component.scss']
+  styleUrls: ['../../../style/entity-row.scss']
 })
 export class MediaRowComponent extends EntityRow<LibraryMedia & {type: EntityType.MEDIA}> {
   override entityId = input.required<string>({ alias: 'mediaId' });

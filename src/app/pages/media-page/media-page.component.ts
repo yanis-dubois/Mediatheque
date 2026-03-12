@@ -5,7 +5,8 @@ import { ActivatedRoute } from '@angular/router';
 import { ActionBarComponent } from '@components/action-bar/action-bar.component';
 import { MediaDetailsComponent } from '@components/media-details/media-details.component';
 import { MediaService } from '@app/services/media.service';
-import { DetailedMedia } from '@app/models/media.model';
+import { DetailedMedia, MediaType } from '@app/models/media.model';
+import { SettingsService } from '@app/services/settings.service';
 
 @Component({
   selector: 'app-media-page',
@@ -22,10 +23,13 @@ export class MediaPageComponent {
 
   constructor(
     private route: ActivatedRoute,
-    private mediaService: MediaService
+    private mediaService: MediaService,
+    private settingsService: SettingsService
   ) {}
 
   async ngOnInit() {
+    const source = this.route.snapshot.paramMap.get('source');
+    const type = this.route.snapshot.paramMap.get('type');
     const id = this.route.snapshot.paramMap.get('id');
 
     if (!id) {
@@ -34,8 +38,16 @@ export class MediaPageComponent {
     }
 
     this.id = id;
-    this.media.set(
-      await this.mediaService.getById(id)
-    );
+
+    if (source && source === 'api' && type) {
+      const mediaType = type as MediaType;
+      this.media.set(
+        await this.mediaService.getApiMediaById(id, mediaType, this.settingsService.language())
+      );
+    } else {
+      this.media.set(
+        await this.mediaService.getById(id)
+      );
+    }
   }
 }

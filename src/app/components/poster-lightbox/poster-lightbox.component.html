@@ -1,8 +1,9 @@
 <div class="lightbox-overlay" (click)="close.emit()" @fadeInOutOpacity>
   <div class="content">
     <img 
+      class="image"
       (click)="$event.stopPropagation()"
-      [src]="posterPath()" 
+      [src]="source()" 
       [alt]="title()" 
       decoding="sync"
       fetchpriority="high"

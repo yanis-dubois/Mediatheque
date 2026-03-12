@@ -2,34 +2,42 @@ use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 
 use super::enums::{MediaStatus, MediaType};
-use crate::models::enums::TagType;
+use crate::models::{enums::TagType, metadata::Tag};
 
-/* ****** Data ****** */
+/* ****** Relation ****** */
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Default)]
 #[serde(rename_all = "camelCase")]
-pub struct MediaCore {
-  pub media_type: MediaType,
-  pub title: String,
-  pub release_date: String,
-  pub description: String,
+pub struct EntityRelation {
+  pub id: String,
+  pub values: Vec<String>,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
-pub struct MediaRelations {
+pub struct LibraryMediaRelations {
+  pub persons: HashMap<String, EntityRelation>,
+  pub companies: HashMap<String, EntityRelation>,
+  pub tags: HashMap<TagType, Vec<Tag>>,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct ApiMediaRelations {
   pub persons: HashMap<String, Vec<String>>,
   pub companies: HashMap<String, Vec<String>>,
   pub tags: HashMap<TagType, Vec<String>>,
 }
 
+/* ****** Data ****** */
+
 #[derive(Debug, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct MediaBase {
-  #[serde(flatten)]
-  pub core: MediaCore,
-  #[serde(flatten)]
-  pub relations: MediaRelations,
+  pub media_type: MediaType,
+  pub title: String,
+  pub release_date: String,
+  pub description: String,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -92,7 +100,7 @@ pub struct ApiState {
 #[serde(rename_all = "camelCase")]
 pub struct ApiSearchResult {
   #[serde(flatten)]
-  pub core: MediaCore,
+  pub core: MediaBase,
   #[serde(flatten)]
   pub state: ApiState,
 }
@@ -104,6 +112,8 @@ pub struct ApiMedia {
   #[serde(flatten)]
   pub data: MediaData,
   #[serde(flatten)]
+  pub relations: ApiMediaRelations,
+  #[serde(flatten)]
   pub state: ApiState,
 }
 
@@ -113,6 +123,8 @@ pub struct ApiMedia {
 pub struct LibraryMedia {
   #[serde(flatten)]
   pub data: MediaData,
+  #[serde(flatten)]
+  pub relations: LibraryMediaRelations,
   #[serde(flatten)]
   pub state: LibraryState,
 }

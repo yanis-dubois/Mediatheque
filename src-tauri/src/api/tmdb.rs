@@ -12,18 +12,13 @@ use crate::{
     api::ApiResponse,
     enums::{Language, MediaType, TagType},
     media::{
-      ApiMedia, ApiSearchResult, ApiState, MediaBase, MediaCore, MediaData, MediaExtension,
-      MediaRelations,
+      ApiMedia, ApiMediaRelations, ApiSearchResult, ApiState, MediaBase, MediaData, MediaExtension,
     },
   },
 };
 
 fn get_tmdb_token() -> String {
   env::var("TMDB_API_TOKEN").unwrap_or_else(|_| "unable to find TMDB API token".to_string())
-}
-
-fn get_image_url() -> String {
-  "https://image.tmdb.org/t/p".to_string()
 }
 
 fn get_media_url() -> String {
@@ -128,7 +123,7 @@ pub async fn fetch_from_tmdb(
     .into_iter()
     .filter_map(|item| {
       Some(ApiSearchResult {
-        core: MediaCore {
+        core: MediaBase {
           media_type: media_type.clone(),
           title: item["title"]
             .as_str()
@@ -162,6 +157,15 @@ pub async fn fetch_from_tmdb(
   Ok(results)
 }
 
+fn get_job_priority(job: &str) -> i32 {
+  match job {
+    "Director" => 1,
+    "Screenplay" | "Writer" | "Author" | "Novel" => 2,
+    "Story" | "Characters" => 3,
+    _ => 100,
+  }
+}
+
 fn map_tmdb_to_api_media(
   state: &tauri::State<'_, DbState>,
   external_id: u32,
@@ -173,14 +177,32 @@ fn map_tmdb_to_api_media(
   let mut tags: HashMap<TagType, Vec<String>> = HashMap::new();
 
   // extract person
+  let mut featured_crew: Vec<(String, String)> = Vec::new();
   // -- crew
   if let Some(crew) = data["credits"]["crew"].as_array() {
     for member in crew {
       if let (Some(name), Some(job)) = (member["name"].as_str(), member["job"].as_str()) {
+        let priority = get_job_priority(job);
+        if priority < 100 {
+          featured_crew.push((name.to_string(), job.to_string()));
+        }
+      }
+    }
+  }
+  // sort by job priority
+  featured_crew.sort_by_key(|item| get_job_priority(&item.1));
+  // take the 6 first
+  for (name, job) in featured_crew.into_iter().take(6) {
+    persons.entry(name).or_default().push(job.to_uppercase());
+  }
+  // -- creators (for series)
+  if let Some(creators) = data["created_by"].as_array() {
+    for creator in creators {
+      if let Some(name) = creator["name"].as_str() {
         persons
           .entry(name.to_string())
           .or_default()
-          .push(job.to_uppercase());
+          .push("CREATOR".to_string());
       }
     }
   }
@@ -192,17 +214,6 @@ fn map_tmdb_to_api_media(
           .entry(name.to_string())
           .or_default()
           .push("ACTOR".to_string());
-      }
-    }
-  }
-  // -- creators (for series)
-  if let Some(creators) = data["created_by"].as_array() {
-    for creator in creators {
-      if let Some(name) = creator["name"].as_str() {
-        persons
-          .entry(name.to_string())
-          .or_default()
-          .push("CREATOR".to_string());
       }
     }
   }
@@ -226,6 +237,12 @@ fn map_tmdb_to_api_media(
     .unwrap_or(&vec![])
     .iter()
     .filter_map(|g| g["name"].as_str().map(|s| s.to_string()))
+    .flat_map(|s| {
+      s.split(['&', '/'])
+        .map(|part| part.trim().to_string())
+        .filter(|part| !part.is_empty())
+        .collect::<Vec<_>>()
+    })
     .collect();
   if !genres.is_empty() {
     tags.insert(TagType::Genre, genres);
@@ -242,25 +259,18 @@ fn map_tmdb_to_api_media(
   }
 
   let base = MediaBase {
-    core: MediaCore {
-      media_type: media_type.clone(),
-      title: data["title"]
-        .as_str()
-        .or(data["name"].as_str())
-        .unwrap_or("Untitled")
-        .to_string(),
-      release_date: data["release_date"]
-        .as_str()
-        .or(data["first_air_date"].as_str())
-        .unwrap_or("")
-        .to_string(),
-      description: data["overview"].as_str().unwrap_or("").to_string(),
-    },
-    relations: MediaRelations {
-      persons,
-      companies,
-      tags,
-    },
+    media_type: media_type.clone(),
+    title: data["title"]
+      .as_str()
+      .or(data["name"].as_str())
+      .unwrap_or("Untitled")
+      .to_string(),
+    release_date: data["release_date"]
+      .as_str()
+      .or(data["first_air_date"].as_str())
+      .unwrap_or("")
+      .to_string(),
+    description: data["overview"].as_str().unwrap_or("").to_string(),
   };
 
   // add detailed infos
@@ -280,16 +290,13 @@ fn map_tmdb_to_api_media(
     state: ApiState {
       external_id,
       is_in_library: is_media_in_library(state, external_id, &media_type),
-      poster_path: Some(format!(
-        "{}/original{}",
-        get_image_url(),
-        data["poster_path"].as_str().unwrap_or("")
-      )),
-      backdrop_path: Some(format!(
-        "{}/original{}",
-        get_image_url(),
-        data["backdrop_path"].as_str().unwrap_or("")
-      )),
+      poster_path: data["poster_path"].as_str().map(|s| s.to_string()),
+      backdrop_path: data["backdrop_path"].as_str().map(|s| s.to_string()),
+    },
+    relations: ApiMediaRelations {
+      persons,
+      companies,
+      tags,
     },
   })
 }

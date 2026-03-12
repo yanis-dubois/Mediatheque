@@ -40,6 +40,10 @@ export const routes: Routes = [
     path: 'media/:id',
     component: MediaPageComponent
   },
+  {
+    path: 'media/:source/:type/:id',
+    component: MediaPageComponent
+  },
   { 
     path: 'metadata-list/:type', 
     pathMatch: 'full', 

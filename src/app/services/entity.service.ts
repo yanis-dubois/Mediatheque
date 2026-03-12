@@ -1,5 +1,5 @@
 import { inject, Injectable, Injector, signal, WritableSignal } from "@angular/core";
-import { Company, DetailedEntity, EntityType, MetadataType, Person, Tag } from "@app/models/entity.model";
+import { Company, DetailedEntity, EntityType, Person, Tag } from "@app/models/entity.model";
 import { MediaService } from "./media.service";
 import { CollectionService } from "./collection.service";
 import { invoke } from "@tauri-apps/api/core";

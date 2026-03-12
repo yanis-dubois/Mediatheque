@@ -7,9 +7,10 @@ use crate::models::enums::{
   MediaOrderField, MediaStatus, MediaType, TagType,
 };
 use crate::models::media::{
-  ApiMedia, LibraryMedia, LibraryState, MediaBase, MediaCore, MediaData, MediaExtension,
-  MediaRelations,
+  ApiMedia, EntityRelation, LibraryMedia, LibraryMediaRelations, LibraryState, MediaBase,
+  MediaData, MediaExtension,
 };
+use crate::models::metadata::Tag;
 use crate::models::query::{MediaFilter, MediaOrder};
 
 // convert SQL -> Media
@@ -19,18 +20,10 @@ pub fn map_row_to_media(row: &rusqlite::Row) -> rusqlite::Result<LibraryMedia> {
 
   // build base
   let base = MediaBase {
-    core: MediaCore {
-      media_type: media_type.clone(),
-      title: row.get(5)?,
-      description: row.get(6)?,
-      release_date: row.get(7)?,
-    },
-    // init
-    relations: MediaRelations {
-      persons: HashMap::new(),
-      companies: HashMap::new(),
-      tags: HashMap::new(),
-    },
+    media_type: media_type.clone(),
+    title: row.get(5)?,
+    description: row.get(6)?,
+    release_date: row.get(7)?,
   };
 
   // build state
@@ -54,93 +47,122 @@ pub fn map_row_to_media(row: &rusqlite::Row) -> rusqlite::Result<LibraryMedia> {
   Ok(LibraryMedia {
     data: MediaData { base, extension },
     state,
+    relations: LibraryMediaRelations {
+      persons: HashMap::new(),
+      companies: HashMap::new(),
+      tags: HashMap::new(),
+    },
   })
 }
 
 /* -- GET media -- */
 
 pub fn fill_media_relations(
-  connection: &Connection,
+  connection: &rusqlite::Connection,
   media: &mut LibraryMedia,
 ) -> Result<(), String> {
   let media_id = &media.state.id;
 
-  // retrieve Tags
+  // retrieve tags
   let mut stmt_tags = connection
     .prepare(
-      "SELECT t.name, mt.type FROM tag t 
-       JOIN media_tag mt ON t.id = mt.tag_id WHERE mt.media_id = ?1",
+      "SELECT CAST(t.id AS TEXT), t.name, mt.type 
+        FROM tag t 
+        JOIN media_tag mt ON t.id = mt.tag_id 
+        WHERE mt.media_id = ?1",
     )
     .map_err(|e| e.to_string())?;
 
   let tag_rows = stmt_tags
     .query_map([media_id], |row| {
-      let name: String = row.get(0)?;
-      let tag_type: String = row.get(1)?;
-      Ok((name, tag_type))
+      Ok((
+        row.get::<_, String>(0)?,
+        row.get::<_, String>(1)?,
+        row.get::<_, String>(2)?,
+      ))
     })
     .map_err(|e| e.to_string())?;
 
   for row in tag_rows.flatten() {
-    let tag_type = match_tag_type(&row.1);
+    let (id, name, type_str) = row;
+    let tag_type = match_tag_type(&type_str);
+
     media
-      .data
-      .base
       .relations
       .tags
       .entry(tag_type)
-      .or_default()
-      .push(row.0);
+      .or_insert_with(Vec::new)
+      .push(Tag { id, name });
   }
 
-  // retrieve Persons
+  // retrieve persons
   let mut stmt_pers = connection
     .prepare(
-      "SELECT p.name, mp.role FROM person p 
-       JOIN media_person mp ON p.id = mp.person_id WHERE mp.media_id = ?1",
+      "SELECT CAST(p.id AS TEXT), p.name, mp.role 
+        FROM person p 
+        JOIN media_person mp ON p.id = mp.person_id 
+        WHERE mp.media_id = ?1",
     )
     .map_err(|e| e.to_string())?;
 
   let pers_rows = stmt_pers
     .query_map([media_id], |row| {
-      Ok((row.get::<_, String>(0)?, row.get::<_, String>(1)?))
+      Ok((
+        row.get::<_, String>(0)?,
+        row.get::<_, String>(1)?,
+        row.get::<_, String>(2)?,
+      ))
     })
     .map_err(|e| e.to_string())?;
 
   for row in pers_rows.flatten() {
-    media
-      .data
-      .base
+    let (id, name, role) = row;
+
+    // name is the key
+    let relation = media
       .relations
       .persons
-      .entry(row.0)
-      .or_default()
-      .push(row.1);
+      .entry(name)
+      .or_insert_with(|| EntityRelation {
+        id,
+        values: Vec::new(),
+      });
+    relation.values.push(role);
   }
 
-  // retrieve Companies
+  // retrieve companies
   let mut stmt_comp = connection
     .prepare(
-      "SELECT c.name, mc.role FROM company c 
-       JOIN media_company mc ON c.id = mc.company_id WHERE mc.media_id = ?1",
+      "SELECT CAST(c.id AS TEXT), c.name, mc.role 
+        FROM company c 
+        JOIN media_company mc ON c.id = mc.company_id 
+        WHERE mc.media_id = ?1",
     )
     .map_err(|e| e.to_string())?;
 
   let comp_rows = stmt_comp
     .query_map([media_id], |row| {
-      Ok((row.get::<_, String>(0)?, row.get::<_, String>(1)?))
+      Ok((
+        row.get::<_, String>(0)?,
+        row.get::<_, String>(1)?,
+        row.get::<_, String>(2)?,
+      ))
     })
     .map_err(|e| e.to_string())?;
 
   for row in comp_rows.flatten() {
-    media
-      .data
-      .base
+    let (id, name, role) = row;
+
+    // name is the key
+    let relation = media
       .relations
       .companies
-      .entry(row.0)
-      .or_default()
-      .push(row.1);
+      .entry(name)
+      .or_insert_with(|| EntityRelation {
+        id,
+        values: Vec::new(),
+      });
+    relation.values.push(role);
   }
 
   Ok(())
@@ -152,7 +174,7 @@ pub fn fill_media_extension(
 ) -> Result<(), String> {
   let media_id = &media.state.id;
 
-  match media.data.base.core.media_type {
+  match media.data.base.media_type {
     MediaType::Movie => {
       let duration: i32 = connection
         .query_row(
@@ -670,8 +692,8 @@ pub fn insert_external_media(
   println!("insert_external_media: {}", media_uuid);
 
   let external_id = api_media.state.external_id;
-  let core = api_media.data.base.core;
-  let relations = api_media.data.base.relations;
+  let base = api_media.data.base;
+  let relations = api_media.relations;
   let added_date = chrono::Utc::now().to_rfc3339();
 
   // insert in parent media table
@@ -681,12 +703,12 @@ pub fn insert_external_media(
     params![
       media_uuid,
       external_id,
-      core.media_type.to_string(),
+      base.media_type.to_string(),
       poster_width,
       poster_height,
-      core.title,
-      core.description,
-      core.release_date,
+      base.title,
+      base.description,
+      base.release_date,
       added_date,
       "TO_DISCOVER",
       false,
@@ -782,13 +804,16 @@ fn insert_media_tags(
 }
 
 async fn download_media_image(
+  base_url: &str,
   url: Option<String>,
   target_dir: &PathBuf,
   file_name: &str,
 ) -> Option<(u32, u32)> {
   let url_str = url.filter(|u| !u.is_empty() && !u.ends_with("null"))?;
 
-  let response = reqwest::get(url_str).await.ok()?;
+  let response = reqwest::get(format!("{}{}", base_url, url_str))
+    .await
+    .ok()?;
   let bytes = response.bytes().await.ok()?;
 
   std::fs::create_dir_all(target_dir).ok()?;
@@ -804,6 +829,7 @@ async fn download_media_image(
 pub async fn add_media_to_library(
   app: tauri::AppHandle,
   api_media: ApiMedia,
+  base_url: String,
 ) -> Result<(), String> {
   let media_uuid = uuid::Uuid::new_v4().to_string();
   let app_dir = app.path().app_data_dir().map_err(|e| e.to_string())?;
@@ -812,8 +838,13 @@ pub async fn add_media_to_library(
 
   let file_name = format!("{}.jpg", media_uuid);
 
+  println!("base : {:?}", base_url.clone());
+  println!("poster : {:?}", state.poster_path.clone());
+  println!("backdrop : {:?}", state.backdrop_path.clone());
+
   // download poster
   let poster_dims = download_media_image(
+    &base_url,
     state.poster_path.clone(),
     &app_dir.join("posters"),
     &file_name,
@@ -822,6 +853,7 @@ pub async fn add_media_to_library(
 
   // download backdrop
   let backdrop_dims = download_media_image(
+    &base_url,
     state.backdrop_path.clone(),
     &app_dir.join("backdrops"),
     &file_name,

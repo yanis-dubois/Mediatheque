@@ -1,5 +1,6 @@
-import { Component, computed, effect, input, signal } from '@angular/core';
+import { Component, computed, effect, inject, input, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { RouterModule } from '@angular/router';
 
 import { DetailedMedia, hasRelations, isLibraryMedia, MediaStatus, MediaType, MovieExtension, SeriesExtension, TabletopGameExtension } from '@models/media.model'
 
@@ -9,18 +10,27 @@ import { ScoreDisplayComponent } from "@app/components/score-display/score-displ
 import { PosterLightboxComponent } from "../poster-lightbox/poster-lightbox.component";
 import { MediaStatusActionComponent } from "../media-status-action/media-status-action.component";
 import { DurationPipe } from "../../pipe/duration.pipe";
+import { MetadataType } from '@app/models/entity.model';
+import { MediaImageComponent } from "../media-image/media-image.component";
+import { ImageService, ImageSize, ImageType } from '@app/services/image.service';
+import { BackdropPathPipe } from '@app/pipe/backdrop-path.pipe';
 
 @Component({
   selector: 'app-media-details',
   standalone: true,
-  imports: [CommonModule, PosterPathPipe, ScoreDisplayComponent, PosterLightboxComponent, MediaStatusActionComponent, DurationPipe],
+  imports: [CommonModule, RouterModule, ScoreDisplayComponent, PosterLightboxComponent, MediaStatusActionComponent, DurationPipe, MediaImageComponent],
+  providers: [PosterPathPipe, BackdropPathPipe],
   templateUrl: './media-details.component.html',
   styleUrl: './media-details.component.css'
 })
 export class MediaDetailsComponent {
 
+  posterPath = inject(PosterPathPipe);
+  backdropPath = inject(BackdropPathPipe);
+  protected readonly MetadataType = MetadataType;
   protected readonly MediaType = MediaType;
   protected readonly MediaStatus = MediaStatus;
+  protected readonly ImageType = ImageType;
   statusOptions = Object.values(MediaStatus);
 
   media = input.required<DetailedMedia>();
@@ -28,6 +38,38 @@ export class MediaDetailsComponent {
   isLibraryMedia = isLibraryMedia;
   isLibrary = computed(() => isLibraryMedia(this.media()));
   fullDetails = computed(() => hasRelations(this.media()) ? this.media() : null);
+  hasPoster = computed(() => {
+    const media = this.media();
+    if (isLibraryMedia(media)) {
+      return media.hasPoster;
+    }
+    if (media.posterPath) return true;
+    return false;
+  });
+  hasBackdrop = computed(() => {
+    const media = this.media();
+    if (isLibraryMedia(media)) {
+      return media.hasBackdrop;
+    }
+    if (media.backdropPath) return true;
+    return false;
+  });
+
+  getSource(type: ImageType, isOriginal: boolean): string {
+    const isPoster = type === ImageType.POSTER;
+    const media = this.media();
+    if (isLibraryMedia(media)) {
+      return isPoster 
+        ? this.posterPath.transform(media.id) 
+        : this.backdropPath.transform(media.id);
+    }
+    return this.imageService.resolveUrl(
+      media.mediaType, 
+      type,
+      isPoster ? media.posterPath : media.backdropPath, 
+      isOriginal ? ImageSize.ORIGINAL : ImageSize.MEDIUM
+    );
+  }
 
   movieExt = computed(() => this.media() as MovieExtension);
   seriesExt = computed(() => this.media() as SeriesExtension);
@@ -43,7 +85,8 @@ export class MediaDetailsComponent {
   isLightboxOpen = signal(false);
 
   constructor(
-    private mediaService: MediaService
+    private mediaService: MediaService,
+    private imageService: ImageService
   ) {
     effect(() => {
       this.media();
@@ -58,7 +101,7 @@ export class MediaDetailsComponent {
   loadData() {
     const media = this.media();
 
-    if (isLibraryMedia(media)) {
+    if (media && isLibraryMedia(media)) {
       this.favorite.set(media.favorite);
       this.notes.set(media.notes);
       this.status.set(media.status);

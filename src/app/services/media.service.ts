@@ -2,9 +2,10 @@ import { inject, Injectable } from '@angular/core';
 
 import { invoke } from '@tauri-apps/api/core';
 
-import { LibraryMedia, ApiMedia, MediaStatus } from '@models/media.model';
+import { LibraryMedia, ApiMedia, MediaStatus, MediaType } from '@models/media.model';
 import { EntityService } from './entity.service';
 import { EntityType } from '@app/models/entity.model';
+import { Language } from '@app/models/settings.model';
 
 @Injectable({ providedIn: 'root' })
 export class MediaService {
@@ -23,6 +24,14 @@ export class MediaService {
   }
 
   /* get media */
+
+  async getApiMediaById(externalId: string, mediaType: MediaType, language: Language): Promise<ApiMedia> {
+    const idAsInt = parseInt(externalId, 10);
+    if (isNaN(idAsInt)) {
+      throw new Error(`Invalid externalId: ${externalId} is not a number`);
+    }
+    return await invoke<ApiMedia>('get_api_media_by_id', { externalId: idAsInt, mediaType, language });
+  }
 
   async getById(id: string): Promise<LibraryMedia> {
     return await invoke<LibraryMedia>('get_media_by_id', { id });

@@ -4,17 +4,20 @@
   (windowResize)="updateDimensions()" 
 >
   <ng-template #rowRef let-item let-index="index">
-    @let result = item;
-
-    <app-api-search-row 
-      [entity]="result" 
-      [width]="containerWidth()" 
-      [height]="containerHeight()"
-    >
-      <app-api-search-add-action
-        menu
-        [data]="item"
-      ></app-api-search-add-action>
-    </app-api-search-row>
+    @if (item; as result) {
+      <a [routerLink]="['/media', 'api', result.mediaType, result.externalId]" >
+        <app-api-search-row 
+          [entity]="result" 
+          [width]="containerWidth()" 
+          [height]="containerHeight()"
+        >
+          <app-api-search-add-action
+            menu
+            [data]="item"
+            (click)="$event.preventDefault(); $event.stopPropagation()"
+          ></app-api-search-add-action>
+        </app-api-search-row>
+      </a>
+    }
   </ng-template>
 </app-generic-list>

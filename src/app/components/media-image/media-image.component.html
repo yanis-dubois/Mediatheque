@@ -1,0 +1,14 @@
+@if (hasImage()) {
+  <img 
+    [src]="source()" 
+    [alt]="title()"
+    [style]="customStyle()"
+  >
+} @else {
+  <app-default-image 
+    [type]="type()" 
+    [title]="title()"
+    [style]="customStyle()"
+  >
+  </app-default-image>
+}

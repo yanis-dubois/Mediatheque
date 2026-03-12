@@ -1,5 +1,5 @@
 import { Collection } from "./collection.model";
-import { AnyMedia, LibraryMedia } from "./media.model";
+import { LibraryMedia } from "./media.model";
 
 export enum EntityType {
   MEDIA = "MEDIA",

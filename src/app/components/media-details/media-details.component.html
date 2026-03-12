@@ -1,24 +1,37 @@
 @if (media(); as media) {
   <section class="header">
 
+    <!-- backdrop -->
+    @if (!hasBackdrop() && hasPoster()) {
+      <!-- if there is no backdrop but a poster, use it as backdrop -->
+      <app-media-image
+        [source]="getSource(ImageType.POSTER, true)"
+        [title]="media.title" 
+        [type]="'backdrop'" 
+        [hasImage]="true"
+      >
+      </app-media-image>
+    } @else {
+      <app-media-image
+        [source]="getSource(ImageType.BACKDROP, true)"
+        [title]="media.title" 
+        [type]="'backdrop'" 
+        [hasImage]="hasBackdrop()"
+      >
+      </app-media-image>
+    }
+
     <!-- image -->
-    <div>
-      @if (isLibraryMedia(media)) {
-        <img 
-          class="image"
-          [src]="media.id | posterPath"
-          [alt]="media.title" 
-          (click)="isLightboxOpen.set(true)"
-        />
-        <p>({{ media.posterWidth }} x {{ media.posterHeight }})</p>
-      } @else {
-        <img 
-          class="image"
-          [src]="'https://image.tmdb.org/t/p/w92' + media.posterPath"
-          [alt]="media.title"
-          (click)="isLightboxOpen.set(true)"
-        >
-      }
+    <div class="image-container">
+      <app-media-image
+        [source]="getSource(ImageType.POSTER, false)"
+        [title]="media.title" 
+        [type]="'poster'" 
+        [hasImage]="hasPoster()"
+        [customStyle]="'width: 100%; overflow: hidden; border-radius: 8px; box-shadow: 0 20px 40px rgba(0, 0, 0, 0.6);'"
+        (click)="isLightboxOpen.set(true)"
+      >
+      </app-media-image>
     </div>
 
     <div class="info">
@@ -31,29 +44,68 @@
       }
 
       <!-- relation -->
-      <div class="persons">
-        @for (person of media.persons | keyvalue; track person.key) {
-          <div class="person-tag">
-            <strong>{{ person.key }}</strong> 
-            <small>({{ person.value.join(', ') }})</small>
-          </div>
-        }
-      </div>
-      <div class="companies">
-        @for (company of media.companies | keyvalue; track company.key) {
-          <div class="company-tag">
-            <strong>{{ company.key }}</strong> 
-            <small>({{ company.value.join(', ') }})</small>
-          </div>
-        }
-      </div>
-      <div class="tags">
-        @for (tag of media.tags | keyvalue; track tag.key) {
-          <div class="tag-badge {{ tag.key.toLowerCase() }}">
-            <strong>{{ tag.key }} :</strong> {{ tag.value!.join(', ') }}
-          </div>
-        }
-      </div>
+      @if (isLibraryMedia(media)) {
+        <div class="persons">
+          @for (person of media.persons| keyvalue; track person.key) {
+            <a [routerLink]="['/metadata', MetadataType.PERSON, person.value.id]">
+              <div class="person-tag">
+                <strong>{{ person.key }}</strong> 
+                <small>({{ person.value.values.join(', ') }})</small>
+              </div>
+            </a>
+          }
+        </div>
+        <div class="companies">
+          @for (company of media.companies | keyvalue; track company.key) {
+            <a [routerLink]="['/metadata', MetadataType.COMPANY, company.value.id]">
+              <div class="company-tag">
+                <strong>{{ company.key }}</strong> 
+                <small>({{ company.value.values.join(', ') }})</small>
+              </div>
+            </a>
+          }
+        </div>
+        <div class="tags-container">
+          @for (category of media.tags | keyvalue; track category.key) {
+            <div class="tag-group">
+              <span class="category-label">{{ category.key }} :</span>
+              
+              @for (tag of category.value; track tag.id) {
+                <a 
+                  [routerLink]="['/metadata', category.key, tag.id]" 
+                  class="tag-badge-link"
+                >
+                  {{ tag.name }}
+                </a>
+              }
+            </div>
+          }
+        </div>
+      } @else {
+        <div class="persons">
+          @for (person of media.persons | keyvalue; track person.key) {
+            <div class="person-tag">
+              <strong>{{ person.key }}</strong> 
+              <small>({{ person.value.join(', ') }})</small>
+            </div>
+          }
+        </div>
+        <div class="companies">
+          @for (company of media.companies | keyvalue; track company.key) {
+            <div class="company-tag">
+              <strong>{{ company.key }}</strong> 
+              <small>({{ company.value.join(', ') }})</small>
+            </div>
+          }
+        </div>
+        <div class="tags">
+          @for (tag of media.tags | keyvalue; track tag.key) {
+            <div class="tag-badge">
+              <strong>{{ tag.key }} :</strong> {{ tag.value?.join(', ') }}
+            </div>
+          }
+        </div>
+      }
 
       <!-- action -->
       @if (isLibraryMedia(media)) {
@@ -122,11 +174,9 @@
 
     </div>
 
-    @if (isLightboxOpen()) {
+    @if (hasPoster() && isLightboxOpen()) {
       <app-poster-lightbox 
-        [posterPath]="isLibraryMedia(media) 
-          ? (media.id | posterPath) 
-          : ('https://image.tmdb.org/t/p/w92' + media.posterPath)"
+        [source]="getSource(ImageType.POSTER, true)"
         [title]="media.title"
         (close)="isLightboxOpen.set(false)"
       />

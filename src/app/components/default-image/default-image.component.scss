@@ -1,0 +1,46 @@
+:host {
+  display: block;
+  width: 100%;
+}
+
+.image-container {
+  width: 100%;
+  aspect-ratio: 2 / 3;
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+
+  container-type: inline-size; 
+  container-name: image;
+
+  &.ratio-poster {
+    aspect-ratio: 2 / 3;
+  }
+
+  &.ratio-backdrop {
+    aspect-ratio: 16 / 9;
+  }
+}
+
+.image-content {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 2cqw;
+  background: linear-gradient(to top, rgba(0,0,0,0.6) 0%, transparent 40%);
+}
+
+.movie-title {
+  color: white;
+  font-family: 'Inter', sans-serif;
+  font-weight: 700;
+  font-size: 10cqw;
+  line-height: 1.2;
+  text-align: center;
+  text-transform: uppercase;
+  word-wrap: break-word;
+  max-width: 100%;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+}

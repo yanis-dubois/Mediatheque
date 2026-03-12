@@ -6,7 +6,7 @@ use crate::{
   db::DbState,
   models::{
     enums::{Language, MediaType},
-    media::ApiSearchResult,
+    media::{ApiMedia, ApiSearchResult},
   },
 };
 
@@ -27,14 +27,12 @@ pub async fn search_media_on_internet(
 }
 
 #[tauri::command]
-pub async fn add_media_from_internet(
-  app: tauri::AppHandle,
+pub async fn get_api_media_by_id(
+  state: tauri::State<'_, DbState>,
   external_id: u32,
   media_type: MediaType,
   language: Language,
-) -> Result<(), String> {
-  let state = app.state::<DbState>();
-
+) -> Result<ApiMedia, String> {
   let api_media = match media_type {
     MediaType::Book => todo!(),
     MediaType::Movie => {
@@ -47,5 +45,20 @@ pub async fn add_media_from_internet(
     MediaType::TabletopGame => todo!(),
   }?;
 
-  add_media_to_library(app, api_media).await
+  Ok(api_media)
+}
+
+#[tauri::command]
+pub async fn add_media_from_internet(
+  app: tauri::AppHandle,
+  external_id: u32,
+  media_type: MediaType,
+  language: Language,
+  base_url: String,
+) -> Result<(), String> {
+  let state = app.state::<DbState>();
+
+  let api_media = get_api_media_by_id(state, external_id, media_type, language).await?;
+
+  add_media_to_library(app, api_media, base_url).await
 }

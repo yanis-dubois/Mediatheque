@@ -10,11 +10,8 @@ import { trigger, transition, style, animate, group, query, animateChild } from 
     trigger('fadeInOutOpacity', [
       transition(':enter', [
         group([
-          // 1. Anime l'opacité du parent (l'overlay)
           style({ opacity: 0 }),
           animate('200ms ease-out', style({ opacity: 1 })),
-          
-          // 2. Cherche les animations sur les enfants et les lance
           query('@fadeInOutScale', [
             animateChild()
           ], { optional: true })
@@ -30,11 +27,11 @@ import { trigger, transition, style, animate, group, query, animateChild } from 
       ])
     ]),
     trigger('fadeInOutScale', [
-      transition(':enter', [ // Apparition
+      transition(':enter', [
         style({ transform: 'scale(0.9)' }),
         animate('200ms ease-out', style({ transform: 'scale(1)' }))
       ]),
-      transition(':leave', [ // Disparition
+      transition(':leave', [
         animate('150ms ease-in', style({ transform: 'scale(0.9)' }))
       ])
     ])
@@ -43,7 +40,7 @@ import { trigger, transition, style, animate, group, query, animateChild } from 
   styleUrls: ['./poster-lightbox.component.scss']
 })
 export class PosterLightboxComponent {
-  posterPath = input.required<string>();
+  source = input.required<string>();
   title = input.required<string>();
   
   close = output<void>();
