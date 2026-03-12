@@ -1,34 +1,37 @@
-import { Component, input, signal } from '@angular/core';
+import { Component, computed, effect, input, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 
-import { MovieDetailsComponent } from "@components/movie-details/movie-details.component";
-import { SerieDetailsComponent } from "@components/serie-details/serie-details.component";
-import { TabletopGameDetailsComponent } from "@components/tabletop-game-details/tabletop-game-details.component";
-
-import { Media, MediaStatus, MediaType } from '@models/media.model'
-import { Movie, Series, TabletopGame } from '@models/media-details.model';
+import { DetailedMedia, hasRelations, isLibraryMedia, MediaStatus, MediaType, MovieExtension, SeriesExtension, TabletopGameExtension } from '@models/media.model'
 
 import { MediaService } from '@services/media.service'
-import { PosterPathPipe } from "@pipe/image-path.pipe";
+import { PosterPathPipe } from "@pipe/poster-path.pipe";
 import { ScoreDisplayComponent } from "@app/components/score-display/score-display.component";
 import { PosterLightboxComponent } from "../poster-lightbox/poster-lightbox.component";
 import { MediaStatusActionComponent } from "../media-status-action/media-status-action.component";
+import { DurationPipe } from "../../pipe/duration.pipe";
 
 @Component({
   selector: 'app-media-details',
   standalone: true,
-  imports: [CommonModule, MovieDetailsComponent, SerieDetailsComponent, TabletopGameDetailsComponent, PosterPathPipe, ScoreDisplayComponent, PosterLightboxComponent, MediaStatusActionComponent],
+  imports: [CommonModule, PosterPathPipe, ScoreDisplayComponent, PosterLightboxComponent, MediaStatusActionComponent, DurationPipe],
   templateUrl: './media-details.component.html',
   styleUrl: './media-details.component.css'
 })
 export class MediaDetailsComponent {
-  id = input.required<string>();
 
   protected readonly MediaType = MediaType;
   protected readonly MediaStatus = MediaStatus;
   statusOptions = Object.values(MediaStatus);
 
-  media = signal<Media | undefined>(undefined);
+  media = input.required<DetailedMedia>();
+
+  isLibraryMedia = isLibraryMedia;
+  isLibrary = computed(() => isLibraryMedia(this.media()));
+  fullDetails = computed(() => hasRelations(this.media()) ? this.media() : null);
+
+  movieExt = computed(() => this.media() as MovieExtension);
+  seriesExt = computed(() => this.media() as SeriesExtension);
+  gameExt = computed(() => this.media() as MovieExtension);
 
   favorite = signal(false);
   notes = signal('');
@@ -41,34 +44,46 @@ export class MediaDetailsComponent {
 
   constructor(
     private mediaService: MediaService
-  ) {}
-
-  async ngOnInit() {
-    const media = await this.mediaService.getById(this.id());
-
-    this.media.set(media);
-    this.favorite.set(media.favorite);
-    this.notes.set(media.notes);
-    this.status.set(media.status);
-    this.score.set(media.score);
+  ) {
+    effect(() => {
+      this.media();
+      this.loadData();
+    }, { allowSignalWrites: true });
   }
 
-  asMovie(m: Media): Movie {
-    return m as Movie;
+  async ngAfterInit() {
+    this.loadData();
   }
-  asSerie(m: Media): Series {
-    return m as Series;
+
+  loadData() {
+    const media = this.media();
+
+    if (isLibraryMedia(media)) {
+      this.favorite.set(media.favorite);
+      this.notes.set(media.notes);
+      this.status.set(media.status);
+      this.score.set(media.score);
+    }
   }
-  asTabletopGame(m: Media): TabletopGame {
-    return m as TabletopGame;
+
+  asMovie(m: DetailedMedia): MovieExtension {
+    return m as MovieExtension;
+  }
+  asSerie(m: DetailedMedia): SeriesExtension {
+    return m as SeriesExtension;
+  }
+  asTabletopGame(m: DetailedMedia): TabletopGameExtension {
+    return m as TabletopGameExtension;
   }
 
   async onToggleFavorite() {
-    if (!this.media) return;
+    const media = this.media();
+    if (!media || !isLibraryMedia(media)) return;
+
     const isFavorite = !this.favorite();
   
     try {
-      await this.mediaService.toggleFavorite(this.id(), isFavorite);
+      await this.mediaService.toggleFavorite(media.id, isFavorite);
       this.favorite.set(isFavorite);
     } catch (e) {
       console.error("Error while updating favorite", e);
@@ -76,11 +91,13 @@ export class MediaDetailsComponent {
   }
 
   async onStatusChange(newStatus: string) {
-    if (!this.media) return;
+    const media = this.media();
+    if (!media || !isLibraryMedia(media)) return;
+
     const statusEnum = newStatus as MediaStatus;
 
     try {
-      await this.mediaService.updateStatus(this.id(), statusEnum);
+      await this.mediaService.updateStatus(media.id, statusEnum);
       this.status.set(statusEnum);
     } catch (e) {
       console.error("Error while updating status", e);
@@ -88,12 +105,13 @@ export class MediaDetailsComponent {
   }
 
   async onNotesBlur(newNotes: string) {
-    if (!this.media) return;
+    const media = this.media();
+    if (!media || !isLibraryMedia(media)) return;
   
     // save only if changed
     if (newNotes !== this.notes()) {
       try {
-        await this.mediaService.updateNotes(this.id(), newNotes);
+        await this.mediaService.updateNotes(media.id, newNotes);
         this.notes.set(newNotes);
       } catch (e) {
         console.error("Error while updating notes :", e);
@@ -102,8 +120,11 @@ export class MediaDetailsComponent {
   }
 
   async onScoreChange(newScore: number | undefined) {
+    const media = this.media();
+    if (!media || !isLibraryMedia(media)) return;
+
     try {
-      await this.mediaService.updateScore(this.id(), newScore);
+      await this.mediaService.updateScore(media.id, newScore);
       this.score.set(newScore);
     } catch (e) {
       console.error("Error while updating score :", e);

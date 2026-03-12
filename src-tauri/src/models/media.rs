@@ -1,90 +1,118 @@
-use super::enums::{MediaStatus, MediaType};
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
+use std::collections::HashMap;
 
-#[derive(Debug, Serialize)]
+use super::enums::{MediaStatus, MediaType};
+use crate::models::enums::TagType;
+
+/* ****** Data ****** */
+
+#[derive(Debug, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
-pub struct Descriptor {
-  pub id: i32,
-  pub name: String,
+pub struct MediaCore {
+  pub media_type: MediaType,
+  pub title: String,
+  pub release_date: String,
+  pub description: String,
 }
 
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
-pub struct Media {
-  pub id: String,
-  pub external_id: i32,
-  pub media_type: MediaType,
+pub struct MediaRelations {
+  pub persons: HashMap<String, Vec<String>>,
+  pub companies: HashMap<String, Vec<String>>,
+  pub tags: HashMap<TagType, Vec<String>>,
+}
 
-  pub poster_width: u32,
-  pub poster_height: u32,
+#[derive(Debug, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct MediaBase {
+  #[serde(flatten)]
+  pub core: MediaCore,
+  #[serde(flatten)]
+  pub relations: MediaRelations,
+}
 
-  pub title: String,
-  pub description: String,
+#[derive(Debug, Serialize, Deserialize)]
+#[serde(untagged)]
+pub enum MediaExtension {
+  Movie {
+    duration: i32,
+  },
+  Series {
+    seasons: i32,
+    episodes: i32,
+  },
+  Game {
+    player_count: String,
+    playing_time: String,
+  },
+  None,
+}
 
-  pub release_date: String,
+#[derive(Debug, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct MediaData {
+  #[serde(flatten)]
+  pub base: MediaBase,
+  #[serde(flatten)]
+  pub extension: MediaExtension,
+}
+
+/* ****** State ****** */
+
+#[derive(Debug, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct LibraryState {
+  pub id: String, // UUID
+  pub external_id: u32,
   pub added_date: String,
-
   pub status: MediaStatus,
   pub favorite: bool,
   pub notes: String,
   pub score: Option<u32>,
-
   pub has_poster: bool,
   pub has_backdrop: bool,
+  pub poster_width: u32,
+  pub poster_height: u32,
 }
 
-#[derive(Debug, Serialize)]
-#[serde(untagged)]
-pub enum AnyMedia {
-  Movie(Movie),
-  Series(Series),
-  TabletopGame(TabletopGame),
-  // add other media type
-
-  // fallback
-  Base(Media),
-}
-
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
-pub struct Movie {
-  #[serde(flatten)]
-  // media common fields
-  pub base: Media,
-
-  // movie specific fields
-  pub directors: Vec<Descriptor>,
-  pub genre: Vec<Descriptor>,
-  pub saga: Vec<Descriptor>,
-  pub duration: i32,
+pub struct ApiState {
+  pub external_id: u32,
+  pub is_in_library: bool,
+  pub poster_path: Option<String>,
+  pub backdrop_path: Option<String>,
 }
 
-#[derive(Debug, Serialize)]
-#[serde(rename_all = "camelCase")]
-pub struct Series {
-  #[serde(flatten)]
-  // media common fields
-  pub base: Media,
+/* ****** Type ****** */
 
-  // series specific fields
-  pub creators: Vec<Descriptor>,
-  pub genre: Vec<Descriptor>,
-  pub seasons: i32,
-  pub episodes: i32,
+// obtained from light API call
+#[derive(Debug, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct ApiSearchResult {
+  #[serde(flatten)]
+  pub core: MediaCore,
+  #[serde(flatten)]
+  pub state: ApiState,
 }
 
-#[derive(Debug, Serialize)]
+// obtained from detailed API call
+#[derive(Debug, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
-pub struct TabletopGame {
+pub struct ApiMedia {
   #[serde(flatten)]
-  // media common fields
-  pub base: Media,
+  pub data: MediaData,
+  #[serde(flatten)]
+  pub state: ApiState,
+}
 
-  // series specific fields
-  pub designers: Vec<Descriptor>,
-  pub artists: Vec<Descriptor>,
-  pub publishers: Vec<Descriptor>,
-  pub game_mechanics: Vec<Descriptor>,
-  pub player_count: String,
-  pub playing_time: String,
+// obtained from SQL call
+#[derive(Debug, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct LibraryMedia {
+  #[serde(flatten)]
+  pub data: MediaData,
+  #[serde(flatten)]
+  pub state: LibraryState,
 }

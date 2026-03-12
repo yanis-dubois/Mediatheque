@@ -1,4 +1,4 @@
-use crate::models::enums::{MediaOrderDirection, MediaOrderField};
+use crate::models::enums::{MediaOrderDirection, MediaOrderField, TagType};
 use serde::{Deserialize, Serialize};
 
 use super::enums::{MediaStatus, MediaType};
@@ -18,8 +18,8 @@ pub struct MediaFilter {
 
   // specific filed
   pub person: Option<String>,
-  pub genres: Option<Vec<String>>,
-  pub serie: Option<String>,
+  pub company: Option<String>,
+  pub tag: Option<(TagType, String)>,
   // [...]
   // TODO: not realy usefull so ...
   // release_date
@@ -48,8 +48,8 @@ impl Default for MediaFilter {
       search_query: None,
 
       person: None,
-      genres: None,
-      serie: None,
+      company: None,
+      tag: None,
 
       person_id: None,
       company_id: None,

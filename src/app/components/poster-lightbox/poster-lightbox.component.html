@@ -2,13 +2,13 @@
   <div class="content">
     <img 
       (click)="$event.stopPropagation()"
-      [src]="mediaId() | posterPath" 
+      [src]="posterPath()" 
       [alt]="title()" 
       decoding="sync"
       fetchpriority="high"
       @fadeInOutScale
     />
     <button class="close-btn" (click)="close.emit()">×</button>
-    <div class="info">{{ title() }} - {{ width() }}x{{ height() }}</div>
+    <div class="info">{{ title() }}</div>
   </div>
 </div>

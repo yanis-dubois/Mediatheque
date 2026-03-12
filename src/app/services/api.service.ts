@@ -1,6 +1,5 @@
 import { inject, Injectable } from '@angular/core';
-import { ApiSearchResult } from '@app/models/api.model';
-import { MediaType } from '@app/models/media.model';
+import { ApiSearchResult, MediaType } from '@app/models/media.model';
 
 import { invoke } from '@tauri-apps/api/core';
 import { SettingsService } from './settings.service';

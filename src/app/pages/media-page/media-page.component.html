@@ -3,5 +3,5 @@
 <div *ngIf="error">Error : {{ error }}</div>
 
 <section *ngIf="id">
-  <app-media-details [id]="id"></app-media-details>
+  <app-media-details [media]="media()!"></app-media-details>
 </section>

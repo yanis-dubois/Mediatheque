@@ -1,9 +1,11 @@
-import { Component } from '@angular/core';
+import { Component, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute } from '@angular/router';
 
 import { ActionBarComponent } from '@components/action-bar/action-bar.component';
 import { MediaDetailsComponent } from '@components/media-details/media-details.component';
+import { MediaService } from '@app/services/media.service';
+import { DetailedMedia } from '@app/models/media.model';
 
 @Component({
   selector: 'app-media-page',
@@ -16,11 +18,14 @@ export class MediaPageComponent {
   id?: string;
   error?: string;
 
+  media = signal<DetailedMedia | null>(null);
+
   constructor(
-    private route: ActivatedRoute
+    private route: ActivatedRoute,
+    private mediaService: MediaService
   ) {}
 
-  ngOnInit() {
+  async ngOnInit() {
     const id = this.route.snapshot.paramMap.get('id');
 
     if (!id) {
@@ -29,5 +34,8 @@ export class MediaPageComponent {
     }
 
     this.id = id;
+    this.media.set(
+      await this.mediaService.getById(id)
+    );
   }
 }

@@ -2,7 +2,7 @@ import { Component, computed, inject, input, Input } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 
-import { PosterPathPipe } from '@pipe/image-path.pipe';
+import { PosterPathPipe } from '@pipe/poster-path.pipe';
 import { getStatusColor } from '@app/models/media.model';
 import { EntityService } from '@app/services/entity.service';
 import { MediaStatusActionComponent } from "../media-status-action/media-status-action.component";

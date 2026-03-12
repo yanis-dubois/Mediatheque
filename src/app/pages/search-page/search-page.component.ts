@@ -7,10 +7,9 @@ import { SearchListComponent } from "@app/components/search-list/search-list.com
 import { EntityType } from '@app/models/entity.model';
 import { EntityService } from '@app/services/entity.service';
 import { debounceTime, Subject } from 'rxjs';
-import { ApiSearchResult } from '@app/models/api.model';
 import { ApiService } from '@app/services/api.service';
 import { ApiSearchListComponent } from "@app/components/api-search-list/api-search-list.component";
-import { MediaType } from '@app/models/media.model';
+import { ApiSearchResult, MediaType } from '@app/models/media.model';
 import { HumanizePipe } from "../../pipe/humanize";
 
 @Component({

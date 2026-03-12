@@ -1,5 +1,5 @@
 import { Collection } from "./collection.model";
-import { Media } from "./media.model";
+import { AnyMedia, LibraryMedia } from "./media.model";
 
 export enum EntityType {
   MEDIA = "MEDIA",
@@ -19,11 +19,11 @@ export enum MetadataType {
   GAME_MECHANIC = "GAME_MECHANIC",
 }
 
-export type DetailedEntity = (Media & { type: EntityType.MEDIA }) 
+export type DetailedEntity = (LibraryMedia & { type: EntityType.MEDIA }) 
   | (Collection & { type: EntityType.COLLECTION }) 
   | (Person & { type: EntityType.PERSON })
   | (Company & { type: EntityType.COMPANY })
-  | (Saga & { type: EntityType.SAGA })
+  | (Tag & { type: EntityType.SAGA })
   | (Tag & { type: EntityType.GENRE })
   | (Tag & { type: EntityType.GAME_MECHANIC });
 
@@ -35,11 +35,6 @@ export interface Person {
 }
 
 export interface Company {
-  id: string;
-  name: string;
-}
-
-export interface Saga {
   id: string;
   name: string;
 }

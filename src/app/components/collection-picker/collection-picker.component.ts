@@ -5,7 +5,7 @@ import { CollectionsListComponent } from '@components/collections-list/collectio
 
 import { CollectionService } from '@app/services/collection.service';
 import { GenericPickerComponent } from "../generic-picker/generic-picker.component";
-import { Media } from '@app/models/media.model';
+import { LibraryMedia } from '@app/models/media.model';
 import { CollectionMediaType } from '@app/models/collection.model';
 import { CollectionRowItemComponent } from "../collection-row-item/collection-row-item.component";
 
@@ -16,7 +16,7 @@ import { CollectionRowItemComponent } from "../collection-row-item/collection-ro
   templateUrl: './collection-picker.component.html'
 })
 export class CollectionPickerComponent {
-  @Input({ required: true }) media!: Media;
+  @Input({ required: true }) media!: LibraryMedia;
 
   onCancel = output<void>();
   onConfirm = output<Set<string>>();

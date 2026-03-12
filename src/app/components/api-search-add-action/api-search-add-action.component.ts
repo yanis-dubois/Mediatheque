@@ -2,8 +2,8 @@ import { Component, inject, input } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 
-import { ApiSearchResult } from '@app/models/api.model';
 import { ApiService } from '@app/services/api.service';
+import { ApiSearchResult } from '@app/models/media.model';
 
 @Component({
   selector: 'app-api-search-add-action',
@@ -22,7 +22,7 @@ export class ApiSearchAddActionComponent {
       return;
 
     try {
-      this.apiService.addMedia(data.id, data.mediaType);
+      this.apiService.addMedia(data.externalId, data.mediaType);
       this.data().isInLibrary = true; 
     } catch (e) {
       console.error("Error while adding media", e);

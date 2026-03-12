@@ -3,7 +3,7 @@ import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 
 import { GenericListComponent } from "../generic-list/generic-list.component";
-import { ApiSearchResult } from '@app/models/api.model';
+import { ApiSearchResult } from '@app/models/media.model';
 import { ApiSearchRowComponent } from "../api-search-row/api-search-row.component";
 import { ApiSearchAddActionComponent } from "../api-search-add-action/api-search-add-action.component";
 

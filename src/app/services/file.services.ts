@@ -3,30 +3,48 @@ import { Injectable, signal } from '@angular/core';
 import { convertFileSrc } from '@tauri-apps/api/core';
 import { appDataDir, join } from '@tauri-apps/api/path';
 
+export enum FolderType {
+  Poster,
+  Backdrop
+}
+
 @Injectable({ providedIn: 'root' })
 export class FileService {
 
   public postersDirectory = signal<string | null>(null);
+  public backdropDirectory = signal<string | null>(null);
 
   constructor() {
-    this.initPostersDirectory();
+    this.initDirectory();
   }
 
-  public async initPostersDirectory() {
+  public async initDirectory() {
     try {
       const appDataDirPath = await appDataDir();
-      const path = await join(appDataDirPath, `posters`);
-      this.postersDirectory.set(path);
-    } catch (err) {
-      console.error("Unable to find /posters folder", err);
+      this.postersDirectory.set(
+        await join(appDataDirPath, `posters`)
+      );
+      this.backdropDirectory.set(
+        await join(appDataDirPath, `backdrops`)
+      );
+    } catch (e) {
+      console.error("Error while initializing directory", e);
     }
   }
 
-  getPosterUrl(mediaId: string): string {
-    const postersDirectory = this.postersDirectory();
+  getUrlFromPath(folder: FolderType, mediaId: string): string {
+    let directory = null;
+    switch (folder) {
+      case FolderType.Poster: 
+        directory = this.postersDirectory();
+        break;
+      case FolderType.Backdrop: 
+        directory = this.backdropDirectory();
+        break;
+    }
 
-    if (!postersDirectory) return '';
-    return convertFileSrc(`${postersDirectory}/${mediaId}.jpg`);
+    if (!directory) return '';
+    return convertFileSrc(`${directory}/${mediaId}.jpg`);
   }
 
 }

@@ -2,18 +2,17 @@ import { inject, Injectable } from '@angular/core';
 
 import { invoke } from '@tauri-apps/api/core';
 
-import { Media, MediaStatus } from '@models/media.model';
+import { LibraryMedia, ApiMedia, MediaStatus } from '@models/media.model';
 import { EntityService } from './entity.service';
 import { EntityType } from '@app/models/entity.model';
-import { ExternalMedia } from '@app/models/api.model';
 
 @Injectable({ providedIn: 'root' })
 export class MediaService {
 
   private entityService = inject(EntityService);
 
-  updateCache(id: string, partial: Partial<Media>) {
-    this.entityService.updateEntity<Media & { type: EntityType.MEDIA }>(
+  updateCache(id: string, partial: Partial<LibraryMedia>) {
+    this.entityService.updateEntity<LibraryMedia & { type: EntityType.MEDIA }>(
       EntityType.MEDIA, 
       id, 
       partial
@@ -25,13 +24,13 @@ export class MediaService {
 
   /* get media */
 
-  async getById(id: string): Promise<Media> {
-    return await invoke<Media>('get_media_by_id', { id });
+  async getById(id: string): Promise<LibraryMedia> {
+    return await invoke<LibraryMedia>('get_media_by_id', { id });
   }
 
-  async getMediaBatch(ids: string[]): Promise<Media[]> {
+  async getMediaBatch(ids: string[]): Promise<LibraryMedia[]> {
     if (ids.length === 0) return [];
-    return await invoke<Media[]>('get_media_batch', { ids });
+    return await invoke<LibraryMedia[]>('get_media_batch', { ids });
   }
 
   /* update media */
@@ -58,7 +57,7 @@ export class MediaService {
 
   /* add media */
 
-  addToLibrary(media: ExternalMedia): Promise<void> {
+  addToLibrary(media: ApiMedia): Promise<void> {
     return invoke('add_media_to_library', { data: media });
   }
 }

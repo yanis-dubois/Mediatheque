@@ -27,7 +27,6 @@ pub fn run() {
       commands::media::update_media_notes,
       commands::media::update_media_score,
       commands::media::add_media_to_library,
-      commands::media::get_all_roles_for_descriptor,
       commands::collection::search_layout_data,
       commands::collection::search_in_collection,
       commands::collection::get_collection_by_id,
@@ -62,6 +61,7 @@ pub fn run() {
       commands::metadata::get_game_mechanic_batch,
       commands::metadata::get_game_mechanic_by_id,
       commands::metadata::get_metadata_layout,
+      commands::metadata::get_all_roles_for_descriptor,
       commands::api::search_media_on_internet,
       commands::api::add_media_from_internet,
     ])

@@ -4,7 +4,7 @@ import { MediaService } from "./media.service";
 import { CollectionService } from "./collection.service";
 import { invoke } from "@tauri-apps/api/core";
 import { Collection } from "@app/models/collection.model";
-import { Media } from "@app/models/media.model";
+import { LibraryMedia } from "@app/models/media.model";
 import { MetadataService } from "./metadata.service";
 
 @Injectable({ providedIn: 'root' })
@@ -27,8 +27,8 @@ export class EntityService {
     return `${type}:${id}`;
   }
 
-  getMedia(id: string, forceLoad = false): Media | null {
-    return this.getEntitySignal(EntityType.MEDIA, id, forceLoad)() as Media | null; 
+  getMedia(id: string, forceLoad = false): LibraryMedia | null {
+    return this.getEntitySignal(EntityType.MEDIA, id, forceLoad)() as LibraryMedia | null; 
   }
   getCollection(id: string, forceLoad = false): Collection | null {
     return this.getEntitySignal(EntityType.COLLECTION, id, forceLoad)() as Collection | null; 

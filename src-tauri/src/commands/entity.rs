@@ -17,19 +17,33 @@ pub fn search_in_library(
   let mut stmt = connection
     .prepare(
       "
+      -- media and collection
       SELECT id, 'MEDIA' as type FROM media WHERE title LIKE ?1
       UNION ALL
       SELECT id, 'COLLECTION' as type FROM collection WHERE name LIKE ?1
+      
+      -- person and company
       UNION ALL
       SELECT CAST(id AS TEXT), 'PERSON' as type FROM person WHERE name LIKE ?1
       UNION ALL
       SELECT CAST(id AS TEXT), 'COMPANY' as type FROM company WHERE name LIKE ?1
+      
+      -- tags filterred by type
       UNION ALL
-      SELECT CAST(id AS TEXT), 'SAGA' as type FROM saga WHERE name LIKE ?1
+      SELECT DISTINCT CAST(t.id AS TEXT), 'GENRE' as type 
+      FROM tag t JOIN media_tag mt ON t.id = mt.tag_id 
+      WHERE t.name LIKE ?1 AND mt.type = 'GENRE'
+      
       UNION ALL
-      SELECT CAST(id AS TEXT), 'GENRE' as type FROM genre WHERE name LIKE ?1
+      SELECT DISTINCT CAST(t.id AS TEXT), 'SAGA' as type 
+      FROM tag t JOIN media_tag mt ON t.id = mt.tag_id 
+      WHERE t.name LIKE ?1 AND mt.type = 'SAGA'
+      
       UNION ALL
-      SELECT CAST(id AS TEXT), 'GAME_MECHANIC' as type FROM game_mechanic WHERE name LIKE ?1
+      SELECT DISTINCT CAST(t.id AS TEXT), 'GAME_MECHANIC' as type 
+      FROM tag t JOIN media_tag mt ON t.id = mt.tag_id 
+      WHERE t.name LIKE ?1 AND mt.type = 'GAME_MECHANIC'
+      
       LIMIT 100
       ",
     )

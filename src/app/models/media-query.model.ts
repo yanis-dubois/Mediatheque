@@ -1,4 +1,4 @@
-import { Media, MediaStatus, MediaType } from "./media.model";
+import { MediaStatus, MediaType } from "./media.model";
 
 export enum MediaOrderField {
   TITLE = 'TITLE',
@@ -30,10 +30,4 @@ export interface MediaFilter {
   person?: string;
   genres?: string[];
   serie?: string;
-}
-
-// TODO : La réponse structurée pour le total_count
-export interface PaginatedMedia {
-  items: Media[];
-  totalCount: number;
 }

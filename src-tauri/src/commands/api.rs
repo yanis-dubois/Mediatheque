@@ -1,10 +1,12 @@
+use tauri::Manager;
+
 use crate::{
   api::tmdb::{fetch_detailed_from_tmdb, fetch_from_tmdb},
   commands::media::add_media_to_library,
   db::DbState,
   models::{
-    api::ApiSearchResult,
     enums::{Language, MediaType},
+    media::ApiSearchResult,
   },
 };
 
@@ -31,12 +33,19 @@ pub async fn add_media_from_internet(
   media_type: MediaType,
   language: Language,
 ) -> Result<(), String> {
-  let movie = match media_type {
+  let state = app.state::<DbState>();
+
+  let api_media = match media_type {
     MediaType::Book => todo!(),
-    MediaType::Movie => fetch_detailed_from_tmdb(external_id, MediaType::Movie, language).await,
-    MediaType::Series => fetch_detailed_from_tmdb(external_id, MediaType::Series, language).await,
+    MediaType::Movie => {
+      fetch_detailed_from_tmdb(&state, external_id, MediaType::Movie, language).await
+    }
+    MediaType::Series => {
+      fetch_detailed_from_tmdb(&state, external_id, MediaType::Series, language).await
+    }
     MediaType::VideoGame => todo!(),
     MediaType::TabletopGame => todo!(),
   }?;
-  add_media_to_library(app, movie).await
+
+  add_media_to_library(app, api_media).await
 }

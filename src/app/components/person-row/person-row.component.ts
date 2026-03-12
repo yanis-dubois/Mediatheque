@@ -2,7 +2,7 @@ import { Component, input } from '@angular/core';
 import { CommonModule } from '@angular/common';
 
 import { EntityType, Person } from '@app/models/entity.model';
-import { EntityRow } from '@app/directive/entity-row.component';
+import { EntityRow } from '@app/directive/entity-row.directive';
 import { EntityRowLayoutComponent } from "../entity-row-layout/entity-row-layout.component";
 import { HumanizePipe } from "../../pipe/humanize";
 

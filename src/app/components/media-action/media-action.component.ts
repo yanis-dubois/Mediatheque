@@ -1,4 +1,4 @@
-import { Component, computed, EmbeddedViewRef, inject, input, output, Renderer2, signal, TemplateRef, ViewChild, ViewContainerRef } from '@angular/core';
+import { Component, computed, EmbeddedViewRef, inject, input, output, Renderer2, TemplateRef, ViewChild, ViewContainerRef } from '@angular/core';
 import { MediaStatus } from '@app/models/media.model';
 import { CollectionPickerComponent } from "../collection-picker/collection-picker.component";
 import { DOCUMENT } from '@angular/common';

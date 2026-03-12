@@ -29,12 +29,13 @@
         <p class="sub-info" [class.hide-mobile-default]="display() === 'default'">
           {{ media.releaseDate | date:'mediumDate' }}
         </p>
-      }
-      @else if (display() === 'search') {
-        <p class="sub-info">{{ media.mediaType | emojize }} - {{ media.mediaType | humanize }}</p>
-      } @else if (display() === 'roles') {
+      } 
+      @else if (display() === 'roles' && roles().length > 0) {
         <p class="sub-info">{{ media.mediaType | emojize }} - {{ formattedRoles() }}</p>
       }
+      @else {
+        <p class="sub-info">{{ media.mediaType | emojize }} - {{ media.mediaType | humanize }}</p>
+      } 
     } @else {
       <div class="skeleton-text title"></div>
       <div class="skeleton-text info"></div>

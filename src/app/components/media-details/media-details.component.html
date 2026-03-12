@@ -1,58 +1,98 @@
 @if (media(); as media) {
   <section class="header">
 
+    <!-- image -->
     <div>
-      <img 
-        class="image" 
-        [src]="media.id | posterPath" 
-        [alt]="media.title" 
-        (click)="isLightboxOpen.set(true)"
-      />
-      <p>({{ media.posterWidth }} x {{ media.posterHeight }})</p>
+      @if (isLibraryMedia(media)) {
+        <img 
+          class="image"
+          [src]="media.id | posterPath"
+          [alt]="media.title" 
+          (click)="isLightboxOpen.set(true)"
+        />
+        <p>({{ media.posterWidth }} x {{ media.posterHeight }})</p>
+      } @else {
+        <img 
+          class="image"
+          [src]="'https://image.tmdb.org/t/p/w92' + media.posterPath"
+          [alt]="media.title"
+          (click)="isLightboxOpen.set(true)"
+        >
+      }
     </div>
 
     <div class="info">
+      <!-- infos -->
       <h1 class="title">{{ media.title }}</h1>
       <p class="type">{{ media.mediaType }}</p>
-      <p class="releaseDate">release date : {{ media.releaseDate | date:'medium' }}</p>
-      <p class="addedDate">added date : {{ media.addedDate | date:'medium' }}</p>
+      <p class="releaseDate">release date : {{ media.releaseDate | date:'mediumDate' }}</p>
+      @if (isLibraryMedia(media)) {
+        <p class="addedDate">added date : {{ media.addedDate | date:'mediumDate' }}</p>
+      }
 
-      <!-- <div class="contributors">
+      <!-- relation -->
+      <div class="persons">
         @for (person of media.persons | keyvalue; track person.key) {
           <div class="person-tag">
             <strong>{{ person.key }}</strong> 
             <small>({{ person.value.join(', ') }})</small>
           </div>
         }
-      </div> -->
-
-      <app-score-display 
-        [score]="score()" 
-        (scoreChange)="onScoreChange($event)"
-      />
-
-      <div class="fieldset-container status-box">
-        <app-media-status-action [mediaId]="media.id"></app-media-status-action>
+      </div>
+      <div class="companies">
+        @for (company of media.companies | keyvalue; track company.key) {
+          <div class="company-tag">
+            <strong>{{ company.key }}</strong> 
+            <small>({{ company.value.join(', ') }})</small>
+          </div>
+        }
+      </div>
+      <div class="tags">
+        @for (tag of media.tags | keyvalue; track tag.key) {
+          <div class="tag-badge {{ tag.key.toLowerCase() }}">
+            <strong>{{ tag.key }} :</strong> {{ tag.value!.join(', ') }}
+          </div>
+        }
       </div>
 
-      <button (click)="onToggleFavorite()" [class.is-favorite]="favorite()">
-        @if (favorite()) {
-          ❤️
-        } @else {
-          🩶
-        }
-      </button>
+      <!-- action -->
+      @if (isLibraryMedia(media)) {
+        <app-score-display 
+          [score]="score()" 
+          (scoreChange)="onScoreChange($event)"
+        />
 
-      <!-- Media details -->
+        <div class="fieldset-container status-box">
+          <app-media-status-action [mediaId]="media.id"></app-media-status-action>
+        </div>
+
+        <button (click)="onToggleFavorite()" [class.is-favorite]="favorite()">
+          @if (favorite()) {
+            ❤️
+          } @else {
+            🩶
+          }
+        </button>
+      }
+      @else {
+        <!-- TODO: add to library -->
+      }
+
+      <!-- details -->
       @switch (media.mediaType) {
         @case (MediaType.MOVIE) {
-          <app-movie-details [movie]="asMovie(media)"></app-movie-details>
+          @let movie = asMovie(media);
+          <p>{{movie.duration | duration}}</p>
         }
         @case (MediaType.SERIES) {
-          <app-serie-details [serie]="asSerie(media)"></app-serie-details>
+          @let series = asSerie(media);
+          <p>{{series.seasons}} seasons</p>
+          <p>{{series.episodes}} episodes</p>
         }
         @case (MediaType.TABLETOP_GAME) {
-          <app-tabletop-game-details [game]="asTabletopGame(media)"></app-tabletop-game-details>
+          @let tabletopGame = asTabletopGame(media);
+          <p>{{tabletopGame.playerCount}} players</p>
+          <p>Playing time : {{tabletopGame.playingTime}}</p>
         }
         @default {
           <p>Media type {{ media.mediaType }} not implemented yet !</p>
@@ -60,31 +100,34 @@
         }
       }
 
+      <!-- desc + notes -->
       <p class="description">{{ media.description }}</p>
 
-      <div class="notes-container">
-        <div class="fieldset-container">
-          <label class="fieldset-label">Notes</label>
-          <textarea 
-            #notesArea
-            [value]="notes()"
-            (focus)="isEditingNotes.set(true)"
-            (blur)="onNotesBlur(notesArea.value); isEditingNotes.set(false)"
-            (keydown.escape)="notesArea.value = notes(); notesArea.blur()"
-            placeholder="Cliquez ici pour ajouter une note..."
-            [class.editing]="isEditingNotes()"
-          ></textarea>
+      @if (isLibraryMedia(media)) {
+        <div class="notes-container">
+          <div class="fieldset-container">
+            <label class="fieldset-label">Notes</label>
+            <textarea 
+              #notesArea
+              [value]="notes()"
+              (focus)="isEditingNotes.set(true)"
+              (blur)="onNotesBlur(notesArea.value); isEditingNotes.set(false)"
+              (keydown.escape)="notesArea.value = notes(); notesArea.blur()"
+              placeholder="Cliquez ici pour ajouter une note..."
+              [class.editing]="isEditingNotes()"
+            ></textarea>
+          </div>
         </div>
-      </div>
+      }
 
     </div>
 
     @if (isLightboxOpen()) {
       <app-poster-lightbox 
-        [mediaId]="media.id"
+        [posterPath]="isLibraryMedia(media) 
+          ? (media.id | posterPath) 
+          : ('https://image.tmdb.org/t/p/w92' + media.posterPath)"
         [title]="media.title"
-        [width]="media.posterWidth"
-        [height]="media.posterHeight"
         (close)="isLightboxOpen.set(false)"
       />
     }

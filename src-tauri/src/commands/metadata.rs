@@ -1,6 +1,8 @@
+use std::collections::HashMap;
+
 use crate::db::DbState;
 use crate::models::enums::{CollectionMediaType, EntityType, MetadataType};
-use crate::models::metadata::{Company, Person, Saga, Tag};
+use crate::models::metadata::{Company, Person, Tag};
 
 // convert SQL -> Metadata
 pub fn map_row_to_person(row: &rusqlite::Row) -> rusqlite::Result<Person> {
@@ -19,14 +21,6 @@ pub fn map_row_to_company(row: &rusqlite::Row) -> rusqlite::Result<Company> {
     name: row.get(1)?,
   })
 }
-pub fn map_row_to_saga(row: &rusqlite::Row) -> rusqlite::Result<Saga> {
-  let id_numeric: i32 = row.get(0)?;
-
-  Ok(Saga {
-    id: id_numeric.to_string(),
-    name: row.get(1)?,
-  })
-}
 pub fn map_row_to_tag(row: &rusqlite::Row) -> rusqlite::Result<Tag> {
   let id_numeric: i32 = row.get(0)?;
 
@@ -41,30 +35,67 @@ use rusqlite::{params_from_iter, Result as SqlResult, Row};
 fn fetch_layout_data(
   state: &tauri::State<'_, DbState>,
   table: &str,
+  tag_filter: Option<&str>,
   metadata_type: MetadataType,
   search_query: String,
   context: CollectionMediaType,
 ) -> Result<Vec<(String, EntityType)>, String> {
   let connection = state.connection.lock().map_err(|_| "Lock failed")?;
 
-  let relation_table = format!("media_{}", table);
-  let fk_column = format!("{}_id", table);
+  let relation_table = if tag_filter.is_some() {
+    "media_tag".to_string()
+  } else {
+    format!("media_{}", table)
+  };
+  let fk_column = if tag_filter.is_some() {
+    "tag_id".to_string()
+  } else {
+    format!("{}_id", table)
+  };
   let pattern = format!("%{}%", search_query);
 
+  // filter by type for tag
+  let type_clause = if let Some(t) = tag_filter {
+    format!("AND type = '{}'", t)
+  } else {
+    "".to_string()
+  };
+
   let sql = if context == CollectionMediaType::All {
-    format!(
-      "SELECT CAST(id AS TEXT), name FROM {} WHERE name LIKE ?1 ORDER BY name ASC",
-      table
-    )
+    if let Some(t) = tag_filter {
+      // JOIN media_tag to filter by type
+      format!(
+        "SELECT DISTINCT CAST(t.id AS TEXT), t.name 
+         FROM tag t 
+         JOIN media_tag mt ON t.id = mt.tag_id 
+         WHERE t.name LIKE ?1 AND mt.type = '{}' 
+         ORDER BY t.name ASC",
+        t
+      )
+    } else {
+      format!(
+        "SELECT CAST(id AS TEXT), name FROM {} WHERE name LIKE ?1 ORDER BY name ASC",
+        table
+      )
+    }
   } else {
     format!(
       "SELECT DISTINCT CAST(t.id AS TEXT), t.name 
        FROM {} t
        JOIN {} rel ON t.id = rel.{}
        JOIN media m ON rel.media_id = m.id
-       WHERE t.name LIKE ?1 AND m.media_type = ?2
+       WHERE t.name LIKE ?1 AND m.media_type = ?2 {} {}
        ORDER BY t.name ASC",
-      table, relation_table, fk_column
+      table,
+      relation_table,
+      fk_column,
+      type_clause,
+      // if tag, also filter type in media_tag
+      if tag_filter.is_some() {
+        format!("AND rel.type = '{}'", tag_filter.unwrap())
+      } else {
+        "".to_string()
+      }
     )
   };
 
@@ -177,14 +208,14 @@ pub fn get_company_by_id(state: tauri::State<'_, DbState>, id: String) -> Result
 pub fn get_saga_batch(
   state: tauri::State<'_, DbState>,
   ids: Vec<String>,
-) -> Result<Vec<Saga>, String> {
+) -> Result<Vec<Tag>, String> {
   let connection = state.connection.lock().map_err(|_| "Lock failed")?;
-  fetch_batch(&connection, "saga", ids, map_row_to_saga)
+  fetch_batch(&connection, "tag", ids, map_row_to_tag)
 }
 #[tauri::command]
-pub fn get_saga_by_id(state: tauri::State<'_, DbState>, id: String) -> Result<Saga, String> {
+pub fn get_saga_by_id(state: tauri::State<'_, DbState>, id: String) -> Result<Tag, String> {
   let connection = state.connection.lock().map_err(|_| "Lock failed")?;
-  fetch_by_id(&connection, "saga", id, map_row_to_saga)
+  fetch_by_id(&connection, "tag", id, map_row_to_tag)
 }
 
 #[tauri::command]
@@ -193,12 +224,12 @@ pub fn get_genre_batch(
   ids: Vec<String>,
 ) -> Result<Vec<Tag>, String> {
   let connection = state.connection.lock().map_err(|_| "Lock failed")?;
-  fetch_batch(&connection, "genre", ids, map_row_to_tag)
+  fetch_batch(&connection, "tag", ids, map_row_to_tag)
 }
 #[tauri::command]
 pub fn get_genre_by_id(state: tauri::State<'_, DbState>, id: String) -> Result<Tag, String> {
   let connection = state.connection.lock().map_err(|_| "Lock failed")?;
-  fetch_by_id(&connection, "genre", id, map_row_to_tag)
+  fetch_by_id(&connection, "tag", id, map_row_to_tag)
 }
 
 #[tauri::command]
@@ -207,7 +238,7 @@ pub fn get_game_mechanic_batch(
   ids: Vec<String>,
 ) -> Result<Vec<Tag>, String> {
   let connection = state.connection.lock().map_err(|_| "Lock failed")?;
-  fetch_batch(&connection, "game_mechanic", ids, map_row_to_tag)
+  fetch_batch(&connection, "tag", ids, map_row_to_tag)
 }
 #[tauri::command]
 pub fn get_game_mechanic_by_id(
@@ -215,7 +246,7 @@ pub fn get_game_mechanic_by_id(
   id: String,
 ) -> Result<Tag, String> {
   let connection = state.connection.lock().map_err(|_| "Lock failed")?;
-  fetch_by_id(&connection, "game_mechanic", id, map_row_to_tag)
+  fetch_by_id(&connection, "tag", id, map_row_to_tag)
 }
 
 #[tauri::command]
@@ -225,13 +256,47 @@ pub fn get_metadata_layout(
   query: String,
   context: CollectionMediaType,
 ) -> Result<Vec<(String, EntityType)>, String> {
-  let table = match metadata_type {
-    MetadataType::Person => "person",
-    MetadataType::Company => "company",
-    MetadataType::Saga => "saga",
-    MetadataType::Genre => "genre",
-    MetadataType::GameMechanic => "game_mechanic",
+  let (table, tag_filter) = match metadata_type {
+    MetadataType::Person => ("person", None),
+    MetadataType::Company => ("company", None),
+    MetadataType::Saga => ("tag", Some("SAGA")),
+    MetadataType::Genre => ("tag", Some("GENRE")),
+    MetadataType::GameMechanic => ("tag", Some("GAME_MECHANIC")),
   };
 
-  fetch_layout_data(&state, table, metadata_type, query, context)
+  fetch_layout_data(&state, table, tag_filter, metadata_type, query, context)
+}
+
+#[tauri::command]
+pub fn get_all_roles_for_descriptor(
+  state: tauri::State<'_, DbState>,
+  descriptor_type: MetadataType,
+  descriptor_id: u32,
+) -> Result<HashMap<String, Vec<String>>, String> {
+  let connection = state.connection.lock().map_err(|_| "Lock failed")?;
+
+  let (table, id_col) = match descriptor_type {
+    MetadataType::Person => ("media_person", "person_id"),
+    MetadataType::Company => ("media_company", "company_id"),
+    _ => return Ok(HashMap::new()),
+  };
+
+  let sql = format!("SELECT media_id, role FROM {} WHERE {} = ?1", table, id_col);
+
+  let mut stmt = connection.prepare(&sql).map_err(|e| e.to_string())?;
+
+  let rows = stmt
+    .query_map([descriptor_id], |row| {
+      Ok((row.get::<_, String>(0)?, row.get::<_, String>(1)?))
+    })
+    .map_err(|e| e.to_string())?;
+
+  let mut roles_map: HashMap<String, Vec<String>> = HashMap::new();
+
+  for row in rows {
+    let (m_id, role) = row.map_err(|e| e.to_string())?;
+    roles_map.entry(m_id).or_insert_with(Vec::new).push(role);
+  }
+
+  Ok(roles_map)
 }

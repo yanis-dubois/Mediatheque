@@ -2,7 +2,7 @@ import { Injectable } from '@angular/core';
 
 import { invoke } from '@tauri-apps/api/core';
 
-import { Company, EntityType, MetadataType, Person, Saga, Tag } from '@app/models/entity.model';
+import { Company, EntityType, MetadataType, Person, Tag } from '@app/models/entity.model';
 import { CollectionMediaType } from '@app/models/collection.model';
 import { MediaFilter, MediaOrder } from '@app/models/media-query.model';
 
@@ -52,13 +52,13 @@ export class MetadataService {
     return await invoke<Company[]>('get_company_batch', { ids });
   }
 
-  async getSagaById(id: string): Promise<Saga> {
-    return await invoke<Saga>('get_saga_by_id', { id });
+  async getSagaById(id: string): Promise<Tag> {
+    return await invoke<Tag>('get_saga_by_id', { id });
   }
 
-  async getSagaBatch(ids: string[]): Promise<Saga[]> {
+  async getSagaBatch(ids: string[]): Promise<Tag[]> {
     if (ids.length === 0) return [];
-    return await invoke<Saga[]>('get_saga_batch', { ids });
+    return await invoke<Tag[]>('get_saga_batch', { ids });
   }
 
   async getGenreById(id: string): Promise<Tag> {

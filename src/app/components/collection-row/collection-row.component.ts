@@ -1,14 +1,10 @@
-import { Component, computed, ContentChild, effect, ElementRef, HostListener, inject, input, Input, signal, TemplateRef, untracked, ViewChild } from '@angular/core';
+import { Component, computed, ContentChild, effect, ElementRef, HostListener, inject, input, signal, TemplateRef, untracked, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 
 import { injectVirtualizer, VirtualItem } from '@tanstack/angular-virtual';
 
-import { Media } from '@models/media.model';
-
-import { CollectionService } from '@services/collection.service';
 import { debounceTime, Subject, switchMap } from 'rxjs';
-import { MediaService } from '@app/services/media.service';
 import { EntityService } from '@app/services/entity.service';
 import { EntityType } from '@app/models/entity.model';
 

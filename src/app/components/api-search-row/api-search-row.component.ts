@@ -2,7 +2,7 @@ import { Component, input } from '@angular/core';
 import { CommonModule } from '@angular/common';
 
 import { EntityRowLayoutComponent } from "../entity-row-layout/entity-row-layout.component";
-import { ApiSearchResult } from '@app/models/api.model';
+import { ApiSearchResult } from '@app/models/media.model';
 
 @Component({
   selector: 'app-api-search-row',

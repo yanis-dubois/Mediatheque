@@ -4,7 +4,7 @@ import { CommonModule } from '@angular/common';
 import { EmojizePipe } from "@pipe/emojize";
 import { EntityType } from '@app/models/entity.model';
 import { HumanizePipe } from "../../pipe/humanize";
-import { EntityRow } from '@app/directive/entity-row.component';
+import { EntityRow } from '@app/directive/entity-row.directive';
 import { Collection } from '@app/models/collection.model';
 import { EntityRowLayoutComponent } from "../entity-row-layout/entity-row-layout.component";
 import { CollectionFavoriteActionComponent } from "../collection-favorite-action/collection-favorite-action.component";

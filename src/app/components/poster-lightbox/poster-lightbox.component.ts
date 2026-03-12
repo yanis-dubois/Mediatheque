@@ -2,12 +2,10 @@ import { Component, input, output } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { trigger, transition, style, animate, group, query, animateChild } from '@angular/animations';
 
-import { PosterPathPipe } from '@pipe/image-path.pipe';
-
 @Component({
   selector: 'app-poster-lightbox',
   standalone: true,
-  imports: [CommonModule, PosterPathPipe],
+  imports: [CommonModule],
   animations: [
     trigger('fadeInOutOpacity', [
       transition(':enter', [
@@ -45,10 +43,8 @@ import { PosterPathPipe } from '@pipe/image-path.pipe';
   styleUrls: ['./poster-lightbox.component.scss']
 })
 export class PosterLightboxComponent {
-  mediaId = input.required<string>();
+  posterPath = input.required<string>();
   title = input.required<string>();
-  width = input.required<number>();
-  height = input.required<number>();
   
   close = output<void>();
 

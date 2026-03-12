@@ -10,7 +10,7 @@ import { PinService } from "@services/pin.service";
 
 function initializeApp(fileService: FileService, settingsService: SettingsService, pinService: PinService) {
   return () => {
-    fileService.initPostersDirectory();
+    fileService.initDirectory();
     settingsService.loadSettings();
     pinService.refresh();
   };

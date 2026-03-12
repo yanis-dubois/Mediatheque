@@ -10,6 +10,7 @@ use crate::models::enums::CollectionMediaType;
 use crate::models::enums::CollectionType;
 use crate::models::enums::MediaOrderDirection;
 use crate::models::enums::MediaOrderField;
+use crate::models::enums::TagType;
 use crate::models::enums::{MediaStatus, MediaType};
 use crate::models::query::MediaFilter;
 use crate::models::query::MediaOrder;
@@ -213,17 +214,7 @@ pub fn init_db(connection: &mut Connection) -> Result<()> {
       name TEXT NOT NULL UNIQUE
     );
 
-    CREATE TABLE IF NOT EXISTS saga (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      name TEXT NOT NULL UNIQUE
-    );
-
-    CREATE TABLE IF NOT EXISTS genre (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      name TEXT NOT NULL UNIQUE
-    );
-
-    CREATE TABLE IF NOT EXISTS game_mechanic (
+    CREATE TABLE IF NOT EXISTS tag (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       name TEXT NOT NULL UNIQUE
     );
@@ -252,31 +243,16 @@ pub fn init_db(connection: &mut Connection) -> Result<()> {
       FOREIGN KEY (company_id) REFERENCES company(id) ON DELETE CASCADE
     );
 
-    -- Saga
-    CREATE TABLE IF NOT EXISTS media_saga (
+    -- Tag
+    CREATE TABLE IF NOT EXISTS media_tag (
       media_id TEXT NOT NULL,
-      saga_id INTEGER NOT NULL,
-      PRIMARY KEY (media_id, saga_id),
+      tag_id INTEGER NOT NULL,
+      type TEXT NOT NULL CHECK(
+        type IN ('GENRE', 'SAGA', 'GAME_MECHANIC')
+      ),
+      PRIMARY KEY (media_id, tag_id, type),
       FOREIGN KEY (media_id) REFERENCES media(id) ON DELETE CASCADE,
-      FOREIGN KEY (saga_id) REFERENCES saga(id) ON DELETE CASCADE
-    );
-
-    -- Genre
-    CREATE TABLE IF NOT EXISTS media_genre (
-      media_id TEXT NOT NULL,
-      genre_id INTEGER NOT NULL,
-      PRIMARY KEY (media_id, genre_id),
-      FOREIGN KEY (media_id) REFERENCES media(id) ON DELETE CASCADE,
-      FOREIGN KEY (genre_id) REFERENCES genre(id) ON DELETE CASCADE
-    );
-
-    -- Game Mechanic
-    CREATE TABLE IF NOT EXISTS media_game_mechanic (
-      media_id TEXT NOT NULL,
-      game_mechanic_id INTEGER NOT NULL,
-      PRIMARY KEY (media_id, game_mechanic_id),
-      FOREIGN KEY (media_id) REFERENCES media(id) ON DELETE CASCADE
-      FOREIGN KEY (game_mechanic_id) REFERENCES game_mechanic(id) ON DELETE CASCADE
+      FOREIGN KEY (tag_id) REFERENCES tag(id) ON DELETE CASCADE
     );
 
 
@@ -301,9 +277,7 @@ pub fn init_db(connection: &mut Connection) -> Result<()> {
 
     CREATE INDEX IF NOT EXISTS idx_media_person_reverse ON media_person(person_id, role);
     CREATE INDEX IF NOT EXISTS idx_media_company_reverse ON media_company(company_id, role);
-    CREATE INDEX IF NOT EXISTS idx_media_saga_reverse ON media_saga(saga_id);
-    CREATE INDEX IF NOT EXISTS idx_media_genre_reverse ON media_genre(genre_id);
-    CREATE INDEX IF NOT EXISTS idx_media_game_mechanic_reverse ON media_game_mechanic(game_mechanic_id);
+    CREATE INDEX idx_media_tag_type ON media_tag(type);
     "
   )?;
 
@@ -594,32 +568,6 @@ fn seed_persons(
   }
   Ok(())
 }
-fn seed_genres(
-  tx: &rusqlite::Transaction,
-  media_id: &str,
-  genres: Vec<&str>,
-) -> rusqlite::Result<()> {
-  for genre in genres {
-    tx.execute("INSERT OR IGNORE INTO genre (name) VALUES (?1)", [genre])?;
-    tx.execute(
-      "INSERT INTO media_genre (media_id, genre_id)
-        SELECT ?1, id FROM genre WHERE name = ?2",
-      params![media_id, genre],
-    )?;
-  }
-  Ok(())
-}
-fn seed_saga(tx: &rusqlite::Transaction, media_id: &str, sagas: Vec<&str>) -> rusqlite::Result<()> {
-  for saga in sagas {
-    tx.execute("INSERT OR IGNORE INTO saga (name) VALUES (?1)", [saga])?;
-    tx.execute(
-      "INSERT INTO media_saga (media_id, saga_id)
-        SELECT ?1, id FROM saga WHERE name = ?2",
-      params![media_id, saga],
-    )?;
-  }
-  Ok(())
-}
 fn seed_companies(
   tx: &rusqlite::Transaction,
   media_id: &str,
@@ -636,20 +584,43 @@ fn seed_companies(
   }
   Ok(())
 }
+fn seed_genres(
+  tx: &rusqlite::Transaction,
+  media_id: &str,
+  genres: Vec<&str>,
+) -> rusqlite::Result<()> {
+  for genre in genres {
+    tx.execute("INSERT OR IGNORE INTO tag (name) VALUES (?1)", [genre])?;
+    tx.execute(
+      "INSERT INTO media_tag (media_id, tag_id, type)
+        SELECT ?1, id, ?3 FROM tag WHERE name = ?2",
+      params![media_id, genre, "GENRE"],
+    )?;
+  }
+  Ok(())
+}
+fn seed_saga(tx: &rusqlite::Transaction, media_id: &str, sagas: Vec<&str>) -> rusqlite::Result<()> {
+  for saga in sagas {
+    tx.execute("INSERT OR IGNORE INTO tag (name) VALUES (?1)", [saga])?;
+    tx.execute(
+      "INSERT INTO media_tag (media_id, tag_id, type)
+        SELECT ?1, id, ?3 FROM tag WHERE name = ?2",
+      params![media_id, saga, "SAGA"],
+    )?;
+  }
+  Ok(())
+}
 fn seed_game_mechanics(
   tx: &rusqlite::Transaction,
   media_id: &str,
   game_mechanics: Vec<&str>,
 ) -> rusqlite::Result<()> {
   for mech in game_mechanics {
+    tx.execute("INSERT OR IGNORE INTO tag (name) VALUES (?1)", [mech])?;
     tx.execute(
-      "INSERT OR IGNORE INTO game_mechanic (name) VALUES (?1)",
-      [mech],
-    )?;
-    tx.execute(
-      "INSERT INTO media_game_mechanic (media_id, game_mechanic_id)
-      SELECT ?1, id FROM game_mechanic WHERE name = ?2",
-      params![media_id, mech],
+      "INSERT INTO media_tag (media_id, tag_id, type)
+        SELECT ?1, id, ?3 FROM tag WHERE name = ?2",
+      params![media_id, mech, "GAME_MECHANIC"],
     )?;
   }
   Ok(())
@@ -1442,7 +1413,7 @@ fn seed_collection_data() -> Vec<SeedCollection<'static>> {
       media_type: CollectionMediaType::Specific(MediaType::Movie),
       prefered_view: CollectionLayout::Row,
       sort_order: vec![MediaOrder {
-        field: MediaOrderField::Directors,
+        field: MediaOrderField::Director,
         direction: MediaOrderDirection::Asc,
       }],
       collection_dynamic: Some(SeedCollectionDynamic {
@@ -1460,7 +1431,7 @@ fn seed_collection_data() -> Vec<SeedCollection<'static>> {
       media_type: CollectionMediaType::Specific(MediaType::Series),
       prefered_view: CollectionLayout::Row,
       sort_order: vec![MediaOrder {
-        field: MediaOrderField::Creators,
+        field: MediaOrderField::Creator,
         direction: MediaOrderDirection::Asc,
       }],
       collection_dynamic: Some(SeedCollectionDynamic {
@@ -1490,26 +1461,13 @@ fn seed_collection_data() -> Vec<SeedCollection<'static>> {
       ..Default::default()
     },
     SeedCollection {
-      id: 109,
-      name: "Animation Fantasy",
-      collection_type: CollectionType::Dynamic,
-      prefered_view: CollectionLayout::Row,
-      collection_dynamic: Some(SeedCollectionDynamic {
-        filter: Some(MediaFilter {
-          genres: Some(vec!["Animation".to_string(), "Fantasy".to_string()]),
-          ..Default::default()
-        }),
-      }),
-      ..Default::default()
-    },
-    SeedCollection {
       id: 110,
       name: "Sci-Fi",
       collection_type: CollectionType::Dynamic,
       prefered_view: CollectionLayout::Row,
       collection_dynamic: Some(SeedCollectionDynamic {
         filter: Some(MediaFilter {
-          genres: Some(vec!["Sci-Fi".to_string()]),
+          tag: Some((TagType::Genre, "Sci-Fi".to_string())),
           ..Default::default()
         }),
       }),

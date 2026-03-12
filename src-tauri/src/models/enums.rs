@@ -93,6 +93,18 @@ pub enum MediaStatus {
   Dropped,
 }
 
+#[derive(Debug, Serialize, Deserialize, PartialEq, Clone, Eq, Hash)]
+#[serde(rename_all = "SCREAMING_SNAKE_CASE")]
+#[derive(strum::Display, strum::EnumString)]
+#[strum(serialize_all = "SCREAMING_SNAKE_CASE")]
+#[derive(Default)]
+pub enum TagType {
+  #[default]
+  Genre,
+  Saga,
+  GameMechanic,
+}
+
 /* Media Query */
 
 #[derive(Debug, Serialize, Deserialize, PartialEq, Clone, Copy)]
@@ -110,19 +122,24 @@ pub enum MediaOrderField {
   Status,
   Score,
 
-  Directors,
-  Genre,
-  Serie,
-  Duration,
+  // person
+  Director,
+  Creator,
+  Designer,
+  Artist,
 
-  Creators,
+  // company
+  Publisher,
+
+  // tag
+  Genre,
+  Saga,
+  GameMechanic,
+
+  // specific field
+  Duration,
   Seasons,
   Episodes,
-
-  Designers,
-  Artists,
-  GameMechanic,
-  Publishers,
   PlayerCount,
 }
 
@@ -232,6 +249,14 @@ pub fn match_media_status(s: &str) -> MediaStatus {
     "FINISHED" => MediaStatus::Finished,
     "DROPPED" => MediaStatus::Dropped,
     _ => MediaStatus::ToDiscover, // default
+  }
+}
+pub fn match_tag_type(s: &str) -> TagType {
+  match s {
+    "GENRE" => TagType::Genre,
+    "SAGA" => TagType::Saga,
+    "GAME_MECHANIC" => TagType::GameMechanic,
+    _ => TagType::Genre, // default
   }
 }
 pub fn match_collection_media_type(s: &str) -> CollectionMediaType {
