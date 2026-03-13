@@ -7,12 +7,14 @@ import { EntityService } from './entity.service';
 import { EntityType } from '@app/models/entity.model';
 import { Language } from '@app/models/settings.model';
 import { ImageService } from './image.service';
+import { SettingsService } from './settings.service';
 
 @Injectable({ providedIn: 'root' })
 export class MediaService {
 
   private entityService = inject(EntityService);
-  imageService = inject(ImageService);
+  private imageService = inject(ImageService);
+  private settingsService = inject(SettingsService);
 
   updateCache(id: string, partial: Partial<LibraryMedia>) {
     this.entityService.updateEntity<LibraryMedia & { type: EntityType.MEDIA }>(
@@ -64,6 +66,16 @@ export class MediaService {
   async updateScore(id: string, score?: number): Promise<void> {
     await invoke('update_media_score', { id, score });
     this.updateCache(id, { score: score } );
+  }
+
+  async refreshMediaData(id: string, externalId: number, mediaType: MediaType): Promise<void> {
+    await invoke<void>('refresh_media_data_from_internet', { 
+      id,
+      externalId, 
+      mediaType, 
+      language: this.settingsService.language(),
+      baseUrl: this.imageService.getOriginalUrl(mediaType)
+    });
   }
 
   /* add media */

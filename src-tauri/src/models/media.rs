@@ -72,7 +72,7 @@ pub struct MediaData {
 #[serde(rename_all = "camelCase")]
 pub struct LibraryState {
   pub id: String, // UUID
-  pub external_id: u32,
+  pub external_id: Option<u32>,
   pub added_date: String,
   pub status: MediaStatus,
   pub favorite: bool,

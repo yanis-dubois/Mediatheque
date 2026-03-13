@@ -147,7 +147,7 @@ pub fn init_db(connection: &mut Connection) -> Result<()> {
 
     CREATE TABLE IF NOT EXISTS media (
       id TEXT PRIMARY KEY NOT NULL,
-      external_id INTEGER NOT NULL,
+      external_id INTEGER,
       media_type TEXT NOT NULL CHECK(
         media_type IN ('BOOK', 'MOVIE', 'SERIES', 'VIDEO_GAME', 'TABLETOP_GAME')
       ),
@@ -290,7 +290,7 @@ pub fn init_db(connection: &mut Connection) -> Result<()> {
 
 struct SeedMedia<'a> {
   id: i32,
-  external_id: u32,
+  external_id: Option<u32>,
   media_type: MediaType,
   title: &'a str,
   description: &'a str,
@@ -315,7 +315,7 @@ impl<'a> Default for SeedMedia<'a> {
   fn default() -> Self {
     Self {
       id: 0,
-      external_id: 0,
+      external_id: None,
       media_type: MediaType::Series,
       title: "Sans titre",
       description: "",
@@ -685,7 +685,7 @@ fn seed_media_data() -> Vec<SeedMedia<'static>> {
   vec![
     SeedMedia {
       id: 1,
-      external_id: 438631,
+      external_id: Some(438631),
       media_type: MediaType::Movie,
       title: "Dune : Première partie",
       description: "L'histoire de Paul Atreides...",

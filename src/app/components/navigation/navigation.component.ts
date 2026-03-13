@@ -38,7 +38,6 @@ export class NavigationComponent {
     let activeRoute = this.route;
     while (activeRoute.firstChild) activeRoute = activeRoute.firstChild;
     const hasContextParam = activeRoute.snapshot.paramMap.has('context');
-    console.log(activeRoute.snapshot.paramMap);
 
     if (hasContextParam) {
       this.router.navigate(targetType ? ['../', targetType] : ['../'], { relativeTo: activeRoute });

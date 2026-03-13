@@ -675,6 +675,133 @@ pub fn update_media_score(
   Ok(())
 }
 
+pub struct DownloadedMediaAssets {
+  pub poster_width: u32,
+  pub poster_height: u32,
+  pub has_poster: bool,
+  pub has_backdrop: bool,
+}
+
+pub async fn download_assets(
+  app: &tauri::AppHandle,
+  id: &str,
+  base_url: &str,
+  poster_path: Option<String>,
+  backdrop_path: Option<String>,
+) -> Result<DownloadedMediaAssets, String> {
+  let app_dir = app.path().app_data_dir().map_err(|e| e.to_string())?;
+  let file_name = format!("{}.jpg", id);
+
+  // Download poster
+  let poster_dims =
+    download_media_image(base_url, poster_path, &app_dir.join("posters"), &file_name).await;
+
+  // Download backdrop
+  let backdrop_dims = download_media_image(
+    base_url,
+    backdrop_path,
+    &app_dir.join("backdrops"),
+    &file_name,
+  )
+  .await;
+
+  let (poster_width, poster_height) = poster_dims.unwrap_or((2, 3));
+
+  Ok(DownloadedMediaAssets {
+    poster_width,
+    poster_height,
+    has_poster: poster_dims.is_some(),
+    has_backdrop: backdrop_dims.is_some(),
+  })
+}
+
+pub async fn update_media_data(
+  app: tauri::AppHandle,
+  id: String,
+  api_media: ApiMedia,
+  base_url: String,
+) -> Result<(), String> {
+  let assets = download_assets(
+    &app,
+    &id,
+    &base_url,
+    api_media.state.poster_path.clone(),
+    api_media.state.backdrop_path.clone(),
+  )
+  .await?;
+
+  // get db access
+  let state = app.state::<DbState>();
+  let mut connection = state.connection.lock().unwrap();
+  let tx = connection.transaction().map_err(|e| e.to_string())?;
+
+  let base = &api_media.data.base;
+  let relations = &api_media.relations;
+
+  // update parent media table
+  tx.execute(
+    "UPDATE media 
+     SET poster_width = ?2, poster_height = ?3, title = ?4, description = ?5, 
+         release_date = ?6, has_poster = ?7, has_backdrop = ?8
+     WHERE id = ?1",
+    params![
+      id,
+      assets.poster_width,
+      assets.poster_height,
+      base.title,
+      base.description,
+      base.release_date,
+      assets.has_poster,
+      assets.has_backdrop
+    ],
+  )
+  .map_err(|e| e.to_string())?;
+
+  // reset media relation
+  tx.execute("DELETE FROM media_person WHERE media_id = ?1", params![id])
+    .map_err(|e| e.to_string())?;
+  insert_relations_person(&tx, &id, &relations.persons).map_err(|e| e.to_string())?;
+  tx.execute("DELETE FROM media_company WHERE media_id = ?1", params![id])
+    .map_err(|e| e.to_string())?;
+  insert_relations_company(&tx, &id, &relations.companies).map_err(|e| e.to_string())?;
+  tx.execute("DELETE FROM media_tag WHERE media_id = ?1", params![id])
+    .map_err(|e| e.to_string())?;
+  insert_media_tags(&tx, &id, &relations.tags).map_err(|e| e.to_string())?;
+
+  // insert details
+  match &api_media.data.extension {
+    MediaExtension::Movie { duration } => {
+      tx.execute(
+        "REPLACE INTO movie (media_id, duration) VALUES (?1, ?2)",
+        params![id, duration],
+      )
+      .map_err(|e| e.to_string())?;
+    }
+    MediaExtension::Series { seasons, episodes } => {
+      tx.execute(
+        "REPLACE INTO series (media_id, seasons, episodes) VALUES (?1, ?2, ?3)",
+        params![id, seasons, episodes],
+      )
+      .map_err(|e| e.to_string())?;
+    }
+    MediaExtension::Game {
+      player_count,
+      playing_time,
+    } => {
+      tx.execute(
+        "REPLACE INTO tabletop_game (media_id, player_count, playing_time) VALUES (?1, ?2, ?3)",
+        params![id, player_count, playing_time],
+      )
+      .map_err(|e| e.to_string())?;
+    }
+    MediaExtension::None => {}
+  }
+
+  tx.commit().map_err(|e| e.to_string())?;
+
+  Ok(())
+}
+
 /* ADD media */
 
 use rusqlite::{params, Connection, Transaction};
@@ -692,8 +819,8 @@ pub fn insert_external_media(
   println!("insert_external_media: {}", media_uuid);
 
   let external_id = api_media.state.external_id;
-  let base = api_media.data.base;
-  let relations = api_media.relations;
+  let base = &api_media.data.base;
+  let relations = &api_media.relations;
   let added_date = chrono::Utc::now().to_rfc3339();
 
   // insert in parent media table
@@ -831,48 +958,30 @@ pub async fn add_media_to_library(
   api_media: ApiMedia,
   base_url: String,
 ) -> Result<String, String> {
-  let state = &api_media.state;
-
   let media_uuid = uuid::Uuid::new_v4().to_string();
-  let app_dir = app.path().app_data_dir().map_err(|e| e.to_string())?;
-  let file_name = format!("{}.jpg", media_uuid);
 
-  // download poster
-  let poster_dims = download_media_image(
+  let assets = download_assets(
+    &app,
+    &media_uuid,
     &base_url,
-    state.poster_path.clone(),
-    &app_dir.join("posters"),
-    &file_name,
+    api_media.state.poster_path.clone(),
+    api_media.state.backdrop_path.clone(),
   )
-  .await;
-
-  // download backdrop
-  let backdrop_dims = download_media_image(
-    &base_url,
-    state.backdrop_path.clone(),
-    &app_dir.join("backdrops"),
-    &file_name,
-  )
-  .await;
+  .await?;
 
   // get db access
   let state = app.state::<DbState>();
   let mut connection = state.connection.lock().unwrap();
   let tx = connection.transaction().map_err(|e| e.to_string())?;
 
-  // retrieve poster dimmension
-  let (p_w, p_h) = poster_dims.unwrap_or((2, 3));
-  let has_poster = poster_dims.is_some();
-  let has_backdrop = backdrop_dims.is_some();
-
   insert_external_media(
     &tx,
     api_media,
     &media_uuid,
-    p_w,
-    p_h,
-    has_poster,
-    has_backdrop,
+    assets.poster_width,
+    assets.poster_height,
+    assets.has_poster,
+    assets.has_backdrop,
   )
   .map_err(|e| e.to_string())?;
 

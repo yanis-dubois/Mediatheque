@@ -87,7 +87,7 @@ export type MediaData =
 // state
 export interface LibraryState {
   id: string; // UUID
-  externalId: number;
+  externalId?: number;
   addedDate: string;
   status: MediaStatus;
   favorite: boolean;

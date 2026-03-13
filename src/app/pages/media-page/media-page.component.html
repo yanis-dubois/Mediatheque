@@ -2,7 +2,10 @@
   @if (media(); as media) {
     @if (isLibraryMedia(media)) {
       <app-dropdown [customClass]="'action-button action-button-right menu-background'" [isOpenExternal]="true">
-        <app-media-action [mediaId]="media.id"></app-media-action>
+        <app-media-action 
+          [mediaId]="media.id" 
+          (onReloaded)="loadData($event)"
+        ></app-media-action>
       </app-dropdown>
     } @else {
       <app-api-search-add-action 

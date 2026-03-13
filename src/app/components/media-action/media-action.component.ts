@@ -6,6 +6,7 @@ import { CollectionService } from '@app/services/collection.service';
 import { EntityService } from '@app/services/entity.service';
 import { MediaStatusActionComponent } from "../media-status-action/media-status-action.component";
 import { MediaFavoriteActionComponent } from "../media-favorite-action/media-favorite-action.component";
+import { MediaService } from '@app/services/media.service';
 
 @Component({
   selector: 'app-media-action',
@@ -23,6 +24,7 @@ export class MediaActionComponent {
 
   mediaId = input.required<string>();
   canDeleteFromCollection = input<boolean>(false);
+  onReloaded = output<string>();
 
   deleteRequest = output<string>();
 
@@ -30,6 +32,7 @@ export class MediaActionComponent {
 
   private entityService = inject(EntityService);
   private collectionService = inject(CollectionService);
+  private mediaService = inject(MediaService);
 
   media = computed(() => {
     return this.entityService.getMedia(this.mediaId());
@@ -67,6 +70,16 @@ export class MediaActionComponent {
 
   onDeleteFromCollection() {
     this.deleteRequest.emit(this.mediaId());
+  }
+
+  async refreshMediaData() {
+    const media = this.media();
+    if (!media || !media.externalId) return;
+
+    await this.mediaService.refreshMediaData(
+      media.id, media.externalId, media.mediaType
+    );
+    this.onReloaded.emit(media.id);
   }
 
 }

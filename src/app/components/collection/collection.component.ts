@@ -246,7 +246,6 @@ export class CollectionComponent {
 
   async removeMediaFromCollection(mediaId: string) {
     if (mediaId === "") return;
-    console.log("remove request : " + mediaId);
 
     try {
       await this.collectionService.removeMedia(this.id(), mediaId);

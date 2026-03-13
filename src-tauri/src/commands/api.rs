@@ -2,7 +2,7 @@ use tauri::Manager;
 
 use crate::{
   api::tmdb::{fetch_detailed_from_tmdb, fetch_from_tmdb},
-  commands::media::add_media_to_library,
+  commands::media::{add_media_to_library, update_media_data},
   db::DbState,
   models::{
     enums::{Language, MediaType},
@@ -61,4 +61,20 @@ pub async fn add_media_from_internet(
   let api_media = get_api_media_by_id(state, external_id, media_type, language).await?;
 
   add_media_to_library(app, api_media, base_url).await
+}
+
+#[tauri::command]
+pub async fn refresh_media_data_from_internet(
+  app: tauri::AppHandle,
+  id: String,
+  external_id: u32,
+  media_type: MediaType,
+  language: Language,
+  base_url: String,
+) -> Result<(), String> {
+  let state = app.state::<DbState>();
+
+  let api_media = get_api_media_by_id(state, external_id, media_type, language).await?;
+
+  update_media_data(app, id, api_media, base_url).await
 }

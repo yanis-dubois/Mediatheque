@@ -9,6 +9,12 @@
     Add to collection
   </button>
 
+  @if (media.externalId) {
+    <button class="dropdown-button" (click)="refreshMediaData()">
+      Refresh data
+    </button>
+  }
+
   @if (canDeleteFromCollection()) {
     <button class="dropdown-button delete-item" (click)="onDeleteFromCollection()">
       Delete from collection
