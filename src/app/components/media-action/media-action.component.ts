@@ -24,7 +24,6 @@ export class MediaActionComponent {
 
   mediaId = input.required<string>();
   canDeleteFromCollection = input<boolean>(false);
-  onReloaded = output<string>();
 
   deleteRequest = output<string>();
 
@@ -79,7 +78,6 @@ export class MediaActionComponent {
     await this.mediaService.refreshMediaData(
       media.id, media.externalId, media.mediaType
     );
-    this.onReloaded.emit(media.id);
   }
 
 }

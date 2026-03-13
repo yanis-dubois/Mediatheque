@@ -694,6 +694,7 @@ fn seed_media_data() -> Vec<SeedMedia<'static>> {
       status: MediaStatus::Finished,
       favorite: 1,
       notes: "Ce film est incroyable !",
+      has_poster: 0,
       movie_details: Some(SeedMovie {
         directors: vec!["Denis Villeneuve"],
         genres: vec!["Sci-Fi", "Adventure"],

@@ -69,6 +69,7 @@ export class MediaService {
   }
 
   async refreshMediaData(id: string, externalId: number, mediaType: MediaType): Promise<void> {
+    this.entityService.removeEntity(EntityType.MEDIA, id);
     await invoke<void>('refresh_media_data_from_internet', { 
       id,
       externalId, 
@@ -76,6 +77,7 @@ export class MediaService {
       language: this.settingsService.language(),
       baseUrl: this.imageService.getOriginalUrl(mediaType)
     });
+    this.entityService.getMedia(id, true);
   }
 
   /* add media */

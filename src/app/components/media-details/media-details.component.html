@@ -13,7 +13,7 @@
       </app-media-image>
     } @else {
       <app-media-image
-        [source]="getSource(ImageType.BACKDROP, true)"
+        [source]="getSource(ImageType.BACKDROP, false)"
         [title]="media.title" 
         [type]="'backdrop'" 
         [hasImage]="hasBackdrop()"

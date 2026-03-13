@@ -9,7 +9,9 @@
       fetchpriority="high"
       @fadeInOutScale
     />
-    <button class="close-btn" (click)="close.emit()">×</button>
+    <button class="close-btn" (click)="close.emit()">
+      <img src="assets/icons/plus.svg" style="transform: rotate(45deg);"/>
+    </button>
     <div class="info">{{ title() }}</div>
   </div>
 </div>

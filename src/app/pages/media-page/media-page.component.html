@@ -1,25 +1,32 @@
 <app-action-bar>
-  @if (media(); as media) {
-    @if (isLibraryMedia(media)) {
-      <app-dropdown [customClass]="'action-button action-button-right menu-background'" [isOpenExternal]="true">
-        <app-media-action 
-          [mediaId]="media.id" 
-          (onReloaded)="loadData($event)"
-        ></app-media-action>
-      </app-dropdown>
-    } @else {
+  @if (isLoading()) {
+    <div class="action-button action-button-right menu-background">
+      <img style="width: 24px; height: 24px;" src="assets/icons/loading.svg"/>
+    </div>
+  }
+  @if (libraryMedia(); as media) {
+    <app-dropdown 
+      #dropdown 
+      [customClass]="'action-button action-button-right menu-background'" 
+      [class.hidden]="isLoading()"
+      [isOpenExternal]="isMenuOpen()"
+    >
+      <app-media-action [mediaId]="media.id"></app-media-action>
+    </app-dropdown>
+  } @else {
+    @if (apiMedia(); as media) {
       <app-api-search-add-action 
         [customClass]="'action-button action-button-right menu-background'" 
         [data]="media"
-        (onAdded)="loadData($event)"
+        (onAdded)="id=$event; fromApiToLibrary();"
       >
       </app-api-search-add-action>
     }
   }
 </app-action-bar>
 
-<div *ngIf="error">Error : {{ error }}</div>
+@if (error) {
+  <div>{{ error }}</div>
+}
 
-<section *ngIf="id">
-  <app-media-details [media]="media()!"></app-media-details>
-</section>
+<app-media-details [media]="libraryMedia() ? libraryMedia()! : apiMedia()!"></app-media-details>
