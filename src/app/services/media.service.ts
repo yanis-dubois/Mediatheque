@@ -6,11 +6,13 @@ import { LibraryMedia, ApiMedia, MediaStatus, MediaType } from '@models/media.mo
 import { EntityService } from './entity.service';
 import { EntityType } from '@app/models/entity.model';
 import { Language } from '@app/models/settings.model';
+import { ImageService } from './image.service';
 
 @Injectable({ providedIn: 'root' })
 export class MediaService {
 
   private entityService = inject(EntityService);
+  imageService = inject(ImageService);
 
   updateCache(id: string, partial: Partial<LibraryMedia>) {
     this.entityService.updateEntity<LibraryMedia & { type: EntityType.MEDIA }>(
@@ -18,9 +20,6 @@ export class MediaService {
       id, 
       partial
     );
-
-    // On garde le lastUpdate pour la réactivité de l'écran de recherche
-    // this.lastUpdate.set(Date.now());
   }
 
   /* get media */
@@ -34,7 +33,10 @@ export class MediaService {
   }
 
   async getById(id: string): Promise<LibraryMedia> {
-    return await invoke<LibraryMedia>('get_media_by_id', { id });
+    const media = await invoke<LibraryMedia>('get_media_by_id', { id });
+    // load in cache
+    this.entityService.setEntity({ ...media, type: EntityType.MEDIA });
+    return media;
   }
 
   async getMediaBatch(ids: string[]): Promise<LibraryMedia[]> {
@@ -66,7 +68,9 @@ export class MediaService {
 
   /* add media */
 
-  addToLibrary(media: ApiMedia): Promise<void> {
-    return invoke('add_media_to_library', { data: media });
+  async addToLibrary(media: ApiMedia): Promise<string> {
+    return await invoke<string>('add_media_to_library', { 
+      apiMedia: media, baseUrl: this.imageService.getOriginalUrl(media.mediaType) 
+    });
   }
 }

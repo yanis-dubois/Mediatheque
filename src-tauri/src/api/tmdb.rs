@@ -1,7 +1,4 @@
-use std::{
-  collections::{HashMap, HashSet},
-  env,
-};
+use std::{collections::HashMap, env};
 
 use rusqlite::params;
 use tauri::State;
@@ -42,47 +39,53 @@ fn format_language(language: Language) -> String {
   )
 }
 
-pub fn get_existing_external_ids(
+pub fn get_existing_media_info(
   state: &State<'_, DbState>,
   ids: &[u32],
   media_type: MediaType,
-) -> Result<HashSet<u32>, String> {
+) -> Result<HashMap<u32, String>, String> {
   let connection = state.connection.lock().map_err(|_| "Lock failed")?;
 
   let ids_json = serde_json::to_string(&ids).map_err(|e| e.to_string())?;
 
   let mut stmt = connection
     .prepare(
-      "SELECT external_id FROM media 
-       WHERE media_type = ?1 
-       AND external_id IN (SELECT value FROM json_each(?2))",
+      "SELECT id, external_id FROM media 
+        WHERE media_type = ?1 
+        AND external_id IN (SELECT value FROM json_each(?2))",
     )
     .map_err(|e| e.to_string())?;
 
-  let existing_ids = stmt
+  let existing_data = stmt
     .query_map(params![media_type.to_string(), ids_json], |row| {
-      row.get::<_, u32>(0)
+      Ok((row.get::<_, u32>(1)?, row.get::<_, String>(0)?))
     })
     .map_err(|e| e.to_string())?
-    .filter_map(|id| id.ok())
+    .filter_map(|res| res.ok())
     .collect();
 
-  Ok(existing_ids)
+  Ok(existing_data)
 }
 
-pub fn is_media_in_library(
+pub fn get_local_id_by_external(
   state: &tauri::State<'_, DbState>,
   external_id: u32,
   media_type: &MediaType,
-) -> bool {
-  let connection = state.connection.lock().unwrap();
+) -> Option<String> {
+  let connection = state.connection.lock().ok()?;
   let mut stmt = connection
-    .prepare("SELECT 1 FROM media WHERE external_id = ?1 AND media_type = ?2 LIMIT 1")
-    .unwrap();
+    .prepare(
+      "SELECT id FROM media 
+      WHERE external_id = ?1 AND media_type = ?2 
+      LIMIT 1",
+    )
+    .ok()?;
 
   stmt
-    .exists(params![external_id, media_type.to_string()])
-    .unwrap_or(false)
+    .query_row(params![external_id, media_type.to_string()], |row| {
+      row.get(0)
+    })
+    .ok()
 }
 
 pub async fn fetch_from_tmdb(
@@ -139,6 +142,7 @@ pub async fn fetch_from_tmdb(
         },
         state: ApiState {
           external_id: item["id"].as_u64()? as u32,
+          id: None,
           is_in_library: false,
           poster_path: item["poster_path"].as_str().map(|s| s.to_string()),
           backdrop_path: item["backdrop_path"].as_str().map(|s| s.to_string()),
@@ -149,9 +153,12 @@ pub async fn fetch_from_tmdb(
 
   // check if it's already in library
   let ids: Vec<u32> = results.iter().map(|r| r.state.external_id).collect();
-  let existing_ids = get_existing_external_ids(&state, &ids, media_type)?;
+  let existing_media = get_existing_media_info(&state, &ids, media_type)?;
   for item in &mut results {
-    item.state.is_in_library = existing_ids.contains(&item.state.external_id);
+    if let Some(local_id) = existing_media.get(&item.state.external_id) {
+      item.state.is_in_library = true;
+      item.state.id = Some(local_id.clone());
+    }
   }
 
   Ok(results)
@@ -285,11 +292,14 @@ fn map_tmdb_to_api_media(
     _ => MediaExtension::None,
   };
 
+  let local_id = get_local_id_by_external(state, external_id, &media_type);
+
   Ok(ApiMedia {
     data: MediaData { base, extension },
     state: ApiState {
       external_id,
-      is_in_library: is_media_in_library(state, external_id, &media_type),
+      id: local_id.clone(),
+      is_in_library: local_id.is_some(),
       poster_path: data["poster_path"].as_str().map(|s| s.to_string()),
       backdrop_path: data["backdrop_path"].as_str().map(|s| s.to_string()),
     },

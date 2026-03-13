@@ -5,7 +5,10 @@
 >
   <ng-template #rowRef let-item let-index="index">
     @if (item; as result) {
-      <a [routerLink]="['/media', 'api', result.mediaType, result.externalId]" >
+      @let route = item.isInLibrary 
+        ? ['/media', result.id]
+        : ['/media', 'api', result.mediaType, result.externalId];
+      <a [routerLink]="route">
         <app-api-search-row 
           [entity]="result" 
           [width]="containerWidth()" 

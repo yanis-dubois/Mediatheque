@@ -118,16 +118,7 @@
           <app-media-status-action [mediaId]="media.id"></app-media-status-action>
         </div>
 
-        <button (click)="onToggleFavorite()" [class.is-favorite]="favorite()">
-          @if (favorite()) {
-            ❤️
-          } @else {
-            🩶
-          }
-        </button>
-      }
-      @else {
-        <!-- TODO: add to library -->
+        <app-media-favorite-action [mediaId]="media.id"></app-media-favorite-action>
       }
 
       <!-- details -->

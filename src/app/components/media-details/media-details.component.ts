@@ -2,7 +2,7 @@ import { Component, computed, effect, inject, input, signal } from '@angular/cor
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 
-import { DetailedMedia, hasRelations, isLibraryMedia, MediaStatus, MediaType, MovieExtension, SeriesExtension, TabletopGameExtension } from '@models/media.model'
+import { DetailedMedia, isLibraryMedia, MediaStatus, MediaType, MovieExtension, SeriesExtension, TabletopGameExtension } from '@models/media.model'
 
 import { MediaService } from '@services/media.service'
 import { PosterPathPipe } from "@pipe/poster-path.pipe";
@@ -14,11 +14,12 @@ import { MetadataType } from '@app/models/entity.model';
 import { MediaImageComponent } from "../media-image/media-image.component";
 import { ImageService, ImageSize, ImageType } from '@app/services/image.service';
 import { BackdropPathPipe } from '@app/pipe/backdrop-path.pipe';
+import { MediaFavoriteActionComponent } from "../media-favorite-action/media-favorite-action.component";
 
 @Component({
   selector: 'app-media-details',
   standalone: true,
-  imports: [CommonModule, RouterModule, ScoreDisplayComponent, PosterLightboxComponent, MediaStatusActionComponent, DurationPipe, MediaImageComponent],
+  imports: [CommonModule, RouterModule, ScoreDisplayComponent, PosterLightboxComponent, MediaStatusActionComponent, DurationPipe, MediaImageComponent, MediaFavoriteActionComponent],
   providers: [PosterPathPipe, BackdropPathPipe],
   templateUrl: './media-details.component.html',
   styleUrl: './media-details.component.css'
@@ -36,8 +37,6 @@ export class MediaDetailsComponent {
   media = input.required<DetailedMedia>();
 
   isLibraryMedia = isLibraryMedia;
-  isLibrary = computed(() => isLibraryMedia(this.media()));
-  fullDetails = computed(() => hasRelations(this.media()) ? this.media() : null);
   hasPoster = computed(() => {
     const media = this.media();
     if (isLibraryMedia(media)) {
@@ -94,10 +93,6 @@ export class MediaDetailsComponent {
     }, { allowSignalWrites: true });
   }
 
-  async ngAfterInit() {
-    this.loadData();
-  }
-
   loadData() {
     const media = this.media();
 
@@ -117,34 +112,6 @@ export class MediaDetailsComponent {
   }
   asTabletopGame(m: DetailedMedia): TabletopGameExtension {
     return m as TabletopGameExtension;
-  }
-
-  async onToggleFavorite() {
-    const media = this.media();
-    if (!media || !isLibraryMedia(media)) return;
-
-    const isFavorite = !this.favorite();
-  
-    try {
-      await this.mediaService.toggleFavorite(media.id, isFavorite);
-      this.favorite.set(isFavorite);
-    } catch (e) {
-      console.error("Error while updating favorite", e);
-    }
-  }
-
-  async onStatusChange(newStatus: string) {
-    const media = this.media();
-    if (!media || !isLibraryMedia(media)) return;
-
-    const statusEnum = newStatus as MediaStatus;
-
-    try {
-      await this.mediaService.updateStatus(media.id, statusEnum);
-      this.status.set(statusEnum);
-    } catch (e) {
-      console.error("Error while updating status", e);
-    }
   }
 
   async onNotesBlur(newNotes: string) {

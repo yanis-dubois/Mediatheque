@@ -2,7 +2,7 @@
   @let isInLibrary = data.isInLibrary;
 
   <button 
-    class="dots-button dots-button-simple"
+    [class]="customClass()"
     (click)="onAdd()"
   >
     @if (isInLibrary) {

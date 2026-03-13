@@ -88,6 +88,7 @@ pub struct LibraryState {
 #[serde(rename_all = "camelCase")]
 pub struct ApiState {
   pub external_id: u32,
+  pub id: Option<String>,
   pub is_in_library: bool,
   pub poster_path: Option<String>,
   pub backdrop_path: Option<String>,

@@ -100,6 +100,7 @@ export interface LibraryState {
 }
 export interface ApiState {
   externalId: number;
+  id?: string;
   isInLibrary: boolean;
   posterPath?: string;
   backdropPath?: string;
@@ -129,6 +130,12 @@ export type ApiMedia =
   ApiState &
   ApiMediaRelations;
 
+/* ********** Generic Type ********** */
+
+export type AnyApiMedia =
+  ApiSearchResult | 
+  ApiMedia;
+
 export type DetailedMedia = 
   LibraryMedia |
   ApiMedia;
@@ -142,11 +149,8 @@ export type AnyMedia =
 
 // type guard
 export const isLibraryMedia = (media: AnyMedia): media is LibraryMedia  => {
-  return 'id' in media;
+  return 'favorite' in media;
 };
-export const hasRelations = (media: AnyMedia): media is ApiMedia | LibraryMedia => {
+export const isDetailedMedia = (media: AnyMedia): media is ApiMedia | LibraryMedia => {
   return 'persons' in media;
-};
-export const isAnyApiMedia = (media: AnyMedia): media is ApiMedia | ApiSearchResult => {
-  return !('id' in media);
 };

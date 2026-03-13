@@ -1,4 +1,19 @@
-<app-action-bar></app-action-bar>
+<app-action-bar>
+  @if (media(); as media) {
+    @if (isLibraryMedia(media)) {
+      <app-dropdown [customClass]="'action-button action-button-right menu-background'" [isOpenExternal]="true">
+        <app-media-action [mediaId]="media.id"></app-media-action>
+      </app-dropdown>
+    } @else {
+      <app-api-search-add-action 
+        [customClass]="'action-button action-button-right menu-background'" 
+        [data]="media"
+        (onAdded)="loadData($event)"
+      >
+      </app-api-search-add-action>
+    }
+  }
+</app-action-bar>
 
 <div *ngIf="error">Error : {{ error }}</div>
 

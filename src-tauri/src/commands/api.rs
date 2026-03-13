@@ -55,7 +55,7 @@ pub async fn add_media_from_internet(
   media_type: MediaType,
   language: Language,
   base_url: String,
-) -> Result<(), String> {
+) -> Result<String, String> {
   let state = app.state::<DbState>();
 
   let api_media = get_api_media_by_id(state, external_id, media_type, language).await?;

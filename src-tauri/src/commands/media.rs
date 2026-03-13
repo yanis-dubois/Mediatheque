@@ -830,17 +830,12 @@ pub async fn add_media_to_library(
   app: tauri::AppHandle,
   api_media: ApiMedia,
   base_url: String,
-) -> Result<(), String> {
-  let media_uuid = uuid::Uuid::new_v4().to_string();
-  let app_dir = app.path().app_data_dir().map_err(|e| e.to_string())?;
-
+) -> Result<String, String> {
   let state = &api_media.state;
 
+  let media_uuid = uuid::Uuid::new_v4().to_string();
+  let app_dir = app.path().app_data_dir().map_err(|e| e.to_string())?;
   let file_name = format!("{}.jpg", media_uuid);
-
-  println!("base : {:?}", base_url.clone());
-  println!("poster : {:?}", state.poster_path.clone());
-  println!("backdrop : {:?}", state.backdrop_path.clone());
 
   // download poster
   let poster_dims = download_media_image(
@@ -883,5 +878,5 @@ pub async fn add_media_to_library(
 
   tx.commit().map_err(|e| e.to_string())?;
 
-  Ok(())
+  Ok(media_uuid)
 }

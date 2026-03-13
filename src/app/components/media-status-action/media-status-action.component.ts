@@ -24,6 +24,7 @@ export class MediaStatusActionComponent {
   private mediaService = inject(MediaService);
 
   media = computed(() => {
+    console.log(this.entityService.getMedia(this.mediaId()));
     return this.entityService.getMedia(this.mediaId());
   });
 

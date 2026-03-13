@@ -17,8 +17,8 @@ export class ApiService {
     });
   }
 
-  async addMedia(externalId: number, mediaType: MediaType): Promise<ApiSearchResult[]> {
-    return await invoke<ApiSearchResult[]>('add_media_from_internet', { 
+  async addMedia(externalId: number, mediaType: MediaType): Promise<string> {
+    return await invoke<string>('add_media_from_internet', { 
       externalId, 
       mediaType, 
       language: this.settingsService.language(),
