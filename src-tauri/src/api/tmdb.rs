@@ -9,7 +9,8 @@ use crate::{
     api::ApiResponse,
     enums::{Language, MediaType, TagType},
     media::{
-      ApiMedia, ApiMediaRelations, ApiSearchResult, ApiState, MediaBase, MediaData, MediaExtension,
+      ApiEntityRelation, ApiMedia, ApiMediaRelations, ApiSearchResult, ApiState, MediaBase,
+      MediaData, MediaExtension,
     },
   },
 };
@@ -166,7 +167,7 @@ pub async fn fetch_from_tmdb(
 
 fn get_job_priority(job: &str) -> i32 {
   match job {
-    "Director" => 1,
+    "Director" | "Creator" => 1,
     "Screenplay" | "Writer" | "Author" | "Novel" => 2,
     "Story" | "Characters" => 3,
     _ => 100,
@@ -179,60 +180,74 @@ fn map_tmdb_to_api_media(
   data: serde_json::Value,
   media_type: MediaType,
 ) -> Result<ApiMedia, String> {
-  let mut persons: HashMap<String, Vec<String>> = HashMap::new();
-  let mut companies: HashMap<String, Vec<String>> = HashMap::new();
+  let mut persons: HashMap<String, ApiEntityRelation> = HashMap::new();
+  let mut cast: HashMap<String, ApiEntityRelation> = HashMap::new();
+  let mut companies: HashMap<String, ApiEntityRelation> = HashMap::new();
   let mut tags: HashMap<TagType, Vec<String>> = HashMap::new();
 
-  // extract person
-  let mut featured_crew: Vec<(String, String)> = Vec::new();
-  // -- crew
-  if let Some(crew) = data["credits"]["crew"].as_array() {
-    for member in crew {
-      if let (Some(name), Some(job)) = (member["name"].as_str(), member["job"].as_str()) {
-        let priority = get_job_priority(job);
-        if priority < 100 {
-          featured_crew.push((name.to_string(), job.to_string()));
+  // extract creators
+  // -- for movie
+  if media_type == MediaType::Movie {
+    let mut featured_crew: Vec<(String, String)> = Vec::new();
+    if let Some(crew) = data["credits"]["crew"].as_array() {
+      for member in crew {
+        if let (Some(name), Some(job)) = (member["name"].as_str(), member["job"].as_str()) {
+          let priority = get_job_priority(job);
+          if priority < 100 {
+            featured_crew.push((name.to_string(), job.to_string()));
+          }
+        }
+      }
+    }
+
+    featured_crew.sort_by_key(|item| get_job_priority(&item.1));
+
+    for (index, (name, job)) in featured_crew.into_iter().take(6).enumerate() {
+      let entry = persons.entry(name).or_insert(ApiEntityRelation {
+        order: Some(index as u32),
+        values: Vec::new(),
+      });
+      entry.values.push(job.to_uppercase());
+    }
+  } else {
+    // -- for series
+    if let Some(creators) = data["created_by"].as_array() {
+      for (index, creator) in creators.iter().enumerate() {
+        if let Some(name) = creator["name"].as_str() {
+          persons
+            .entry(name.to_string())
+            .or_insert(ApiEntityRelation {
+              order: Some(index as u32),
+              values: vec!["CREATOR".to_string()],
+            });
         }
       }
     }
   }
-  // sort by job priority
-  featured_crew.sort_by_key(|item| get_job_priority(&item.1));
-  // take the 6 first
-  for (name, job) in featured_crew.into_iter().take(6) {
-    persons.entry(name).or_default().push(job.to_uppercase());
-  }
-  // -- creators (for series)
-  if let Some(creators) = data["created_by"].as_array() {
-    for creator in creators {
-      if let Some(name) = creator["name"].as_str() {
-        persons
-          .entry(name.to_string())
-          .or_default()
-          .push("CREATOR".to_string());
-      }
-    }
-  }
-  // -- cast (only the 10 first actors)
-  if let Some(cast) = data["credits"]["cast"].as_array() {
-    for member in cast.iter().take(10) {
-      if let Some(name) = member["name"].as_str() {
-        persons
-          .entry(name.to_string())
-          .or_default()
-          .push("ACTOR".to_string());
+
+  // extract cast (only the 10 first actors)
+  if let Some(c) = data["credits"]["cast"].as_array() {
+    for (index, member) in c.iter().take(10).enumerate() {
+      if let (Some(name), Some(role)) = (member["name"].as_str(), member["character"].as_str()) {
+        let entry = cast.entry(name.to_string()).or_insert(ApiEntityRelation {
+          order: Some(index as u32),
+          values: Vec::new(),
+        });
+        entry.values.push(role.to_string());
       }
     }
   }
 
   // extract companies
   if let Some(production_companies) = data["production_companies"].as_array() {
-    for comp in production_companies {
+    for (index, comp) in production_companies.iter().enumerate() {
       if let Some(name) = comp["name"].as_str() {
         companies
           .entry(name.to_string())
-          .or_default()
-          .push("PRODUCTION".to_string());
+          .or_insert(ApiEntityRelation {
+            order: Some(index as u32),
+            values: vec!["PRODUCTION".to_string()],
+          });
       }
     }
   }
@@ -305,6 +320,7 @@ fn map_tmdb_to_api_media(
     },
     relations: ApiMediaRelations {
       persons,
+      cast,
       companies,
       tags,
     },

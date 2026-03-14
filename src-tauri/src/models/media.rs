@@ -8,24 +8,34 @@ use crate::models::{enums::TagType, metadata::Tag};
 
 #[derive(Debug, Serialize, Deserialize, Default)]
 #[serde(rename_all = "camelCase")]
-pub struct EntityRelation {
+pub struct LibraryEntityRelation {
   pub id: String,
+  pub order: Option<u32>,
+  pub values: Vec<String>,
+}
+
+#[derive(Debug, Serialize, Deserialize, Default)]
+#[serde(rename_all = "camelCase")]
+pub struct ApiEntityRelation {
+  pub order: Option<u32>,
   pub values: Vec<String>,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct LibraryMediaRelations {
-  pub persons: HashMap<String, EntityRelation>,
-  pub companies: HashMap<String, EntityRelation>,
+  pub persons: HashMap<String, LibraryEntityRelation>,
+  pub cast: HashMap<String, LibraryEntityRelation>,
+  pub companies: HashMap<String, LibraryEntityRelation>,
   pub tags: HashMap<TagType, Vec<Tag>>,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct ApiMediaRelations {
-  pub persons: HashMap<String, Vec<String>>,
-  pub companies: HashMap<String, Vec<String>>,
+  pub persons: HashMap<String, ApiEntityRelation>,
+  pub cast: HashMap<String, ApiEntityRelation>,
+  pub companies: HashMap<String, ApiEntityRelation>,
   pub tags: HashMap<TagType, Vec<String>>,
 }
 

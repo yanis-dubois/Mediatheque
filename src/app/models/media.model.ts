@@ -1,5 +1,6 @@
 /* ********** Enum ********** */
 
+import { KeyValue } from "@angular/common";
 import { Tag } from "./entity.model";
 
 export enum MediaType {
@@ -32,10 +33,25 @@ export enum TagType {
   GAME_MECHANIC = 'GAME_MECHANIC',
 }
 
-export interface EntityRelation {
+export interface LibraryEntityRelation {
   id: string;
+  order?: number;
   values: string[];
 }
+
+export interface ApiEntityRelation {
+  order?: number;
+  values: string[];
+}
+
+export const sortEntityByOrder = (
+  a: KeyValue<string, LibraryEntityRelation | ApiEntityRelation>, 
+  b: KeyValue<string, LibraryEntityRelation | ApiEntityRelation>
+): number => {
+  const orderA = a.value.order ?? 0;
+  const orderB = b.value.order ?? 0;
+  return orderA - orderB;
+};
 
 /* ********** Data ********** */
 
@@ -48,17 +64,19 @@ export interface MediaBase {
 }
 
 export interface LibraryMediaRelations {
-  // { name: {id, [roles, ...]} }
-  persons: Record<string, EntityRelation>;
-  companies: Record<string, EntityRelation>;
+  // { name: relation }
+  persons: Record<string, LibraryEntityRelation>;
+  cast: Record<string, LibraryEntityRelation>;
+  companies: Record<string, LibraryEntityRelation>;
   // { type: [{id, tag}, ...] }
   tags: Partial<Record<TagType, Tag[]>>;
 }
 
 export interface ApiMediaRelations {
-  // { name: [roles, ...] }
-  persons: Record<string, string[]>;
-  companies: Record<string, string[]>;
+  // // { name: relation }
+  persons: Record<string, ApiEntityRelation>;
+  cast: Record<string, ApiEntityRelation>;
+  companies: Record<string, ApiEntityRelation>;
   // { type: [tags, ...] }
   tags: Partial<Record<TagType, string[]>>;
 }

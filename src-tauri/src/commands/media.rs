@@ -7,8 +7,8 @@ use crate::models::enums::{
   MediaOrderField, MediaStatus, MediaType, TagType,
 };
 use crate::models::media::{
-  ApiMedia, EntityRelation, LibraryMedia, LibraryMediaRelations, LibraryState, MediaBase,
-  MediaData, MediaExtension,
+  ApiEntityRelation, ApiMedia, LibraryEntityRelation, LibraryMedia, LibraryMediaRelations,
+  LibraryState, MediaBase, MediaData, MediaExtension,
 };
 use crate::models::metadata::Tag;
 use crate::models::query::{MediaFilter, MediaOrder};
@@ -49,6 +49,7 @@ pub fn map_row_to_media(row: &rusqlite::Row) -> rusqlite::Result<LibraryMedia> {
     state,
     relations: LibraryMediaRelations {
       persons: HashMap::new(),
+      cast: HashMap::new(),
       companies: HashMap::new(),
       tags: HashMap::new(),
     },
@@ -98,10 +99,11 @@ pub fn fill_media_relations(
   // retrieve persons
   let mut stmt_pers = connection
     .prepare(
-      "SELECT CAST(p.id AS TEXT), p.name, mp.role 
+      "SELECT CAST(p.id AS TEXT), p.name, mp.role, mp.category, mp.sort_order 
         FROM person p 
         JOIN media_person mp ON p.id = mp.person_id 
-        WHERE mp.media_id = ?1",
+        WHERE mp.media_id = ?1
+        ORDER BY mp.sort_order ASC",
     )
     .map_err(|e| e.to_string())?;
 
@@ -111,20 +113,26 @@ pub fn fill_media_relations(
         row.get::<_, String>(0)?,
         row.get::<_, String>(1)?,
         row.get::<_, String>(2)?,
+        row.get::<_, String>(3)?,
+        row.get::<_, u32>(4)?,
       ))
     })
     .map_err(|e| e.to_string())?;
 
   for row in pers_rows.flatten() {
-    let (id, name, role) = row;
+    let (id, name, role, category, order) = row;
 
-    // name is the key
-    let relation = media
-      .relations
-      .persons
+    let target_map = if category == "cast" {
+      &mut media.relations.cast
+    } else {
+      &mut media.relations.persons
+    };
+
+    let relation = target_map
       .entry(name)
-      .or_insert_with(|| EntityRelation {
+      .or_insert_with(|| LibraryEntityRelation {
         id,
+        order: Some(order),
         values: Vec::new(),
       });
     relation.values.push(role);
@@ -133,10 +141,11 @@ pub fn fill_media_relations(
   // retrieve companies
   let mut stmt_comp = connection
     .prepare(
-      "SELECT CAST(c.id AS TEXT), c.name, mc.role 
+      "SELECT CAST(c.id AS TEXT), c.name, mc.role, mc.sort_order
         FROM company c 
         JOIN media_company mc ON c.id = mc.company_id 
-        WHERE mc.media_id = ?1",
+        WHERE mc.media_id = ?1
+        ORDER BY mc.sort_order ASC",
     )
     .map_err(|e| e.to_string())?;
 
@@ -146,20 +155,21 @@ pub fn fill_media_relations(
         row.get::<_, String>(0)?,
         row.get::<_, String>(1)?,
         row.get::<_, String>(2)?,
+        row.get::<_, u32>(3)?,
       ))
     })
     .map_err(|e| e.to_string())?;
 
   for row in comp_rows.flatten() {
-    let (id, name, role) = row;
+    let (id, name, role, order) = row;
 
-    // name is the key
     let relation = media
       .relations
       .companies
       .entry(name)
-      .or_insert_with(|| EntityRelation {
+      .or_insert_with(|| LibraryEntityRelation {
         id,
+        order: Some(order),
         values: Vec::new(),
       });
     relation.values.push(role);
@@ -760,7 +770,8 @@ pub async fn update_media_data(
   // reset media relation
   tx.execute("DELETE FROM media_person WHERE media_id = ?1", params![id])
     .map_err(|e| e.to_string())?;
-  insert_relations_person(&tx, &id, &relations.persons).map_err(|e| e.to_string())?;
+  insert_relations_person(&tx, &id, &"crew", &relations.persons).map_err(|e| e.to_string())?;
+  insert_relations_person(&tx, &id, &"cast", &relations.cast).map_err(|e| e.to_string())?;
   tx.execute("DELETE FROM media_company WHERE media_id = ?1", params![id])
     .map_err(|e| e.to_string())?;
   insert_relations_company(&tx, &id, &relations.companies).map_err(|e| e.to_string())?;
@@ -844,7 +855,8 @@ pub fn insert_external_media(
       has_backdrop
     ],
   )?;
-  insert_relations_person(tx, media_uuid, &relations.persons)?;
+  insert_relations_person(tx, media_uuid, &"crew", &relations.persons)?;
+  insert_relations_person(tx, media_uuid, &"cast", &relations.cast)?;
   insert_relations_company(tx, media_uuid, &relations.companies)?;
   insert_media_tags(tx, media_uuid, &relations.tags)?;
 
@@ -880,15 +892,17 @@ pub fn insert_external_media(
 fn insert_relations_person(
   tx: &Transaction,
   media_id: &str,
-  persons: &HashMap<String, Vec<String>>,
+  category: &str,
+  persons: &HashMap<String, ApiEntityRelation>,
 ) -> Result<(), rusqlite::Error> {
-  for (name, roles) in persons {
+  for (name, relation) in persons {
     tx.execute("INSERT OR IGNORE INTO person (name) VALUES (?1)", [name])?;
-    for role in roles {
+
+    for role in &relation.values {
       tx.execute(
-        "INSERT INTO media_person (media_id, person_id, role) 
-         SELECT ?1, id, ?3 FROM person WHERE name = ?2",
-        params![media_id, name, role],
+        "INSERT INTO media_person (media_id, person_id, category, role, sort_order) 
+         SELECT ?1, id, ?3, ?4, ?5 FROM person WHERE name = ?2",
+        params![media_id, name, category, role, relation.order.unwrap_or(0)],
       )?;
     }
   }
@@ -897,15 +911,15 @@ fn insert_relations_person(
 fn insert_relations_company(
   tx: &Transaction,
   media_id: &str,
-  companies: &HashMap<String, Vec<String>>,
+  companies: &HashMap<String, ApiEntityRelation>,
 ) -> Result<(), rusqlite::Error> {
-  for (name, roles) in companies {
+  for (name, relation) in companies {
     tx.execute("INSERT OR IGNORE INTO company (name) VALUES (?1)", [name])?;
-    for role in roles {
+    for role in &relation.values {
       tx.execute(
-        "INSERT INTO media_company (media_id, company_id, role) 
-         SELECT ?1, id, ?3 FROM company WHERE name = ?2",
-        params![media_id, name, role],
+        "INSERT INTO media_company (media_id, company_id, role, sort_order) 
+         SELECT ?1, id, ?3, ?4 FROM company WHERE name = ?2",
+        params![media_id, name, role, relation.order.unwrap_or(0)],
       )?;
     }
   }

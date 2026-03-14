@@ -227,8 +227,10 @@ pub fn init_db(connection: &mut Connection) -> Result<()> {
     CREATE TABLE IF NOT EXISTS media_person (
       media_id TEXT NOT NULL,
       person_id INTEGER NOT NULL,
+      category TEXT NOT NULL CHECK (category IN ('crew', 'cast')),
       role TEXT NOT NULL,
-      PRIMARY KEY (media_id, person_id, role),
+      sort_order INTEGER NOT NULL DEFAULT 0,
+      PRIMARY KEY (media_id, person_id, category, role),
       FOREIGN KEY (media_id) REFERENCES media(id) ON DELETE CASCADE,
       FOREIGN KEY (person_id) REFERENCES person(id) ON DELETE CASCADE
     );
@@ -238,6 +240,7 @@ pub fn init_db(connection: &mut Connection) -> Result<()> {
       media_id TEXT NOT NULL,
       company_id INTEGER NOT NULL,
       role TEXT NOT NULL,
+      sort_order INTEGER NOT NULL DEFAULT 0,
       PRIMARY KEY (media_id, company_id, role),
       FOREIGN KEY (media_id) REFERENCES media(id) ON DELETE CASCADE,
       FOREIGN KEY (company_id) REFERENCES company(id) ON DELETE CASCADE
@@ -561,9 +564,9 @@ fn seed_persons(
   for name in names {
     tx.execute("INSERT OR IGNORE INTO person (name) VALUES (?1)", [name])?;
     tx.execute(
-      "INSERT INTO media_person (media_id, person_id, role)
-        SELECT ?1, id, ?3 FROM person WHERE name = ?2",
-      params![media_id, name, role],
+      "INSERT INTO media_person (media_id, person_id, category, role)
+        SELECT ?1, id, ?3, ?4 FROM person WHERE name = ?2",
+      params![media_id, name, "crew".to_string(), role],
     )?;
   }
   Ok(())

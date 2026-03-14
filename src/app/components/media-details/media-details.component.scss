@@ -1,0 +1,140 @@
+.header {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  color: white;
+
+  // --- BACKDROP ---
+  .backdrop-wrapper {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 800px;
+    z-index: 0;
+    overflow: hidden;
+
+    .backdrop-overlay {
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(
+        to bottom,
+        rgba(15, 15, 15, 0.7) 0%,
+        rgba(15, 15, 15, 0.8) 50%,
+        rgba(15, 15, 15, 1) 100%
+      );
+    }
+  }
+
+  // --- MAIN CONTENT (POSTER + INFO) ---
+  .main-content {
+    position: relative;
+    z-index: 1;
+    display: grid;
+    grid-template-columns: 300px 1fr;
+    gap: 50px;
+    padding: 100px 5% 40px 5%;
+
+    .poster-sidebar {
+      .poster-container {
+        border-radius: 12px;
+        overflow: hidden;
+        box-shadow: 0 20px 50px rgba(0, 0, 0, 0.8);
+        transition: transform 0.3s ease;
+        cursor: pointer;
+        &:hover { transform: scale(1.02); }
+      }
+    }
+
+    .primary-info {
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-start;
+      padding-bottom: 20px;
+
+      .title {
+        text-align: left;
+        font-size: 3.5rem;
+        font-weight: 900;
+        margin: 0;
+        line-height: 1.1;
+      }
+
+      .meta-line {
+        display: flex;
+        gap: 15px;
+        align-items: center;
+        margin: 8px 0;
+        font-size: 1.1rem;
+        opacity: 0.8;
+
+        .badge {
+          background: rgba(255, 255, 255, 0.2);
+          padding: 2px 8px;
+          border-radius: 4px;
+          text-transform: uppercase;
+          font-size: 0.8rem;
+        }
+      }
+
+      .description {
+        max-width: 800px;
+        font-size: 1.1rem;
+        line-height: 1.6;
+        color: #ccc;
+      }
+
+      .crew-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+        gap: 20px;
+        margin-top: 30px;
+
+        .crew-item {
+          display: flex;
+          flex-direction: column;
+        }
+      }
+    }
+  }
+  .name { 
+    font-weight: 800; 
+    font-size: 0.9rem; 
+    color: #fff; 
+
+    &:hover {
+      color: #ccc;
+    }
+  }
+  .role { font-size: 0.9rem; color: #aaa; }
+
+  // --- LOWER CONTENT ---
+  .secondary-content {
+    position: relative;
+    z-index: 1;
+    padding: 40px 5%;
+    background-color: var(--color-dark);
+    display: flex;
+    justify-content: space-around;
+    
+    .notes-section {
+      margin-top: 50px;
+      padding: 30px;
+      background: rgba(255, 255, 255, 0.03);
+      border-radius: 12px;
+      border: 1px solid rgba(255, 255, 255, 0.05);
+
+      textarea {
+        width: 100%;
+        background: transparent;
+        border: none;
+        color: white;
+        font-size: 1rem;
+        min-height: 150px;
+        outline: none;
+        margin-top: 10px;
+      }
+    }
+  }
+}
