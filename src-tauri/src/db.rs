@@ -56,12 +56,12 @@ pub fn setup_db(app: &AppHandle) -> Result<()> {
   // open connection with DB
   let connection = get_connection(&app)?;
 
-  // DB init + seed
+  // DB init
   let mut connection_wrapper = connection;
   init_db(&mut connection_wrapper)?;
 
   // add test data in DB
-  seed_data(&mut connection_wrapper).map_err(|e| e)?;
+  seed_data(&mut connection_wrapper).map_err(|e| e)?; // TMP
 
   // give connection to Tauri using Mutex
   app.manage(DbState {
@@ -280,7 +280,7 @@ pub fn init_db(connection: &mut Connection) -> Result<()> {
 
     CREATE INDEX IF NOT EXISTS idx_media_person_reverse ON media_person(person_id, role);
     CREATE INDEX IF NOT EXISTS idx_media_company_reverse ON media_company(company_id, role);
-    CREATE INDEX idx_media_tag_type ON media_tag(type);
+    CREATE INDEX IF NOT EXISTS idx_media_tag_type ON media_tag(type);
     "
   )?;
 

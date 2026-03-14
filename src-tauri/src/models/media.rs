@@ -61,7 +61,9 @@ pub enum MediaExtension {
     episodes: i32,
   },
   Game {
+    #[serde(rename = "playerCount")]
     player_count: String,
+    #[serde(rename = "playingTime")]
     playing_time: String,
   },
   None,

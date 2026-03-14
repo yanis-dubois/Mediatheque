@@ -52,7 +52,7 @@ export class EntityService {
       this.entityCache.set(key, signal<DetailedEntity | null>(null));
     }
 
-    if (forceLoad && (this.entityCache.get(key)!() === null)) {
+    if (forceLoad) {
       this.loadById(type, id);
       this.updateCacheOrder(key);
     }

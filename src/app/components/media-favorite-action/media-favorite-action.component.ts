@@ -1,4 +1,4 @@
-import { Component, computed, inject, input } from '@angular/core';
+import { Component, computed, inject, input, signal } from '@angular/core';
 
 import { MediaService } from '@app/services/media.service';
 import { EntityService } from '@app/services/entity.service';

@@ -1,17 +1,18 @@
-.header {
+.media-detail {
   position: relative;
   display: flex;
   flex-direction: column;
   min-height: 100vh;
+  padding-bottom: var(--nav-height);
   color: white;
 
   // --- BACKDROP ---
   .backdrop-wrapper {
-    position: absolute;
+    position: fixed;
     top: 0;
     left: 0;
     width: 100%;
-    height: 800px;
+    height: 100%;
     z-index: 0;
     overflow: hidden;
 
@@ -20,8 +21,8 @@
       inset: 0;
       background: linear-gradient(
         to bottom,
-        rgba(15, 15, 15, 0.7) 0%,
-        rgba(15, 15, 15, 0.8) 50%,
+        rgba(15, 15, 15, 0.8) 0%,
+        rgba(15, 15, 15, 0.95) 50%,
         rgba(15, 15, 15, 1) 100%
       );
     }
@@ -76,6 +77,20 @@
           text-transform: uppercase;
           font-size: 0.8rem;
         }
+
+        .saga {
+          font-weight: 900;
+          font-size: 1.3rem;
+        }
+      }
+
+      .meta-block {
+        display: flex;
+        align-items: center;
+      }
+
+      .score {
+        display: flex;
       }
 
       .description {
@@ -98,16 +113,21 @@
       }
     }
   }
+
   .name { 
     font-weight: 800; 
     font-size: 0.9rem; 
     color: #fff; 
 
+    
+  }
+  a .name {
     &:hover {
       color: #ccc;
     }
   }
   .role { font-size: 0.9rem; color: #aaa; }
+  .text { font-size: 0.9rem; color: #aaa; }
 
   // --- LOWER CONTENT ---
   .secondary-content {
@@ -117,15 +137,28 @@
     background-color: var(--color-dark);
     display: flex;
     justify-content: space-around;
-    
-    .notes-section {
-      margin-top: 50px;
-      padding: 30px;
-      background: rgba(255, 255, 255, 0.03);
+  }
+
+  .tertiary-content {
+    position: relative;
+    z-index: 1;
+    background-color: var(--color-dark);
+    display: flex;
+    justify-content: space-around;
+  }
+
+  .notes-section {
+    padding: 24px 5%;
+
+    .notes-container {
+      position: relative;
+      background: rgba(62, 62, 62, 0.1);
+      backdrop-filter: blur(8px);
       border-radius: 12px;
       border: 1px solid rgba(255, 255, 255, 0.05);
 
       textarea {
+        padding: 16px;
         width: 100%;
         background: transparent;
         border: none;
@@ -134,7 +167,24 @@
         min-height: 150px;
         outline: none;
         margin-top: 10px;
+        cursor: pointer;
+      }
+
+      .fieldset-label {
+        position: absolute;
+        top: -12px;
+        left: 12px;
+        padding: 0 8px;
+        background: rgba(31, 31, 31, 0.6);
+        border-radius: 8px;
+        border: 1px solid rgba(255, 255, 255, 0.05);
+      
+        font-size: 0.9rem;
+        font-weight: 500;
+        color: var(--color-light-dark);
+        pointer-events: none;
       }
     }
   }
+
 }

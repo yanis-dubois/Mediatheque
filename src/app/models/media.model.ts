@@ -33,6 +33,21 @@ export enum TagType {
   GAME_MECHANIC = 'GAME_MECHANIC',
 }
 
+export const TAG_ORDER: Record<TagType, number> = {
+  [TagType.SAGA]: 1,
+  [TagType.GENRE]: 2,
+  [TagType.GAME_MECHANIC]: 3,
+};
+
+export const sortTags = (
+  a: KeyValue<TagType, Tag[]> | KeyValue<TagType, string[]>, 
+  b: KeyValue<TagType, Tag[]> | KeyValue<TagType, string[]>
+): number => {
+  const orderA = TAG_ORDER[a.key] ?? 99;
+  const orderB = TAG_ORDER[b.key] ?? 99;
+  return orderA - orderB;
+};
+
 export interface LibraryEntityRelation {
   id: string;
   order?: number;
@@ -69,7 +84,7 @@ export interface LibraryMediaRelations {
   cast: Record<string, LibraryEntityRelation>;
   companies: Record<string, LibraryEntityRelation>;
   // { type: [{id, tag}, ...] }
-  tags: Partial<Record<TagType, Tag[]>>;
+  tags: Record<TagType, Tag[]>;
 }
 
 export interface ApiMediaRelations {
@@ -78,7 +93,7 @@ export interface ApiMediaRelations {
   cast: Record<string, ApiEntityRelation>;
   companies: Record<string, ApiEntityRelation>;
   // { type: [tags, ...] }
-  tags: Partial<Record<TagType, string[]>>;
+  tags: Record<TagType, string[]>;
 }
 
 // extension

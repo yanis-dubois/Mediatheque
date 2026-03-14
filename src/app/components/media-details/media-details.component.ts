@@ -2,7 +2,7 @@ import { Component, computed, effect, inject, input, signal } from '@angular/cor
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 
-import { DetailedMedia, isLibraryMedia, MediaStatus, MediaType, MovieExtension, SeriesExtension, sortEntityByOrder, TabletopGameExtension } from '@models/media.model'
+import { DetailedMedia, isLibraryMedia, MediaStatus, MediaType, MovieExtension, SeriesExtension, sortEntityByOrder, sortTags, TabletopGameExtension } from '@models/media.model'
 
 import { MediaService } from '@services/media.service'
 import { PosterPathPipe } from "@pipe/poster-path.pipe";
@@ -34,6 +34,7 @@ export class MediaDetailsComponent {
   protected readonly ImageType = ImageType;
   statusOptions = Object.values(MediaStatus);
   sortEntityByOrder = sortEntityByOrder;
+  sortTags = sortTags;
 
   media = input.required<DetailedMedia>();
 
@@ -96,6 +97,8 @@ export class MediaDetailsComponent {
 
   loadData() {
     const media = this.media();
+
+    console.log(media);
 
     if (media && isLibraryMedia(media)) {
       this.favorite.set(media.favorite);

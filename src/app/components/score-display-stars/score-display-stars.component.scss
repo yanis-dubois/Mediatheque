@@ -33,15 +33,15 @@
     }
 
     .star-outline {
-      color: var(--color-dark-soft);
+      color: var(--color-light-dark);
     }
 
-    .star-half {
+    .star-left {
       position: absolute;
       top: 0;
       left: 0;
-      color: var(--color-primary);
-      clip-path: inset(0 50% 0 0); 
+      color: rgba(255,255,255, 0.9);
+      clip-path: inset(0 50% 0 0);
 
       opacity: 0;
       transition: opacity 0.15s ease-in-out;
@@ -51,11 +51,12 @@
       }
     }
 
-    .star-filled {
+    .star-right {
       position: absolute;
       top: 0;
       left: 0;
-      color: var(--color-primary);;
+      color: rgba(255,255,255, 0.9);
+      clip-path: inset(0 0 0 50%);
 
       opacity: 0;
       transition: opacity 0.15s ease-in-out;

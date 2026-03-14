@@ -1,5 +1,5 @@
 @if (media(); as media) {
-  <section class="header">
+  <section class="media-detail">
 
     <!-- backdrop -->
     <div class="backdrop-wrapper">
@@ -32,46 +32,81 @@
         <h1 class="title">{{ media.title }}</h1>
 
         <div class="meta-line">
-          <span class="badge">{{ media.mediaType }}</span>
+          <span class="badge">{{ media.mediaType.replace('_', ' ') }}</span>
           <span class="date">{{ media.releaseDate | date:'mediumDate' }}</span>
           <span class="separator">–</span>
           @switch (media.mediaType) {
-            @case (MediaType.MOVIE) { <span>{{asMovie(media).duration | duration}}</span> }
-            @case (MediaType.SERIES) { <span>{{asSerie(media).seasons}} Saisons</span> }
+            @case (MediaType.MOVIE) { 
+              <span>{{asMovie(media).duration | duration}}</span> 
+            }
+            @case (MediaType.SERIES) { 
+              <span>{{asSerie(media).seasons}} Seasons, {{asSerie(media).episodes}} Episodes</span> 
+            }
+            @case (MediaType.TABLETOP_GAME) {
+              <div class="meta-block">
+                <img src="assets/icons/person.svg"/>
+                <span>&nbsp;{{asTabletopGame(media).playerCount}}</span>
+              </div>
+              <div class="meta-block">
+                <img src="assets/icons/time.svg"/>
+                <span>&ensp;{{asTabletopGame(media).playingTime}}</span>
+              </div>
+            }
           }
         </div>
 
         <!-- tags -->
         <div class="meta-line">
           @if (isLibraryMedia(media)) {
-            @for (category of media.tags | keyvalue; track category.key) {
+            @for (category of media.tags | keyvalue: sortTags; track category.key; let lastCategory = $last) {
               <div class="tag-group">
-                <!-- <span class="category-label">{{ category.key }} :</span> -->
-                @for (tag of category.value; track tag.id) {
-                  <a 
-                    [routerLink]="['/metadata', category.key, tag.id]" 
-                    class="tag-badge-link"
-                  >
-                    {{ tag.name }}
-                  </a>
+                @for (tag of category.value; track tag.id; let lastTag = $last) {
+                  <a [routerLink]="['/metadata', category.key, tag.id]" [class.saga]="category.key === 'SAGA'">{{ tag.name }}</a>@if (!lastTag) {<span>, </span>}
                 }
               </div>
-              <span class="separator">–</span>
+              @if (!lastCategory) {
+                <span class="separator">–</span>
+              }
             }
           } @else {
-            @for (tag of media.tags | keyvalue; track tag.key) {
-              <div class="tag-badge">
-                <strong>{{ tag.key }} :</strong> {{ tag.value?.join(', ') }}
+            @for (category of media.tags | keyvalue: sortTags; track category.key; let lastCategory = $last) {
+              <div class="tag-group">
+                @for (tag of category.value; track tag; let lastTag = $last) {
+                  <span [class.saga]="category.key === 'SAGA'">{{ tag }}@if (!lastTag) {<span>, </span>}</span>
+                }
               </div>
+              @if (!lastCategory) {
+                <span class="separator">–</span>
+              }
             }
           }
         </div>
 
+        <!-- action -->
+        @if (isLibraryMedia(media)) {
+          <div class="meta-line">
+            <app-media-favorite-action [mediaId]="media.id"></app-media-favorite-action>
+
+            <div class="fieldset-container status-box">
+              <app-media-status-action [mediaId]="media.id"></app-media-status-action>
+            </div>
+
+            <div class="score">
+              <app-score-display 
+                [score]="score()" 
+                (scoreChange)="onScoreChange($event)"
+              />
+            </div>
+          </div>
+        }
+
+        <!-- description -->
         <div>
           <h2>Synopsis</h2>
           <p class="description">{{ media.description }}</p> 
         </div>
 
+        <!-- creators -->
         <div class="crew-grid">
           @if (isLibraryMedia(media)) {
             @for (person of media.persons | keyvalue; track person.key) {
@@ -96,28 +131,30 @@
 
     <!-- secondary info -->
     <div class="secondary-content">
-      <div class="secondary-section">
-        <h3>Casting</h3>
-        <div class="cast-list">
-          @if (isLibraryMedia(media)) {
-            @for (person of media.cast | keyvalue: sortEntityByOrder; track person.key) {
-              <div class="crew-item">
-                <a [routerLink]="['/metadata', MetadataType.PERSON, person.value.id]">
+      @if (media.mediaType === MediaType.MOVIE || media.mediaType === MediaType.SERIES) {
+        <div class="secondary-section">
+          <h3>Casting</h3>
+          <div class="cast-list">
+            @if (isLibraryMedia(media)) {
+              @for (person of media.cast | keyvalue: sortEntityByOrder; track person.key) {
+                <div class="crew-item">
+                  <a [routerLink]="['/metadata', MetadataType.PERSON, person.value.id]">
+                    <span class="name">{{ person.key }}</span>
+                  </a>
+                  <span class="role"> ({{ person.value.values.join(', ') }})</span>
+                </div>
+              }
+            } @else {
+              @for (person of media.cast | keyvalue: sortEntityByOrder; track person.key) {
+                <div class="crew-item">
                   <span class="name">{{ person.key }}</span>
-                </a>
-                <span class="role"> ({{ person.value.values.join(', ') }})</span>
-              </div>
+                  <span class="role"> ({{ person.value.values.join(', ') }})</span>
+                </div>
+              }
             }
-          } @else {
-            @for (person of media.cast | keyvalue: sortEntityByOrder; track person.key) {
-              <div class="crew-item">
-                <span class="name">{{ person.key }}</span>
-                <span class="role"> ({{ person.value.values.join(', ') }})</span>
-              </div>
-            }
-          }
+          </div>
         </div>
-      </div>
+      }
 
       <div class="secondary-section">
         <h3>Companies</h3>
@@ -143,49 +180,30 @@
       </div>
    </div>
 
-   @if (isLibraryMedia(media)) {
-    <div class="notes-section">
-       <label>Mes Notes</label>
-    </div>
+    <!-- notes -->
+    @if (isLibraryMedia(media)) {
+      <div class="notes-section">
+        <div class="notes-container">
+          <label class="fieldset-label">Notes</label>
+          <textarea 
+            #notesArea
+            [value]="notes()"
+            (focus)="isEditingNotes.set(true)"
+            (blur)="onNotesBlur(notesArea.value); isEditingNotes.set(false)"
+            (keydown.escape)="notesArea.value = notes(); notesArea.blur()"
+            placeholder="Take some notes here..."
+            [class.editing]="isEditingNotes()"
+          ></textarea>
+        </div>
+      </div>
     }
 
-    <div class="info">
-      <!-- infos -->
+    <!-- tertiary info -->
+    <div class="tertiary-content">
       @if (isLibraryMedia(media)) {
-        <p class="addedDate">added date : {{ media.addedDate | date:'mediumDate' }}</p>
+        <p class="text">Added to library on the {{ media.addedDate | date:'mediumDate' }}</p>
       }
-
-      <!-- action -->
-      @if (isLibraryMedia(media)) {
-        <app-score-display 
-          [score]="score()" 
-          (scoreChange)="onScoreChange($event)"
-        />
-
-        <div class="fieldset-container status-box">
-          <app-media-status-action [mediaId]="media.id"></app-media-status-action>
-        </div>
-
-        <app-media-favorite-action [mediaId]="media.id"></app-media-favorite-action>
-      }
-
-      @if (isLibraryMedia(media)) {
-        <div class="notes-container">
-          <div class="fieldset-container">
-            <label class="fieldset-label">Notes</label>
-            <textarea 
-              #notesArea
-              [value]="notes()"
-              (focus)="isEditingNotes.set(true)"
-              (blur)="onNotesBlur(notesArea.value); isEditingNotes.set(false)"
-              (keydown.escape)="notesArea.value = notes(); notesArea.blur()"
-              placeholder="Cliquez ici pour ajouter une note..."
-              [class.editing]="isEditingNotes()"
-            ></textarea>
-          </div>
-        </div>
-      }
-
+      <!-- finished-date, ... -->
     </div>
 
     @if (hasPoster() && isLightboxOpen()) {
