@@ -6,16 +6,6 @@
   padding-bottom: var(--nav-height);
   color: white;
 
-  font-size: 1.1rem;
-  // Tablet
-  @media (max-width: 1025px) {
-    font-size: 1rem;
-  }
-  // Phone
-  @media (max-width: 600px) {
-    font-size: 0.9rem;
-  }
-
   .icon {
     width: 24px;
     height: 24px;
@@ -110,18 +100,14 @@
 
       .title {
         text-align: left;
-        font-size: 3.5em;
-        font-weight: 900;
+        font-size: var(--text-3xl);
+        font-weight: var(--font-black);
         margin: 0;
         line-height: 1.1;
 
-        // Tablet
-        @media (max-width: 1025px) {
-          font-size: 3.1em;
-        }
         // Phone
         @media (max-width: 600px) {
-          font-size: 2.1em;
+          font-size: var(--text-2xl);
         }
       }
 
@@ -131,7 +117,6 @@
         gap: 16px;
         align-items: center;
         margin: 8px 0;
-        font-size: 1.1em;
         opacity: 0.8;
 
         --fav-size: 24px;
@@ -139,7 +124,6 @@
 
         // Tablet
         @media (max-width: 1025px) {
-          font-size: 0.9rem;
           gap: 8px;
           margin: 4px 0;
 
@@ -148,7 +132,6 @@
         }
         // Phone
         @media (max-width: 600px) {
-          font-size: 0.7rem;
           .separator {
             display: none;
           }
@@ -159,7 +142,7 @@
           padding: 2px 8px;
           border-radius: 4px;
           text-transform: uppercase;
-          font-size: 0.8em;
+          font-size: var(--text-xs);
 
           // Tablet
           @media (max-width: 1025px) {
@@ -172,23 +155,24 @@
         }
 
         .saga {
-          font-weight: 900;
-          font-size: 1.3em;
+          font-weight: var(--font-black);
+          font-size: var(--text-lg);
+        }
+
+        .tag-group {
+          font-weight: var(--font-medium);
         }
 
         .specific-info {
           display: flex;
           gap: inherit;
         }
+
       }
 
       .meta-block {
         display: flex;
         align-items: center;
-      }
-
-      .score {
-        display: flex;
       }
 
     }
@@ -198,7 +182,6 @@
 
       .description-text {
         max-width: 800px;
-        font-size: 1em;
         line-height: 1.6;
         color: #ccc;
       }
@@ -208,17 +191,13 @@
       grid-area: crew;
 
       display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(128px, 1fr));
+      grid-template-columns: repeat(auto-fill, 192px);
       gap: 16px;
       margin-top: 16px;
 
       // Tablet
       @media (max-width: 1025px) {
-        gap: 12px;
-      }
-      // Phone
-      @media (max-width: 600px) {
-        gap: 8px;
+        grid-template-columns: repeat(auto-fill, 160px);
       }
 
       .crew-item {
@@ -229,8 +208,7 @@
   }
 
   .name { 
-    font-weight: 800; 
-    font-size: 0.9em; 
+    font-weight: var(--font-bold);
     color: #fff;
   }
   a .name {
@@ -238,8 +216,8 @@
       color: #ccc;
     }
   }
-  .role { font-size: 0.9em; color: #aaa; }
-  .text { font-size: 0.9em; color: #aaa; }
+  .role { font-size: var(--text-sm); color: #aaa; }
+  .text { color: #aaa; }
 
   // --- LOWER CONTENT ---
   .secondary-container {
@@ -258,12 +236,13 @@
       position: relative;
       z-index: 1;
       padding: 32px var(--side-margin);
+      gap: 16px;
 
       display: flex;
       justify-content: space-around;
 
       // Phone
-      @media (max-width: 600px) {
+      @media (max-width: 800px) {
         width: auto;
         flex-direction: column;
         gap: 32px;
@@ -314,7 +293,7 @@
         background: transparent;
         border: none;
         color: var(--color-light);
-        font-size: 1em;
+        font-size: var(--text-base);
         height: 224px;
         outline: none;
         cursor: text;
@@ -329,8 +308,8 @@
         left: 12px;
         border-radius: 8px;
       
-        font-size: 0.9em;
-        font-weight: 500;
+        font-size: var(--text-sm);
+        font-weight: var(--font-medium);
         color: var(--color-light-dark);
         pointer-events: none;
       }
@@ -339,7 +318,7 @@
         position: absolute;
         bottom: 0;
         right: 12px;
-        font-size: 0.75em;
+        font-size: var(--text-xs);
         color: var(--color-light-dark);
         opacity: 0.6;
         pointer-events: none;

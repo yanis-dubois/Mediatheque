@@ -101,12 +101,12 @@
         <!-- action -->
         @if (isLibraryMedia(media)) {
           <div class="meta-line">
-            <div class="score">
+            @if (displayMode() !== ScoreDisplayModes.HIDDEN) {
               <app-score-display 
                 [score]="score()" 
                 (scoreChange)="onScoreChange($event)"
               />
-            </div>
+            }
 
             <app-media-favorite-action [mediaId]="media.id"></app-media-favorite-action>
 
@@ -160,14 +160,18 @@
                         <a [routerLink]="['/metadata', MetadataType.PERSON, person.value.id]">
                           <span class="name">{{ person.key }}</span>
                         </a>
-                        <span class="role"> ({{ person.value.values.join(', ') }})</span>
+                        @if (person.value.values.length > 0 && person.value.values[0].length > 0) {
+                          <span class="role"> ({{ person.value.values.join(', ') }})</span>
+                        }
                       </div>
                     }
                   } @else {
                     @for (person of media.cast | keyvalue: sortEntityByOrder; track person.key) {
                       <div class="crew-item">
                         <span class="name">{{ person.key }}</span>
-                        <span class="role"> ({{ person.value.values.join(', ') }})</span>
+                        @if (person.value.values.length > 0 && person.value.values[0].length > 0) {
+                          <span class="role"> ({{ person.value.values.join(', ') }})</span>
+                        }
                       </div>
                     }
                   }
@@ -186,14 +190,18 @@
                       <a [routerLink]="['/metadata', MetadataType.COMPANY, company.value.id]">
                         <span class="name">{{ company.key }}</span>
                       </a>
-                      <span class="role"> ({{ company.value.values.join(', ') }})</span>
+                      @if (company.value.values.length > 0 && company.value.values[0].length > 0) {
+                        <span class="role"> ({{ company.value.values.join(', ') }})</span>
+                      }
                     </div>
                   }
                 } @else {
                   @for (company of media.companies | keyvalue; track company.key) {
                     <div class="crew-item">
                       <span class="name">{{ company.key }}</span>
-                      <span class="role"> ({{ company.value.values.join(', ') }})</span>
+                      @if (company.value.values.length > 0 && company.value.values[0].length > 0) {
+                        <span class="role"> ({{ company.value.values.join(', ') }})</span>
+                      }
                     </div>
                   }
                 }

@@ -15,7 +15,9 @@
           [source]="media.id | posterPath"
           [title]="media.title" 
           [type]="'poster'" 
-          [hasImage]="media.hasPoster">
+          [hasImage]="media.hasPoster"
+          [customStyle]="'width: 100%; height: 100%; object-fit: cover;'"
+        >
         </app-media-image>
       </div>
     </a>

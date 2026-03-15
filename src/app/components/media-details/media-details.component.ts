@@ -15,6 +15,8 @@ import { MediaImageComponent } from "../media-image/media-image.component";
 import { ImageService, ImageSize, ImageType } from '@app/services/image.service';
 import { BackdropPathPipe } from '@app/pipe/backdrop-path.pipe';
 import { MediaFavoriteActionComponent } from "../media-favorite-action/media-favorite-action.component";
+import { SettingsService } from '@app/services/settings.service';
+import { ScoreDisplayMode } from '@app/models/score.model';
 
 const MAX_LENGTH_NOTES = 5000;
 
@@ -38,6 +40,10 @@ export class MediaDetailsComponent {
   statusOptions = Object.values(MediaStatus);
   sortEntityByOrder = sortEntityByOrder;
   sortTags = sortTags;
+
+  settingsService = inject(SettingsService);
+  displayMode = computed(() => this.settingsService.scoreDisplayMode());
+  ScoreDisplayModes = ScoreDisplayMode;
 
   media = input.required<DetailedMedia>();
 

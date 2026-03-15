@@ -3,12 +3,12 @@
 /* phone */
 :root {
   font-family: Inter, Avenir, Helvetica, Arial, sans-serif;
-  font-size: 16px;
+  font-size: var(--text-base);
   line-height: 24px;
   font-weight: 400;
 
   color: #f6f6f6;
-  background-color: #1A1A1A;
+  // background-color: #1A1A1A;
 
   font-synthesis: none;
   text-rendering: optimizeLegibility;
@@ -53,7 +53,26 @@
   --color-status-finished: oklch(42% 0.1 145);
   --color-status-in-progress: oklch(42% 0.1 260);
   --color-status-to-discover: oklch(42% 0 0);
-  --color-status-dropped: oklch(42% 0.1 20)
+  --color-status-dropped: oklch(42% 0.1 20);
+
+  /* text */
+  /* font size */
+  --text-xs: 0.75rem;   /* 12px */
+  --text-sm: 0.875rem;  /* 14px */
+  --text-base: 1rem;    /* 16px - ref */
+  --text-lg: 1.25rem;   /* 20px */
+  --text-xl: 1.5rem;    /* 24px */
+  --text-2xl: 1.75rem;  /* 32px */
+  --text-3xl: 2.2rem;   /* 48px */
+  /* font weight */
+  --font-light: 300;
+  --font-normal: 400;
+  --font-medium: 500;
+  --font-bold: 700;
+  --font-black: 900;
+  /* interline */
+  --leading-tight: 1.2;
+  --leading-normal: 1.5;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -74,6 +93,10 @@
     /* margin & gap */
     --side-margin: 32px;
     --list-padding: 8px;
+
+    /* text */
+    --text-2xl: 1.875rem;
+    --text-3xl: 2.8rem;
   }
 }
 
@@ -86,12 +109,19 @@
     /* action button step */
     --action-step: 8px;
     --side-margin: 48px;
+
+    /* text */
+    --text-2xl: 2rem;
+    --text-3xl: 3.5rem;
   }
 }
 
 
 .hidden {
   display: none;
+}
+button, select {
+  font-size: var(--text-sm);
 }
 body {
   margin: 0;
@@ -112,7 +142,12 @@ h1 {
 
 .title-chevron {
   display: flex;
-  align-items: flex-end;
+  align-items: center;
+
+  img {
+    width: 20px;
+    height: 20px;
+  }
 } 
 a:hover .title-chevron img {
   filter: brightness(80%);
@@ -232,7 +267,6 @@ a:hover .title-chevron img {
   color: var(--color-light);
   text-align: left;
   cursor: pointer;
-  font-size: 0.9rem;
   &:hover { 
     background: var(--color-dark-light);
   }
@@ -265,6 +299,7 @@ a:hover .title-chevron img {
   border: none;
   background: rgba(255, 255, 255, 0.1);
   color: var(--color-light);
+  font-size: var(--text-base);
 }
 select {
   background: var(--color-dark);
