@@ -41,6 +41,9 @@
   opacity: 0;
   pointer-events: none;
   transition: opacity 0.3s ease;
+
+  will-change: opacity;
+  transform: translateZ(0);
 }
 
 .menu-slot {
@@ -51,7 +54,7 @@
 }
 
 .fav-slot {
-  backdrop-filter: blur(8px);
+  overflow: hidden;
   position: absolute;
   display: flex;
   align-items: center;
@@ -63,6 +66,10 @@
   text-align: center;
   width: 1.4rem;
   height: 1.4rem;
+
+  border-radius: 50%;
+  backdrop-filter: blur(8px);
+
   --fav-size: 16px;
 }
 
@@ -88,4 +95,6 @@
 
   transform: translateY(12px);
   transition: opacity 0.3s ease, transform 0.3s ease;
+
+  --status-size: 16px;
 }

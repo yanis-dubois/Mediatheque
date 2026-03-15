@@ -16,6 +16,8 @@ import { ImageService, ImageSize, ImageType } from '@app/services/image.service'
 import { BackdropPathPipe } from '@app/pipe/backdrop-path.pipe';
 import { MediaFavoriteActionComponent } from "../media-favorite-action/media-favorite-action.component";
 
+const MAX_LENGTH_NOTES = 5000;
+
 @Component({
   selector: 'app-media-details',
   standalone: true,
@@ -26,6 +28,7 @@ import { MediaFavoriteActionComponent } from "../media-favorite-action/media-fav
 })
 export class MediaDetailsComponent {
 
+  protected readonly maxLengthNotes = MAX_LENGTH_NOTES;
   posterPath = inject(PosterPathPipe);
   backdropPath = inject(BackdropPathPipe);
   protected readonly MetadataType = MetadataType;
@@ -121,12 +124,16 @@ export class MediaDetailsComponent {
   async onNotesBlur(newNotes: string) {
     const media = this.media();
     if (!media || !isLibraryMedia(media)) return;
-  
+
+    const cleanNotes = newNotes.length > MAX_LENGTH_NOTES 
+      ? newNotes.substring(0, MAX_LENGTH_NOTES) 
+      : newNotes;
+
     // save only if changed
-    if (newNotes !== this.notes()) {
+    if (cleanNotes !== this.notes()) {
       try {
-        await this.mediaService.updateNotes(media.id, newNotes);
-        this.notes.set(newNotes);
+        await this.mediaService.updateNotes(media.id, cleanNotes);
+        this.notes.set(cleanNotes);
       } catch (e) {
         console.error("Error while updating notes :", e);
       }

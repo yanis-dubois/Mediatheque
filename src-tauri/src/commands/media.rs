@@ -657,6 +657,10 @@ pub fn update_media_notes(
     .lock()
     .map_err(|_| "Failed to lock database")?;
 
+  if notes.len() > 5000 {
+    return Err("Notes exceeds the 5,000 character limit".to_string());
+  }
+
   connection
     .execute("UPDATE media SET notes = ?1 WHERE id = ?2", [notes, id])
     .map_err(|e| e.to_string())?;

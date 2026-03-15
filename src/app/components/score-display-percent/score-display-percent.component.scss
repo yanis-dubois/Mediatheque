@@ -1,7 +1,7 @@
 .score-container {
   position: relative;
-  width: 64px;
-  height: 64px;
+  width: 48px;
+  height: 48px;
   cursor: ew-resize;
   user-select: none;
 
@@ -36,7 +36,7 @@
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
-    font-size: 1rem;
+    font-size: 0.8rem;
     font-weight: bold;
     color: var(--color-light-soft);
 

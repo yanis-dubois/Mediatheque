@@ -85,18 +85,16 @@
         <!-- action -->
         @if (isLibraryMedia(media)) {
           <div class="meta-line">
-            <app-media-favorite-action [mediaId]="media.id"></app-media-favorite-action>
-
-            <div class="fieldset-container status-box">
-              <app-media-status-action [mediaId]="media.id"></app-media-status-action>
-            </div>
-
             <div class="score">
               <app-score-display 
                 [score]="score()" 
                 (scoreChange)="onScoreChange($event)"
               />
             </div>
+
+            <app-media-favorite-action [mediaId]="media.id"></app-media-favorite-action>
+
+            <app-media-status-action [mediaId]="media.id"></app-media-status-action>
           </div>
         }
 
@@ -183,17 +181,22 @@
     <!-- notes -->
     @if (isLibraryMedia(media)) {
       <div class="notes-section">
-        <div class="notes-container">
+        <div class="notes-container" [class.is-editing]="isEditingNotes()">
           <label class="fieldset-label">Notes</label>
           <textarea 
             #notesArea
+            [attr.maxlength]="maxLengthNotes"
             [value]="notes()"
+            (input)="0"
             (focus)="isEditingNotes.set(true)"
             (blur)="onNotesBlur(notesArea.value); isEditingNotes.set(false)"
             (keydown.escape)="notesArea.value = notes(); notesArea.blur()"
             placeholder="Take some notes here..."
             [class.editing]="isEditingNotes()"
           ></textarea>
+          <div class="char-counter" [class.near-limit]="notesArea.value.length > (maxLengthNotes - 200)">
+            {{ notesArea.value.length }} / {{ maxLengthNotes }}
+          </div>
         </div>
       </div>
     }

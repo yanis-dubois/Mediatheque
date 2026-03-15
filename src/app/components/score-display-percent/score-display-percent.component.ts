@@ -17,7 +17,7 @@ export class ScoreDisplayPercentComponent {
 
   /* circle style */
 
-  radius = 24;
+  radius = 20;
   circumference = 2 * Math.PI * this.radius;
   strokeDashoffset = computed(() => {
     const val = this.score() ?? 0;

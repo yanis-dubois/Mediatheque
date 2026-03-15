@@ -1,18 +1,20 @@
 @if (media(); as media) {
-  <div 
-    class="select-wrapper" 
-    [style.background-color]="getStatusColor(media.status)"
-    (click)="$event.preventDefault(); $event.stopPropagation()"
-  >
-    <span class="shadow-text">{{ media.status | humanize }}</span>
-
-    <select 
-      (change)="onStatusChange($any($event.target).value)"
-      class="status-select"
+  <div class="select-container">
+    <div 
+      class="select-wrapper" 
+      [style.background-color]="getStatusColor(media.status)"
+      (click)="$event.preventDefault(); $event.stopPropagation()"
     >
-      @for (opt of statusOptions; track opt) {
-        <option [value]="opt" [selected]="opt === media.status">{{ opt | humanize }}</option>
-      }
-    </select>
+      <span class="shadow-text">{{ media.status | humanize }}</span>
+
+      <select 
+        (change)="onStatusChange($any($event.target).value)"
+        class="status-select"
+      >
+        @for (opt of statusOptions; track opt) {
+          <option [value]="opt" [selected]="opt === media.status">{{ opt | humanize }}</option>
+        }
+      </select>
+    </div>  
   </div>
 }
