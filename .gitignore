@@ -41,6 +41,7 @@ testem.log
 /typings
 
 # System files
+.cargo/
 .env
 .DS_Store
 Thumbs.db
