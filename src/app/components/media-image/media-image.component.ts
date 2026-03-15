@@ -11,7 +11,7 @@ import { DefaultImageComponent } from "@components/default-image/default-image.c
 export class MediaImageComponent {
   source = input.required<string>();
   title = input.required<string>();
-  type = input.required<'poster' | 'backdrop'>();
+  type = input.required<'poster' | 'backdrop' | 'background'>();
   hasImage = input.required<boolean>();
   customStyle = input<string>('width: 100%; height: 100%; object-fit: contain;');
 }

@@ -10,7 +10,7 @@ import { CommonModule } from '@angular/common';
 })
 export class DefaultImageComponent {
   title = input.required<string>();
-  type = input.required<'poster' | 'backdrop'>();
+  type = input.required<'poster' | 'backdrop' | 'background'>();
 
   get ratioClass() { return `ratio-${this.type()}`; }
   imageGradient: string = '';
