@@ -1,5 +1,3 @@
-use dotenvy::dotenv;
-
 mod api;
 mod commands;
 mod db;
@@ -7,8 +5,6 @@ mod models;
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
-  dotenv().ok(); // TODO: change that for the release (as .env wouldn't be available in shipping app)
-
   tauri::Builder::default()
     .plugin(tauri_plugin_dialog::init())
     .plugin(tauri_plugin_opener::init())

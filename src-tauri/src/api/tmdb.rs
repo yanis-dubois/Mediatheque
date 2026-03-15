@@ -1,4 +1,4 @@
-use std::{collections::HashMap, env};
+use std::collections::HashMap;
 
 use rusqlite::params;
 use tauri::State;
@@ -16,7 +16,9 @@ use crate::{
 };
 
 fn get_tmdb_token() -> String {
-  env::var("TMDB_API_TOKEN").unwrap_or_else(|_| "unable to find TMDB API token".to_string())
+  option_env!("TMDB_API_TOKEN")
+    .unwrap_or("unable to find TMDB API token")
+    .to_string()
 }
 
 fn get_media_url() -> String {
