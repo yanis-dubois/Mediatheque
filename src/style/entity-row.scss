@@ -32,7 +32,7 @@ img {
   line-height: 1rem;
 }
 .sub-info.hide-mobile-default {
-  @media (max-width: 600px) {
+  @media (max-width: 1025px) {
     display: none;
   }
 }
@@ -56,4 +56,21 @@ img {
   opacity: 1;
   transform: scale(1);
   pointer-events: auto;
+}
+
+.skeleton-text {
+  &.title {
+    height: var(--text-lg);
+    width: 60%;
+    margin-bottom: 8px;
+  }
+  &.info {
+    height: var(--text-base);
+    width: 40%;
+    margin-bottom: 4px;
+  }
+  &.sub-info {
+    height: var(--text-xs);
+    width: 25%;
+  }
 }

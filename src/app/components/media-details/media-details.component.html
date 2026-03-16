@@ -1,5 +1,5 @@
-@if (media(); as media) {
-  <section class="media-detail">
+<section class="media-detail">
+  @if (media(); as media) {
 
     <!-- backdrop -->
     <div class="backdrop-wrapper">
@@ -25,9 +25,9 @@
         ></app-media-image>
       }
       <div class="backdrop-overlay"></div>
-   </div>
+    </div>
 
-   <div class="main-content">
+    <div class="main-content">
       <!-- poster -->
       <div class="poster-container">
         <div class="poster-content">
@@ -253,5 +253,33 @@
       />
     }
 
-  </section>
-}
+  }
+
+  <!-- Skeleton -->
+  @else {
+    <div class="main-content">
+
+      <!-- poster -->
+      <div class="poster-container">
+        <div class="poster-content">
+          <div class="skeleton-card"></div>
+        </div>
+      </div>
+
+      <div class="primary-info">
+        <h1 class="skeleton-text title"></h1>
+        <div class="skeleton-text meta-line"></div>
+        <div class="skeleton-text meta-line"></div>
+      </div>
+
+      <div class="description">
+        <h2 class="skeleton-text title"></h2>
+        <div class="skeleton-text description-text"></div>
+        <div class="skeleton-text description-text"></div>
+        <div class="skeleton-text description-text"></div>
+        <div class="skeleton-text description-text last-line"></div>
+      </div>
+
+    </div>
+  }
+</section>

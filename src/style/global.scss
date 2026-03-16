@@ -20,6 +20,7 @@
   /* action button step */
   --action-step: 4px;
   /* card size */
+  --card-width-poster: 96px;
   --card-width-grid: 88px;
   --card-width-line: 88px;
   --card-width-list: 32px;
@@ -85,6 +86,7 @@
 /* tablet */
 @media (min-width: 600px) {
   :root {
+    --card-width-poster: 192px;
     --card-width-grid: 96px;
     --card-width-line: 96px;
     --card-width-list: 32px;
@@ -92,7 +94,6 @@
     --action-step: 8px;
     /* margin & gap */
     --side-margin: 32px;
-    --list-padding: 8px;
 
     /* text */
     --text-2xl: 1.875rem;
@@ -103,12 +104,15 @@
 /* desktop */
 @media (min-width: 1025px) {
   :root {
+    --card-width-poster: 288px;
     --card-width-grid: 96px;
     --card-width-line: 96px;
-    --card-width-list: 32px;
+    --card-width-list: 40px;
     /* action button step */
     --action-step: 8px;
     --side-margin: 48px;
+    /* margin & gap */
+    --list-padding: 6px;
 
     /* text */
     --text-2xl: 2rem;
@@ -318,23 +322,6 @@ select {
 }
 .skeleton-text {
   border-radius: 4px;
-
-  &.title {
-    height: 1.5rem;
-    width: 60%;
-    margin-bottom: 8px;
-  }
-
-  &.info {
-    height: 1rem;
-    width: 40%;
-    margin-bottom: 4px;
-  }
-
-  &.sub-info {
-    height: 0.9rem;
-    width: 25%;
-  }
 }
 @keyframes pulse {
   0%, 100% { opacity: 1; }
