@@ -107,8 +107,6 @@ export class MediaDetailsComponent {
   loadData() {
     const media = this.media();
 
-    console.log(media);
-
     if (media && isLibraryMedia(media)) {
       this.favorite.set(media.favorite);
       this.notes.set(media.notes);

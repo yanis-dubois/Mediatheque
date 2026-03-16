@@ -1,4 +1,4 @@
-import { Component, inject, input, output } from '@angular/core';
+import { Component, inject, input, model, output } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 
@@ -16,8 +16,9 @@ export class ApiSearchAddActionComponent {
   apiService = inject(ApiService);
   mediaService = inject(MediaService);
 
-  data = input.required<AnyApiMedia>();
+  data = model.required<AnyApiMedia>();
   customClass = input<string>('dots-button dots-button-simple');
+  beforeAdded = output<void>();
   onAdded = output<string>();
 
   async onAdd() {
@@ -26,7 +27,8 @@ export class ApiSearchAddActionComponent {
       return;
 
     try {
-      this.data().isInLibrary = true;
+      this.data.set({...data, isInLibrary: true});
+      this.beforeAdded.emit();
       if (isDetailedMedia(data)) {
         const id = await this.mediaService.addToLibrary(data);
         this.onAdded.emit(id);

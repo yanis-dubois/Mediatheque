@@ -18,7 +18,7 @@
       <app-api-search-add-action 
         [customClass]="'action-button action-button-right menu-background'" 
         [data]="media"
-        (onAdded)="id=$event; fromApiToLibrary();"
+        (onAdded)="id.set($event); fromApiToLibrary();"
       >
       </app-api-search-add-action>
     }

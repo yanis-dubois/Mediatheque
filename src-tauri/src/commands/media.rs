@@ -2,6 +2,9 @@ use std::collections::HashMap;
 use std::fs;
 use std::path::PathBuf;
 
+use rusqlite::{params, Connection, Transaction};
+use tauri::{Emitter, Manager};
+
 use crate::db::DbState;
 use crate::models::enums::{
   match_media_status, match_media_type, match_tag_type, CollectionMediaType, CollectionType,
@@ -12,7 +15,7 @@ use crate::models::media::{
   LibraryState, MediaBase, MediaData, MediaExtension,
 };
 use crate::models::metadata::Tag;
-use crate::models::query::{MediaFilter, MediaOrder};
+use crate::models::query::{MediaFilter, MediaOrder, Payload};
 
 // convert SQL -> Media
 pub fn map_row_to_media(row: &rusqlite::Row) -> rusqlite::Result<LibraryMedia> {
@@ -226,7 +229,10 @@ pub fn fill_media_extension(
 }
 
 #[tauri::command]
-pub fn get_media_by_id(state: tauri::State<'_, DbState>, id: &str) -> Result<LibraryMedia, String> {
+pub fn get_media_by_id(
+  state: tauri::State<'_, DbState>,
+  id: &str,
+) -> Result<Option<LibraryMedia>, String> {
   println!("get_media_by_id for ID: {}", id);
 
   let connection = state
@@ -238,14 +244,18 @@ pub fn get_media_by_id(state: tauri::State<'_, DbState>, id: &str) -> Result<Lib
     .prepare("SELECT * FROM media WHERE id = ?1")
     .map_err(|e| e.to_string())?;
 
-  let mut media = stmt
-    .query_row([id], map_row_to_media)
+  let mut rows = stmt
+    .query_map([id], map_row_to_media)
     .map_err(|e| e.to_string())?;
 
-  fill_media_relations(&connection, &mut media)?;
-  fill_media_extension(&connection, &mut media)?;
-
-  Ok(media)
+  if let Some(result) = rows.next() {
+    let mut media = result.map_err(|e| e.to_string())?;
+    fill_media_relations(&connection, &mut media)?;
+    fill_media_extension(&connection, &mut media)?;
+    Ok(Some(media))
+  } else {
+    Ok(None)
+  }
 }
 
 /* -- GET collection -- */
@@ -820,9 +830,6 @@ pub async fn update_media_data(
 
 /* ADD media */
 
-use rusqlite::{params, Connection, Transaction};
-use tauri::Manager;
-
 pub fn insert_external_media(
   tx: &Transaction,
   api_media: ApiMedia,
@@ -1005,6 +1012,16 @@ pub async fn add_media_to_library(
   .map_err(|e| e.to_string())?;
 
   tx.commit().map_err(|e| e.to_string())?;
+
+  // send signal to frontend when media insertion has ended
+  app
+    .emit(
+      "media-inserted",
+      Payload {
+        id: media_uuid.clone(),
+      },
+    )
+    .unwrap();
 
   Ok(media_uuid)
 }

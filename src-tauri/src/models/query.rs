@@ -3,6 +3,11 @@ use serde::{Deserialize, Serialize};
 
 use super::enums::{MediaStatus, MediaType};
 
+#[derive(Clone, serde::Serialize)]
+pub struct Payload {
+  pub id: String,
+}
+
 #[derive(Debug, Serialize, Deserialize, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct MediaFilter {

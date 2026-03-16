@@ -41,7 +41,7 @@ export const routes: Routes = [
     component: MediaPageComponent
   },
   {
-    path: 'media/:source/:type/:id',
+    path: 'media/:source/:type/:id/:isInLibrary',
     component: MediaPageComponent
   },
   { 

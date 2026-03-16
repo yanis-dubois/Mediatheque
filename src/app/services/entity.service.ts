@@ -1,4 +1,7 @@
 import { inject, Injectable, Injector, signal, WritableSignal } from "@angular/core";
+
+import { listen } from '@tauri-apps/api/event';
+
 import { Company, DetailedEntity, EntityType, Person, Tag } from "@app/models/entity.model";
 import { MediaService } from "./media.service";
 import { CollectionService } from "./collection.service";
@@ -6,9 +9,32 @@ import { invoke } from "@tauri-apps/api/core";
 import { Collection } from "@app/models/collection.model";
 import { LibraryMedia } from "@app/models/media.model";
 import { MetadataService } from "./metadata.service";
+import { Subject } from "rxjs";
 
 @Injectable({ providedIn: 'root' })
 export class EntityService {
+
+  constructor() {
+    this.setupTauriListeners();
+  }
+
+  private mediaInsertedSource = new Subject<LibraryMedia>();
+  mediaInserted$ = this.mediaInsertedSource.asObservable();
+
+  private async setupTauriListeners() {
+    await listen<{ id: string }>('media-inserted', async (event) => {
+      const newId = event.payload.id;
+
+      // load in cache
+      await this.loadById(EntityType.MEDIA, newId);
+      // load from cache
+      const media = this.getMedia(newId);
+      // send to subcribers
+      if (media) {
+        this.mediaInsertedSource.next(media);
+      }
+    });
+  }
 
   private injector = inject(Injector);
 

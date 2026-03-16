@@ -22,11 +22,15 @@
               <app-dropdown
                 menu
                 (click)="$event.preventDefault(); $event.stopPropagation()"
-                [isOpenExternal]="false"
+                [isOpenExternal]="activeMenuId() === entityId"
+                (opened)="activeMenuId.set(entityId)"
+                (closed)="activeMenuId.set(null)"
               >
                 <app-media-action 
                   [mediaId]="entityId"
                   [canDeleteFromCollection]="false"
+                  (deleteFromLibraryRequest)="activeMenuId.set(null);"
+                  (closeMenu)="activeMenuId.set(null);"
                 />
               </app-dropdown>
             </app-media-row>
@@ -44,10 +48,13 @@
               <app-dropdown
                 menu
                 (click)="$event.preventDefault(); $event.stopPropagation()"
-                [isOpenExternal]="false"
+                [isOpenExternal]="activeMenuId() === entityId"
+                (opened)="activeMenuId.set(entityId)"
+                (closed)="activeMenuId.set(null)"
               >
                 <app-collection-action 
                   [collectionId]="entityId"
+                  (deleteRequest)="activeMenuId.set(null);"
                 />
               </app-dropdown>
             </app-collection-row-item>

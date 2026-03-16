@@ -30,7 +30,8 @@ export class MediaActionComponent {
   mediaId = input.required<string>();
   canDeleteFromCollection = input<boolean>(false);
 
-  deleteRequest = output<string>();
+  deleteFromCollectionRequest = output<string>();
+  deleteFromLibraryRequest = output<void>();
 
   statusOptions = Object.values(MediaStatus);
 
@@ -75,7 +76,7 @@ export class MediaActionComponent {
   }
 
   onDeleteFromCollection() {
-    this.deleteRequest.emit(this.mediaId());
+    this.deleteFromCollectionRequest.emit(this.mediaId());
   }
 
   async onDeleteFromLibrary() {
@@ -111,6 +112,8 @@ export class MediaActionComponent {
           this.router.navigateByUrl('/');
         }
       }
+
+      this.deleteFromLibraryRequest.emit();
     } catch (e) {
       console.error("Error during collection deletion", e);
     }

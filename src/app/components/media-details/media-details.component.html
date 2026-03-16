@@ -30,15 +30,17 @@
    <div class="main-content">
       <!-- poster -->
       <div class="poster-container">
-        <app-media-image
-          [source]="getSource(ImageType.POSTER, false)"
-          [title]="media.title" 
-          [type]="'poster'" 
-          [hasImage]="hasPoster()"
-          [customStyle]="'width: 100%; overflow: hidden; border-radius: 8px; box-shadow: 0 20px 40px rgba(0, 0, 0, 0.6);'"
-          (click)="isLightboxOpen.set(true)"
-        >
-        </app-media-image>
+        <div class="poster-content">
+          <app-media-image
+            [source]="getSource(ImageType.POSTER, false)"
+            [title]="media.title" 
+            [type]="'poster'" 
+            [hasImage]="hasPoster()"
+            [customStyle]="'width: 100%; overflow: hidden; border-radius: 8px; box-shadow: 0 20px 40px rgba(0, 0, 0, 0.6);'"
+            (click)="isLightboxOpen.set(true)"
+          >
+          </app-media-image>
+        </div>
       </div>
 
       <!-- main info -->

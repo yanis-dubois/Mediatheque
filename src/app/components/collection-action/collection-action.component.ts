@@ -1,4 +1,4 @@
-import { Component, computed, EmbeddedViewRef, inject, input, Renderer2, signal, TemplateRef, ViewChild, ViewContainerRef } from '@angular/core';
+import { Component, computed, EmbeddedViewRef, inject, input, output, Renderer2, signal, TemplateRef, ViewChild, ViewContainerRef } from '@angular/core';
 import { Router } from '@angular/router';
 import { Location } from '@angular/common';
 
@@ -26,6 +26,7 @@ export class CollectionActionComponent {
   private embeddedView: EmbeddedViewRef<any> | null = null;
 
   collectionId = input.required<string>();
+  deleteRequest = output<void>();
   private router = inject(Router);
 
   private entityService = inject(EntityService);
@@ -93,6 +94,7 @@ export class CollectionActionComponent {
           this.router.navigateByUrl('/', { replaceUrl: true });
         }
       }
+      this.deleteRequest.emit();
     } catch (e) {
       console.error("Error during collection deletion", e);
     }

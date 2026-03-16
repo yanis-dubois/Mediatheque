@@ -1,4 +1,4 @@
-import { Component, ContentChild, ElementRef, inject, input, signal, TemplateRef } from '@angular/core';
+import { Component, ContentChild, effect, ElementRef, inject, input, signal, TemplateRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 
@@ -6,6 +6,8 @@ import { GenericListComponent } from "../generic-list/generic-list.component";
 import { ApiSearchResult } from '@app/models/media.model';
 import { ApiSearchRowComponent } from "../api-search-row/api-search-row.component";
 import { ApiSearchAddActionComponent } from "../api-search-add-action/api-search-add-action.component";
+import { Subscription } from 'rxjs';
+import { EntityService } from '@app/services/entity.service';
 
 @Component({
   selector: 'app-api-search-list',
@@ -17,12 +19,22 @@ export class ApiSearchListComponent {
   @ContentChild('rowRef') rowTemplate!: TemplateRef<any>;
 
   layoutData = input.required<ApiSearchResult[]>();
+  enrichedData = signal<ApiSearchResult[]>([]);
 
   private el = inject(ElementRef);
+  private entityService = inject(EntityService);
+  private subscription = new Subscription();
 
   containerHeight = signal(120);
   containerWidth = signal(100);
   gap = signal(8);
+  hasBeenAdded = signal<boolean>(false);
+
+  constructor() {
+    effect(() => {
+      this.enrichedData.set(this.layoutData());
+    }, { allowSignalWrites: true });
+  }
 
   protected updateDimensions() {
     const style = getComputedStyle(this.el.nativeElement);
@@ -33,6 +45,25 @@ export class ApiSearchListComponent {
       this.containerWidth.set(width);
       this.containerHeight.set(width * 1.5);
     }
+  }
+
+  ngOnInit() {
+    this.subscription.add(
+      this.entityService.mediaInserted$.subscribe((media) => {
+        this.enrichedData.update(items => 
+          items.map(item => {
+            if (item.externalId.toString() === media.externalId?.toString()) {
+              return { ...item, id: media.id, isInLibrary: true };
+            }
+            return item;
+          })
+        );
+      })
+    );
+  }
+
+  ngOnDestroy() {
+    this.subscription.unsubscribe();
   }
 
 }

@@ -29,4 +29,5 @@ export class ApiSearchRowComponent {
     if (media.posterPath) return true;
     return false;
   });
+  isMenuOpen = input.required<boolean>();
 }

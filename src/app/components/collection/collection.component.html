@@ -258,7 +258,8 @@
       <app-media-action 
         [mediaId]="mediaId"
         [canDeleteFromCollection]="collection.collectionType === CollectionType.MANUAL"
-        (deleteRequest)="activeMediaMenuId.set(null); removeMediaFromCollection($event)"
+        (deleteFromCollectionRequest)="activeMediaMenuId.set(null); removeMediaFromCollection($event)"
+        (deleteFromLibraryRequest)="activeMediaMenuId.set(null);"
         (closeMenu)="activeMediaMenuId.set(null);"
       />
     </app-dropdown>

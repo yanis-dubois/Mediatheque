@@ -33,35 +33,33 @@
       }
     </div>
 
-    <div class="container">
-      <div cdkDropList (cdkDropListDropped)="drop($event)">
-        @for (id of collectionIds(); track id) {
-          <div cdkDrag class="collection-row">
-            <app-collection [id]="id" [view]="CollectionDisplayMode.PREVIEW">
-              <div 
-                collectionMenu 
-                (click)="$event.preventDefault(); $event.stopPropagation()" 
-                class="collection-action">
-                <app-dropdown
-                  [isOpenExternal]="activeMenuId() === id"
-                  (opened)="activeMenuId.set(id)"
-                  (closed)="activeMenuId.set(null)"
-                >
-                  <app-collection-action 
-                    [collectionId]="id"
-                  />
-                </app-dropdown>
+    <div cdkDropList (cdkDropListDropped)="drop($event)">
+      @for (id of collectionIds(); track id) {
+        <div cdkDrag class="collection-row">
+          <app-collection [id]="id" [view]="CollectionDisplayMode.PREVIEW">
+            <div 
+              collectionMenu 
+              (click)="$event.preventDefault(); $event.stopPropagation()" 
+              class="collection-action">
+              <app-dropdown
+                [isOpenExternal]="activeMenuId() === id"
+                (opened)="activeMenuId.set(id)"
+                (closed)="activeMenuId.set(null)"
+              >
+                <app-collection-action 
+                  [collectionId]="id"
+                />
+              </app-dropdown>
 
-                <div class="drag-handle dots-button" cdkDragHandle>
-                  ⋮⋮
-                </div>
+              <div class="drag-handle dots-button" cdkDragHandle>
+                ⋮⋮
               </div>
-            </app-collection>
+            </div>
+          </app-collection>
 
-            <div *cdkDragPlaceholder class="placeholder"></div>
-          </div>
-        }
-      </div>
+          <div *cdkDragPlaceholder class="placeholder"></div>
+        </div>
+      }
     </div>
   }
 </section>

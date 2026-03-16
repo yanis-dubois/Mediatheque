@@ -38,6 +38,7 @@ export class SearchListComponent {
   containerHeight = signal(120);
   containerWidth = signal(100);
   gap = signal(8);
+  activeMenuId = signal<string | null>(null);
 
   protected onVisibleItemsChanged(visibleData: [string, EntityType][]) {
     // create dictionnary { 'media': ['id1', 'id2'], 'collection': ['id3'] }
@@ -90,4 +91,5 @@ export class SearchListComponent {
       this.containerHeight.set(width * 1.5);
     }
   }
+
 }
