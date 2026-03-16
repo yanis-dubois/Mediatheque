@@ -7,3 +7,9 @@ ios
 > pnpm tauri ios dev "iPhone 16e"
 android
 > pnpm tauri android dev
+
+Emulators file:
+ios
+/Users/[username]/Library/Developer/CoreSimulator/Devices/[hash]/data/Containers/Data/Application/[hash]/Library/Application Support/com.mediatheque.app
+android
+data > data > com.mediatheque.nom_app

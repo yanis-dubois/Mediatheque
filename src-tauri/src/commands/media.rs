@@ -1,4 +1,5 @@
 use std::collections::HashMap;
+use std::fs;
 use std::path::PathBuf;
 
 use crate::db::DbState;
@@ -1006,4 +1007,48 @@ pub async fn add_media_to_library(
   tx.commit().map_err(|e| e.to_string())?;
 
   Ok(media_uuid)
+}
+
+/* DELETE media */
+
+fn delete_media_files(app: &tauri::AppHandle, id: &str) -> Result<(), String> {
+  let app_dir = app.path().app_data_dir().map_err(|e| e.to_string())?;
+
+  let folders = ["posters", "backdrops"];
+
+  for folder in folders {
+    let path = app_dir.join(folder).join(format!("{}.jpg", id));
+
+    if path.exists() {
+      fs::remove_file(&path)
+        .map_err(|e| format!("Failed to delete {} for media {}: {}", folder, id, e))?;
+    }
+  }
+  Ok(())
+}
+
+#[tauri::command]
+pub fn delete_media(
+  app: tauri::AppHandle,
+  state: tauri::State<'_, DbState>,
+  id: String,
+) -> Result<(), String> {
+  let mut connection = state
+    .connection
+    .lock()
+    .map_err(|_| "Failed to lock database")?;
+
+  let tx = connection
+    .transaction()
+    .map_err(|e| format!("Failed to start transaction: {}", e))?;
+
+  tx.execute("DELETE FROM media WHERE id = ?1", params![id])
+    .map_err(|e| format!("Database error during deletion: {}", e))?;
+
+  delete_media_files(&app, &id)?;
+
+  tx.commit()
+    .map_err(|e| format!("Failed to commit transaction: {}", e))?;
+
+  Ok(())
 }

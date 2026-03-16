@@ -43,11 +43,7 @@ img {
   transition: opacity 0.15s ease, transform 0.15s ease;
   transform: scale(0.4);
   pointer-events: none;
-  --fav-size: 20px;
-
-  @media (max-width: 600px) {
-    --fav-size: 16px;
-  }
+  --fav-size: 16px;
 
   &.is-favorite {
     opacity: 1;

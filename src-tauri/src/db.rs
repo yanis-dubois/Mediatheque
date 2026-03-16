@@ -50,6 +50,11 @@ pub fn get_connection(app: &AppHandle) -> Result<Connection> {
 }
 
 pub fn setup_db(app: &AppHandle) -> Result<()> {
+  println!(
+    "App Data Directory: {:?}",
+    app.path().app_data_dir().unwrap()
+  );
+
   // delete data base
   reset_db(app).map_err(|e| e)?; // TMP
 
@@ -235,6 +240,14 @@ pub fn init_db(connection: &mut Connection) -> Result<()> {
       FOREIGN KEY (person_id) REFERENCES person(id) ON DELETE CASCADE
     );
 
+    CREATE TRIGGER IF NOT EXISTS cleanup_unused_persons
+    AFTER DELETE ON media_person
+    BEGIN
+      DELETE FROM person
+      WHERE id = OLD.person_id
+      AND NOT EXISTS (SELECT 1 FROM media_person WHERE person_id = OLD.person_id);
+    END;
+
     -- Company
     CREATE TABLE IF NOT EXISTS media_company (
       media_id TEXT NOT NULL,
@@ -245,6 +258,14 @@ pub fn init_db(connection: &mut Connection) -> Result<()> {
       FOREIGN KEY (media_id) REFERENCES media(id) ON DELETE CASCADE,
       FOREIGN KEY (company_id) REFERENCES company(id) ON DELETE CASCADE
     );
+
+    CREATE TRIGGER IF NOT EXISTS cleanup_unused_companies
+    AFTER DELETE ON media_company
+    BEGIN
+      DELETE FROM company
+      WHERE id = OLD.company_id
+      AND NOT EXISTS (SELECT 1 FROM media_company WHERE company_id = OLD.company_id);
+    END;
 
     -- Tag
     CREATE TABLE IF NOT EXISTS media_tag (
@@ -257,6 +278,14 @@ pub fn init_db(connection: &mut Connection) -> Result<()> {
       FOREIGN KEY (media_id) REFERENCES media(id) ON DELETE CASCADE,
       FOREIGN KEY (tag_id) REFERENCES tag(id) ON DELETE CASCADE
     );
+
+    CREATE TRIGGER IF NOT EXISTS cleanup_unused_tags
+    AFTER DELETE ON media_tag
+    BEGIN
+      DELETE FROM tag
+      WHERE id = OLD.tag_id
+      AND NOT EXISTS (SELECT 1 FROM media_tag WHERE tag_id = OLD.tag_id);
+    END;
 
 
 

@@ -21,6 +21,10 @@
     </button>
   }
 
+  <button class="dropdown-button delete-item" (click)="onDeleteFromLibrary()">
+    Delete from library
+  </button>
+
   <ng-template #pickerTemplate>
     <app-collection-picker 
       [media]="media"

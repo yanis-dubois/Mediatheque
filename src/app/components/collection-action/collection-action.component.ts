@@ -1,5 +1,7 @@
-import { Component, computed, EmbeddedViewRef, inject, input, output, Renderer2, signal, TemplateRef, ViewChild, ViewContainerRef } from '@angular/core';
+import { Component, computed, EmbeddedViewRef, inject, input, Renderer2, signal, TemplateRef, ViewChild, ViewContainerRef } from '@angular/core';
 import { Router } from '@angular/router';
+import { Location } from '@angular/common';
+
 import { CollectionType, CollectionMediaType } from '@app/models/collection.model';
 import { CollectionService } from '@app/services/collection.service';
 import { MediaPickerComponent } from "../media-picker/media-picker.component";
@@ -26,11 +28,10 @@ export class CollectionActionComponent {
   collectionId = input.required<string>();
   private router = inject(Router);
 
-  deleteRequest = output<string>();
-
   private entityService = inject(EntityService);
   private collectionService = inject(CollectionService);
   private pinService = inject(PinService);
+  private location = inject(Location);
 
   collection = computed(() => 
     this.entityService.getCollection(this.collectionId())
@@ -86,7 +87,11 @@ export class CollectionActionComponent {
 
       // if on collection page -> redirect back
       if (isCurrentPage) {
-        this.router.navigate(['/collections'], { replaceUrl: true });
+        if (window.history.length > 1) {
+          this.location.back();
+        } else {
+          this.router.navigateByUrl('/', { replaceUrl: true });
+        }
       }
     } catch (e) {
       console.error("Error during collection deletion", e);

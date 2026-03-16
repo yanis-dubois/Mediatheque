@@ -7,8 +7,8 @@
   line-height: 24px;
   font-weight: 400;
 
-  color: #f6f6f6;
-  // background-color: #1A1A1A;
+  color: var(--color-light);
+  background-color: var(--color-dark);
 
   font-synthesis: none;
   text-rendering: optimizeLegibility;
@@ -20,9 +20,9 @@
   /* action button step */
   --action-step: 4px;
   /* card size */
-  --card-width-grid: 80px;
-  --card-width-line: 80px;
-  --card-width-list: 30px;
+  --card-width-grid: 88px;
+  --card-width-line: 88px;
+  --card-width-list: 32px;
   /* margin & gap */
   --side-margin: 16px;
   --list-padding: 4px;
@@ -85,9 +85,9 @@
 /* tablet */
 @media (min-width: 600px) {
   :root {
-    --card-width-grid: 90px;
-    --card-width-line: 90px;
-    --card-width-list: 40px;
+    --card-width-grid: 96px;
+    --card-width-line: 96px;
+    --card-width-list: 32px;
     /* action button step */
     --action-step: 8px;
     /* margin & gap */
@@ -103,9 +103,9 @@
 /* desktop */
 @media (min-width: 1025px) {
   :root {
-    --card-width-grid: 100px;
-    --card-width-line: 100px;
-    --card-width-list: 40px;
+    --card-width-grid: 96px;
+    --card-width-line: 96px;
+    --card-width-list: 32px;
     /* action button step */
     --action-step: 8px;
     --side-margin: 48px;

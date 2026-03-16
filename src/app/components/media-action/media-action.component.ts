@@ -1,4 +1,8 @@
 import { Component, computed, EmbeddedViewRef, inject, input, output, Renderer2, TemplateRef, ViewChild, ViewContainerRef } from '@angular/core';
+import { Location } from '@angular/common';
+
+import { ask } from '@tauri-apps/plugin-dialog';
+
 import { MediaStatus } from '@app/models/media.model';
 import { CollectionPickerComponent } from "../collection-picker/collection-picker.component";
 import { DOCUMENT } from '@angular/common';
@@ -7,6 +11,7 @@ import { EntityService } from '@app/services/entity.service';
 import { MediaStatusActionComponent } from "../media-status-action/media-status-action.component";
 import { MediaFavoriteActionComponent } from "../media-favorite-action/media-favorite-action.component";
 import { MediaService } from '@app/services/media.service';
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-media-action',
@@ -32,6 +37,8 @@ export class MediaActionComponent {
   private entityService = inject(EntityService);
   private collectionService = inject(CollectionService);
   private mediaService = inject(MediaService);
+  private router = inject(Router);
+  private location = inject(Location);
 
   media = computed(() => {
     return this.entityService.getMedia(this.mediaId());
@@ -69,6 +76,44 @@ export class MediaActionComponent {
 
   onDeleteFromCollection() {
     this.deleteRequest.emit(this.mediaId());
+  }
+
+  async onDeleteFromLibrary() {
+    const media = this.media();
+    if (!media) return;
+
+    const id = this.mediaId();
+    const name = media.title;
+    const isCurrentPage = this.router.url.includes(`/media/${id}`);
+
+    const confirmed = await ask(
+      `Are you sure you want to delete '${name}' from your library ?`, 
+      { 
+        title: 'Delete from Library',
+        kind: 'warning',
+        okLabel: 'Delete',
+        cancelLabel: 'Keep',
+      }
+    );
+
+    if (!confirmed) {
+      return;
+    }
+
+    try {
+      await this.mediaService.delete(id);
+
+      // if on media page -> redirect back
+      if (isCurrentPage) {
+        if (window.history.length > 1) {
+          this.location.back();
+        } else {
+          this.router.navigateByUrl('/');
+        }
+      }
+    } catch (e) {
+      console.error("Error during collection deletion", e);
+    }
   }
 
   async refreshMediaData() {
