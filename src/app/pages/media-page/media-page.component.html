@@ -15,12 +15,12 @@
     </app-dropdown>
   } @else {
     @if (apiMedia(); as media) {
-      <app-api-search-add-action 
+      <app-api-search-action 
         [customClass]="'action-button action-button-right menu-background'" 
         [data]="media"
         (onAdded)="id.set($event); fromApiToLibrary();"
       >
-      </app-api-search-add-action>
+      </app-api-search-action>
     }
   }
 </app-action-bar>

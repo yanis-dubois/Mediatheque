@@ -12,6 +12,7 @@ import { MediaStatusActionComponent } from "../media-status-action/media-status-
 import { MediaFavoriteActionComponent } from "../media-favorite-action/media-favorite-action.component";
 import { MediaService } from '@app/services/media.service';
 import { Router } from '@angular/router';
+import { NavService } from '@app/services/nav.service';
 
 @Component({
   selector: 'app-media-action',
@@ -40,6 +41,7 @@ export class MediaActionComponent {
   private mediaService = inject(MediaService);
   private router = inject(Router);
   private location = inject(Location);
+  private navService = inject(NavService);
 
   media = computed(() => {
     return this.entityService.getMedia(this.mediaId());
@@ -85,6 +87,7 @@ export class MediaActionComponent {
 
     const id = this.mediaId();
     const name = media.title;
+    const isInSearchPage = this.navService.isSearch();
     const isCurrentPage = this.router.url.includes(`/media/${id}`);
 
     const confirmed = await ask(
@@ -103,13 +106,24 @@ export class MediaActionComponent {
 
     try {
       await this.mediaService.delete(id);
+      console.log('is in search : ', isInSearchPage);
+      console.log('external id : ', media.externalId);
 
+      // if on /search/media page -> redirect to api version
+      if (isInSearchPage && media.externalId) {
+        this.router.navigate(['/search/media', 'api', media.mediaType, media.externalId, false], { 
+          replaceUrl: true 
+        });
+      }
       // if on media page -> redirect back
-      if (isCurrentPage) {
+      else if (isCurrentPage) {
         if (window.history.length > 1) {
           this.location.back();
-        } else {
-          this.router.navigateByUrl('/');
+        } 
+        else {
+          this.router.navigateByUrl('/', { 
+            replaceUrl: true 
+          });
         }
       }
 

@@ -5,14 +5,14 @@ import { RouterModule } from '@angular/router';
 import { GenericListComponent } from "../generic-list/generic-list.component";
 import { ApiSearchResult } from '@app/models/media.model';
 import { ApiSearchRowComponent } from "../api-search-row/api-search-row.component";
-import { ApiSearchAddActionComponent } from "../api-search-add-action/api-search-add-action.component";
+import { ApiSearchActionComponent } from "../api-search-action/api-search-action.component";
 import { Subscription } from 'rxjs';
 import { EntityService } from '@app/services/entity.service';
 
 @Component({
   selector: 'app-api-search-list',
   standalone: true,
-  imports: [CommonModule, RouterModule, GenericListComponent, ApiSearchRowComponent, ApiSearchAddActionComponent],
+  imports: [CommonModule, RouterModule, GenericListComponent, ApiSearchRowComponent, ApiSearchActionComponent],
   templateUrl: './api-search-list.component.html'
 })
 export class ApiSearchListComponent {

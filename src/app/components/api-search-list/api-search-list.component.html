@@ -6,8 +6,8 @@
   <ng-template #rowRef let-item let-index="index">
     @if (item; as result) {
       @let route = result.isInLibrary && result.id
-        ? ['/media', result.id]
-        : ['/media', 'api', result.mediaType, result.externalId, hasBeenAdded()];
+        ? ['/search/media', result.id]
+        : ['/search/media', 'api', result.mediaType, result.externalId, hasBeenAdded()];
       <a [routerLink]="route">
         <app-api-search-row 
           [entity]="result" 
@@ -15,12 +15,12 @@
           [height]="containerHeight()"
           [isMenuOpen]="false"
         >
-          <app-api-search-add-action
+          <app-api-search-action
             menu
             [data]="item"
             (click)="$event.preventDefault(); $event.stopPropagation()"
             (beforeAdded)="hasBeenAdded.set(true)"
-          ></app-api-search-add-action>
+          ></app-api-search-action>
         </app-api-search-row>
       </a>
     }

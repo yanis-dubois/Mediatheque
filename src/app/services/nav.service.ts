@@ -23,10 +23,11 @@ export class NavService {
         return route.paramMap;
       })
     ).subscribe(params => {
+      const url = this.router.url;
       const ctxParam = params.get('context');
 
       // if we are in SEARCH
-      this._isSearch.set(this.router.url === '/search');
+      this._isSearch.set(url === '/search' || url.startsWith('/search/'));
 
       // if a context is specified in the path, update it
       if (ctxParam && ctxParam !== 'ALL') {

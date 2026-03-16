@@ -9,16 +9,14 @@ import { ApiMedia, isLibraryMedia, MediaType } from '@app/models/media.model';
 import { SettingsService } from '@app/services/settings.service';
 import { MediaActionComponent } from "@app/components/media-action/media-action.component";
 import { DropdownComponent } from "@app/components/dropdown/dropdown.component";
-import { ApiSearchAddActionComponent } from "@app/components/api-search-add-action/api-search-add-action.component";
+import { ApiSearchActionComponent } from "@app/components/api-search-action/api-search-action.component";
 import { EntityService } from '@app/services/entity.service';
-import { listen } from '@tauri-apps/api/event';
-import { EntityType } from '@app/models/entity.model';
 import { Subscription } from 'rxjs';
 
 @Component({
   selector: 'app-media-page',
   standalone: true,
-  imports: [CommonModule, ActionBarComponent, MediaDetailsComponent, MediaActionComponent, DropdownComponent, ApiSearchAddActionComponent],
+  imports: [CommonModule, ActionBarComponent, MediaDetailsComponent, MediaActionComponent, DropdownComponent, ApiSearchActionComponent],
   templateUrl: './media-page.component.html',
   styleUrl: './media-page.component.css'
 })
@@ -56,7 +54,7 @@ export class MediaPageComponent {
 
     try {
       this.entityService.getMedia(id, true);
-      await this.router.navigate(['/media', id], { 
+      await this.router.navigate(['/search/media', id], { 
         replaceUrl: true 
       });
     } catch (e) {
