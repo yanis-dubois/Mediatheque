@@ -40,9 +40,9 @@ import { trigger, transition, style, animate, group, query, animateChild } from 
   styleUrls: ['./poster-lightbox.component.scss']
 })
 export class PosterLightboxComponent {
-  source = input.required<string>();
+  source = input.required<string | null>();
   title = input.required<string>();
-  
+
   close = output<void>();
 
   constructor() {

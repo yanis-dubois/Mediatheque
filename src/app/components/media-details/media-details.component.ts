@@ -5,18 +5,19 @@ import { RouterModule } from '@angular/router';
 import { DetailedMedia, isLibraryMedia, MediaStatus, MediaType, MovieExtension, SeriesExtension, sortEntityByOrder, sortTags, TabletopGameExtension } from '@models/media.model'
 
 import { MediaService } from '@services/media.service'
-import { PosterPathPipe } from "@pipe/poster-path.pipe";
 import { ScoreDisplayComponent } from "@app/components/score-display/score-display.component";
 import { PosterLightboxComponent } from "../poster-lightbox/poster-lightbox.component";
 import { MediaStatusActionComponent } from "../media-status-action/media-status-action.component";
 import { DurationPipe } from "../../pipe/duration.pipe";
 import { MetadataType } from '@app/models/entity.model';
 import { MediaImageComponent } from "../media-image/media-image.component";
-import { ImageService, ImageSize, ImageType } from '@app/services/image.service';
-import { BackdropPathPipe } from '@app/pipe/backdrop-path.pipe';
 import { MediaFavoriteActionComponent } from "../media-favorite-action/media-favorite-action.component";
 import { SettingsService } from '@app/services/settings.service';
 import { ScoreDisplayMode } from '@app/models/score.model';
+import { ExternalImagePathPipe } from '@app/pipe/external-image.pipe';
+import { LocalImagePathPipe } from '@app/pipe/local-image.pipe';
+import { ImageSize, ImageType } from '@app/models/image.model';
+import { ImageService } from '@app/services/image.service';
 
 const MAX_LENGTH_NOTES = 5000;
 
@@ -24,22 +25,27 @@ const MAX_LENGTH_NOTES = 5000;
   selector: 'app-media-details',
   standalone: true,
   imports: [CommonModule, RouterModule, ScoreDisplayComponent, PosterLightboxComponent, MediaStatusActionComponent, DurationPipe, MediaImageComponent, MediaFavoriteActionComponent],
-  providers: [PosterPathPipe, BackdropPathPipe],
+  providers: [ExternalImagePathPipe, LocalImagePathPipe],
   templateUrl: './media-details.component.html',
   styleUrl: './media-details.component.scss'
 })
 export class MediaDetailsComponent {
 
   protected readonly maxLengthNotes = MAX_LENGTH_NOTES;
-  posterPath = inject(PosterPathPipe);
-  backdropPath = inject(BackdropPathPipe);
+  imageService = inject(ImageService);
+  externalImagePath = inject(ExternalImagePathPipe);
+  localImagePath = inject(LocalImagePathPipe);
   protected readonly MetadataType = MetadataType;
   protected readonly MediaType = MediaType;
   protected readonly MediaStatus = MediaStatus;
   protected readonly ImageType = ImageType;
+  protected readonly ImageSize = ImageSize;
   statusOptions = Object.values(MediaStatus);
   sortEntityByOrder = sortEntityByOrder;
   sortTags = sortTags;
+
+  posterUrl = signal<string | null>(null);
+  backdropUrl = signal<string | null>(null);
 
   settingsService = inject(SettingsService);
   displayMode = computed(() => this.settingsService.scoreDisplayMode());
@@ -65,19 +71,21 @@ export class MediaDetailsComponent {
     return false;
   });
 
-  getSource(type: ImageType, isOriginal: boolean): string {
+  async getSource(type: ImageType, size: ImageSize): Promise<string | null> {
     const isPoster = type === ImageType.POSTER;
     const media = this.media();
+
+    // local image
     if (isLibraryMedia(media)) {
-      return isPoster 
-        ? this.posterPath.transform(media.id) 
-        : this.backdropPath.transform(media.id);
+      return await this.localImagePath.transform(media.id, media.mediaType, type, size);
     }
-    return this.imageService.resolveUrl(
+
+    // external image
+    return this.externalImagePath.transform(
+      isPoster ? media.posterPath : media.backdropPath,
       media.mediaType, 
       type,
-      isPoster ? media.posterPath : media.backdropPath, 
-      isOriginal ? ImageSize.ORIGINAL : ImageSize.MEDIUM
+      size
     );
   }
 
@@ -96,11 +104,20 @@ export class MediaDetailsComponent {
 
   constructor(
     private mediaService: MediaService,
-    private imageService: ImageService
   ) {
-    effect(() => {
-      this.media();
+    effect(async () => {
+      const media = this.media();
       this.loadData();
+
+      if (media) {
+        const posterSize = this.imageService.getRecommendedSize('detail');
+        this.posterUrl.set(
+          await this.getSource(ImageType.POSTER, posterSize)
+        );
+        this.backdropUrl.set(
+          await this.getSource(ImageType.BACKDROP, posterSize)
+        );
+      }
     }, { allowSignalWrites: true });
   }
 

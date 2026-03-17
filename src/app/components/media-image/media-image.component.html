@@ -1,6 +1,9 @@
-@if (hasImage()) {
+@let src = source();
+@let hasImg = hasImage();
+
+@if (hasImg && src) {
   <img 
-    [src]="source()" 
+    [src]="src" 
     [alt]="title()"
     [style]="customStyle()"
   >

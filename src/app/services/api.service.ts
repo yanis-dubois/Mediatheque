@@ -22,7 +22,6 @@ export class ApiService {
       externalId, 
       mediaType, 
       language: this.settingsService.language(),
-      baseUrl: this.imageService.getOriginalUrl(mediaType)
     });
   }
 

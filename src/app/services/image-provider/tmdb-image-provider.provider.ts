@@ -1,11 +1,11 @@
-import { ImageSize, ImageType } from "../image.service";
+import { ImageSize, ImageType } from "@app/models/image.model";
 import { ImageProvider } from "./image-provider.provider";
 
 export class TmdbImageProvider implements ImageProvider {
   private readonly baseUrl = 'https://image.tmdb.org/t/p';
 
-  getOriginalUrl(): string {
-    return this.baseUrl + this.getSize(ImageType.POSTER, ImageSize.ORIGINAL);
+  getFileFormat(): string {
+    return 'jpg';
   }
 
   getSize(type: ImageType, size: ImageSize): string {
@@ -15,7 +15,7 @@ export class TmdbImageProvider implements ImageProvider {
         case ImageSize.SMALL:
           return '/w92';
         case ImageSize.MEDIUM:
-          return '/w500';
+          return '/w342';
         case ImageSize.ORIGINAL:
           return '/original';
       }

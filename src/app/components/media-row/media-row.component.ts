@@ -11,12 +11,13 @@ import { getStatusColor } from '@app/models/media.model';
 import { MediaStatusActionComponent } from "../media-status-action/media-status-action.component";
 import { MediaFavoriteActionComponent } from "../media-favorite-action/media-favorite-action.component";
 import { MediaImageComponent } from "../media-image/media-image.component";
-import { PosterPathPipe } from "../../pipe/poster-path.pipe";
+import { LocalImagePathPipe } from "../../pipe/local-image.pipe";
+import { ImageSize, ImageType } from '@app/models/image.model';
 
 @Component({
   selector: 'app-media-row',
   standalone: true,
-  imports: [CommonModule, HumanizePipe, EmojizePipe, EntityRowLayoutComponent, MediaStatusActionComponent, MediaFavoriteActionComponent, MediaImageComponent, PosterPathPipe],
+  imports: [CommonModule, HumanizePipe, EmojizePipe, EntityRowLayoutComponent, MediaStatusActionComponent, MediaFavoriteActionComponent, MediaImageComponent, LocalImagePathPipe],
   providers: [HumanizePipe],
   templateUrl: './media-row.component.html',
   styleUrls: ['../../../style/entity-row.scss']
@@ -25,6 +26,9 @@ export class MediaRowComponent extends EntityRow<LibraryMedia & {type: EntityTyp
   override entityId = input.required<string>({ alias: 'mediaId' });
   type = EntityType.MEDIA;
   roles = input<string[]>([]);
+
+  protected readonly ImageType = ImageType;
+  protected readonly ImageSize = ImageSize;
 
   private humanizePipe = inject(HumanizePipe);
 

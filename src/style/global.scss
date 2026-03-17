@@ -21,8 +21,8 @@
   --action-step: 4px;
   /* card size */
   --card-width-poster: 96px;
-  --card-width-grid: 88px;
-  --card-width-line: 88px;
+  --card-width-grid: 80px;
+  --card-width-line: 80px;
   --card-width-list: 32px;
   /* margin & gap */
   --side-margin: 16px;
@@ -45,11 +45,11 @@
   --color-light-soft: #D0D0D0;
   --color-light-dark: #808080;
   /* dark */
-  --color-dark-lighter: #555555;
-  --color-dark-light: #454545;
-  --color-dark-soft: #333;
-  --color-dark: #161616; /* DEFAULT */ //#161616
-  --color-dark-deep: #101010;
+  --color-dark-lighter: #454545;
+  --color-dark-light: #333;
+  --color-dark-soft: #161616;
+  --color-dark: #101010; /* DEFAULT */
+  --color-dark-deep: #030303;
   /* status */
   --color-status-finished: oklch(42% 0.1 145);
   --color-status-in-progress: oklch(42% 0.1 260);

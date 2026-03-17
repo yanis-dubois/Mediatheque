@@ -6,7 +6,7 @@
       <!-- poster as backdrop -->
       @if (!hasBackdrop() && hasPoster()) {
         <app-media-image
-          [source]="getSource(ImageType.POSTER, true)"
+          [source]="posterUrl()"
           [title]="media.title" 
           [type]="'backdrop'" 
           [hasImage]="hasPoster()"
@@ -14,10 +14,10 @@
           class="poster-blur"
         ></app-media-image>
       }
-      <!-- backdrop or default   -->
+      <!-- backdrop or default -->
       @else {
         <app-media-image
-          [source]="getSource(ImageType.BACKDROP, false)"
+          [source]="backdropUrl()"
           [title]="media.title" 
           [type]="'background'" 
           [hasImage]="hasBackdrop()"
@@ -32,7 +32,7 @@
       <div class="poster-container">
         <div class="poster-content">
           <app-media-image
-            [source]="getSource(ImageType.POSTER, false)"
+            [source]="posterUrl()"
             [title]="media.title" 
             [type]="'poster'" 
             [hasImage]="hasPoster()"
@@ -247,7 +247,7 @@
 
     @if (hasPoster() && isLightboxOpen()) {
       <app-poster-lightbox 
-        [source]="getSource(ImageType.POSTER, true)"
+        [source]="posterUrl()"
         [title]="media.title"
         (close)="isLightboxOpen.set(false)"
       />

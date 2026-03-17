@@ -72,7 +72,6 @@ export class MediaPageComponent {
     const id = this.route.snapshot.paramMap.get('id');
 
     const isInLibrary = isInLibrary_str === 'true';
-    console.log(`src ${source}, type ${type}, id ${id}, isInLibrary ${isInLibrary_str}`);
 
     if (!id) {
       this.error = 'Required id is not specified';
@@ -96,10 +95,8 @@ export class MediaPageComponent {
       this.entityService.mediaInserted$.subscribe((media) => {
         const currentApi = this.apiMedia();
 
-        // Est-ce que ce nouveau média correspond à ma page API actuelle ?
+        // switch to LibraryMedia view
         if (currentApi && media.externalId?.toString() === currentApi.externalId.toString()) {
-          console.log("Match found: Switching to Library view");
-
           this.id.set(media.id);
           this.apiMedia.set(null);
           this.router.navigate(['/media', media.id], { replaceUrl: true });

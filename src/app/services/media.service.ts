@@ -8,7 +8,6 @@ import { EntityType } from '@app/models/entity.model';
 import { Language } from '@app/models/settings.model';
 import { ImageService } from './image.service';
 import { SettingsService } from './settings.service';
-import { from, mergeMap, of, retry, throwError } from 'rxjs';
 
 @Injectable({ providedIn: 'root' })
 export class MediaService {
@@ -76,7 +75,6 @@ export class MediaService {
       externalId, 
       mediaType, 
       language: this.settingsService.language(),
-      baseUrl: this.imageService.getOriginalUrl(mediaType)
     });
     this.entityService.getMedia(id, true);
   }
@@ -85,7 +83,7 @@ export class MediaService {
 
   async addToLibrary(media: ApiMedia): Promise<string> {
     return await invoke<string>('add_media_to_library', { 
-      apiMedia: media, baseUrl: this.imageService.getOriginalUrl(media.mediaType) 
+      apiMedia: media,
     });
   }
 
@@ -95,5 +93,6 @@ export class MediaService {
     await invoke('delete_media', { id });
     this.entityService.removeEntity(EntityType.MEDIA, id);
     this.entityService.update();
+    this.imageService.clearCache(id);
   }
 }

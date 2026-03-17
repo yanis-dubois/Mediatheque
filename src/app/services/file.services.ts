@@ -1,18 +1,12 @@
 import { Injectable, signal } from '@angular/core';
 
-import { convertFileSrc } from '@tauri-apps/api/core';
-import { appDataDir, join } from '@tauri-apps/api/path';
-
-export enum FolderType {
-  Poster,
-  Backdrop
-}
+import { appDataDir } from '@tauri-apps/api/path';
 
 @Injectable({ providedIn: 'root' })
 export class FileService {
 
-  public postersDirectory = signal<string | null>(null);
-  public backdropDirectory = signal<string | null>(null);
+  private _appDataPath = signal<string | null>(null);
+  readonly appDataPath = this._appDataPath.asReadonly();
 
   constructor() {
     this.initDirectory();
@@ -20,31 +14,12 @@ export class FileService {
 
   public async initDirectory() {
     try {
-      const appDataDirPath = await appDataDir();
-      this.postersDirectory.set(
-        await join(appDataDirPath, `posters`)
-      );
-      this.backdropDirectory.set(
-        await join(appDataDirPath, `backdrops`)
+      this._appDataPath.set(
+        await appDataDir()
       );
     } catch (e) {
       console.error("Error while initializing directory", e);
     }
-  }
-
-  getUrlFromPath(folder: FolderType, mediaId: string): string {
-    let directory = null;
-    switch (folder) {
-      case FolderType.Poster: 
-        directory = this.postersDirectory();
-        break;
-      case FolderType.Backdrop: 
-        directory = this.backdropDirectory();
-        break;
-    }
-
-    if (!directory) return '';
-    return convertFileSrc(`${directory}/${mediaId}.jpg`);
   }
 
 }

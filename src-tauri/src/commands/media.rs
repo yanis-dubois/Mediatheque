@@ -1,10 +1,9 @@
 use std::collections::HashMap;
-use std::fs;
-use std::path::PathBuf;
 
 use rusqlite::{params, Connection, Transaction};
 use tauri::{Emitter, Manager};
 
+use crate::api::provider::get_provider;
 use crate::db::DbState;
 use crate::models::enums::{
   match_media_status, match_media_type, match_tag_type, CollectionMediaType, CollectionType,
@@ -16,6 +15,7 @@ use crate::models::media::{
 };
 use crate::models::metadata::Tag;
 use crate::models::query::{MediaFilter, MediaOrder, Payload};
+use crate::utils::image::{delete_media_files, download_assets};
 
 // convert SQL -> Media
 pub fn map_row_to_media(row: &rusqlite::Row) -> rusqlite::Result<LibraryMedia> {
@@ -256,6 +256,55 @@ pub fn get_media_by_id(
   } else {
     Ok(None)
   }
+}
+
+pub fn get_local_id_by_external(
+  state: &tauri::State<'_, DbState>,
+  external_id: u32,
+  media_type: &MediaType,
+) -> Option<String> {
+  let connection = state.connection.lock().ok()?;
+  let mut stmt = connection
+    .prepare(
+      "SELECT id FROM media 
+      WHERE external_id = ?1 AND media_type = ?2 
+      LIMIT 1",
+    )
+    .ok()?;
+
+  stmt
+    .query_row(params![external_id, media_type.to_string()], |row| {
+      row.get(0)
+    })
+    .ok()
+}
+
+pub fn get_local_id_batch_by_external(
+  state: &tauri::State<'_, DbState>,
+  external_ids: &[u32],
+  media_type: MediaType,
+) -> Result<HashMap<u32, String>, String> {
+  let connection = state.connection.lock().map_err(|_| "Lock failed")?;
+
+  let external_ids_json = serde_json::to_string(&external_ids).map_err(|e| e.to_string())?;
+
+  let mut stmt = connection
+    .prepare(
+      "SELECT id, external_id FROM media 
+        WHERE media_type = ?1 
+        AND external_id IN (SELECT value FROM json_each(?2))",
+    )
+    .map_err(|e| e.to_string())?;
+
+  let existing_data = stmt
+    .query_map(params![media_type.to_string(), external_ids_json], |row| {
+      Ok((row.get::<_, u32>(1)?, row.get::<_, String>(0)?))
+    })
+    .map_err(|e| e.to_string())?
+    .filter_map(|res| res.ok())
+    .collect();
+
+  Ok(existing_data)
 }
 
 /* -- GET collection -- */
@@ -700,56 +749,17 @@ pub fn update_media_score(
   Ok(())
 }
 
-pub struct DownloadedMediaAssets {
-  pub poster_width: u32,
-  pub poster_height: u32,
-  pub has_poster: bool,
-  pub has_backdrop: bool,
-}
-
-pub async fn download_assets(
-  app: &tauri::AppHandle,
-  id: &str,
-  base_url: &str,
-  poster_path: Option<String>,
-  backdrop_path: Option<String>,
-) -> Result<DownloadedMediaAssets, String> {
-  let app_dir = app.path().app_data_dir().map_err(|e| e.to_string())?;
-  let file_name = format!("{}.jpg", id);
-
-  // Download poster
-  let poster_dims =
-    download_media_image(base_url, poster_path, &app_dir.join("posters"), &file_name).await;
-
-  // Download backdrop
-  let backdrop_dims = download_media_image(
-    base_url,
-    backdrop_path,
-    &app_dir.join("backdrops"),
-    &file_name,
-  )
-  .await;
-
-  let (poster_width, poster_height) = poster_dims.unwrap_or((2, 3));
-
-  Ok(DownloadedMediaAssets {
-    poster_width,
-    poster_height,
-    has_poster: poster_dims.is_some(),
-    has_backdrop: backdrop_dims.is_some(),
-  })
-}
-
 pub async fn update_media_data(
   app: tauri::AppHandle,
   id: String,
   api_media: ApiMedia,
-  base_url: String,
 ) -> Result<(), String> {
+  let provider = get_provider(&api_media.data.base.media_type);
+
   let assets = download_assets(
     &app,
+    provider.as_ref(),
     &id,
-    &base_url,
     api_media.state.poster_path.clone(),
     api_media.state.backdrop_path.clone(),
   )
@@ -956,40 +966,18 @@ fn insert_media_tags(
   Ok(())
 }
 
-async fn download_media_image(
-  base_url: &str,
-  url: Option<String>,
-  target_dir: &PathBuf,
-  file_name: &str,
-) -> Option<(u32, u32)> {
-  let url_str = url.filter(|u| !u.is_empty() && !u.ends_with("null"))?;
-
-  let response = reqwest::get(format!("{}{}", base_url, url_str))
-    .await
-    .ok()?;
-  let bytes = response.bytes().await.ok()?;
-
-  std::fs::create_dir_all(target_dir).ok()?;
-  let file_path = target_dir.join(file_name);
-  std::fs::write(&file_path, &bytes).ok()?;
-
-  imagesize::size(&file_path)
-    .map(|size| (size.width as u32, size.height as u32))
-    .ok()
-}
-
 #[tauri::command]
 pub async fn add_media_to_library(
   app: tauri::AppHandle,
   api_media: ApiMedia,
-  base_url: String,
 ) -> Result<String, String> {
   let media_uuid = uuid::Uuid::new_v4().to_string();
+  let provider = get_provider(&api_media.data.base.media_type);
 
   let assets = download_assets(
     &app,
+    provider.as_ref(),
     &media_uuid,
-    &base_url,
     api_media.state.poster_path.clone(),
     api_media.state.backdrop_path.clone(),
   )
@@ -1028,22 +1016,6 @@ pub async fn add_media_to_library(
 
 /* DELETE media */
 
-fn delete_media_files(app: &tauri::AppHandle, id: &str) -> Result<(), String> {
-  let app_dir = app.path().app_data_dir().map_err(|e| e.to_string())?;
-
-  let folders = ["posters", "backdrops"];
-
-  for folder in folders {
-    let path = app_dir.join(folder).join(format!("{}.jpg", id));
-
-    if path.exists() {
-      fs::remove_file(&path)
-        .map_err(|e| format!("Failed to delete {} for media {}: {}", folder, id, e))?;
-    }
-  }
-  Ok(())
-}
-
 #[tauri::command]
 pub fn delete_media(
   app: tauri::AppHandle,
@@ -1059,8 +1031,13 @@ pub fn delete_media(
     .transaction()
     .map_err(|e| format!("Failed to start transaction: {}", e))?;
 
-  tx.execute("DELETE FROM media WHERE id = ?1", params![id])
-    .map_err(|e| format!("Database error during deletion: {}", e))?;
+  let rows_affected = tx
+    .execute("DELETE FROM media WHERE id = ?1", params![id])
+    .map_err(|e| e.to_string())?;
+
+  if rows_affected == 0 {
+    return Err("Media not found".into());
+  }
 
   delete_media_files(&app, &id)?;
 

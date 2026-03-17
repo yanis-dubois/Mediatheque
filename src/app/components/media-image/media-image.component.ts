@@ -1,4 +1,4 @@
-import { Component, input } from '@angular/core';
+import { Component, effect, input } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { DefaultImageComponent } from "@components/default-image/default-image.component";
 
@@ -9,7 +9,7 @@ import { DefaultImageComponent } from "@components/default-image/default-image.c
   templateUrl: './media-image.component.html'
 })
 export class MediaImageComponent {
-  source = input.required<string>();
+  source = input.required<string | null>();
   title = input.required<string>();
   type = input.required<'poster' | 'backdrop' | 'background'>();
   hasImage = input.required<boolean>();

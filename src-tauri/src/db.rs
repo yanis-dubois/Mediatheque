@@ -321,7 +321,7 @@ pub fn init_db(connection: &mut Connection) -> Result<()> {
 //*************************************//
 
 struct SeedMedia<'a> {
-  id: i32,
+  id: &'a str,
   external_id: Option<u32>,
   media_type: MediaType,
   title: &'a str,
@@ -346,7 +346,7 @@ struct SeedMedia<'a> {
 impl<'a> Default for SeedMedia<'a> {
   fn default() -> Self {
     Self {
-      id: 0,
+      id: "0",
       external_id: None,
       media_type: MediaType::Series,
       title: "Sans titre",
@@ -411,7 +411,7 @@ struct SeedCollection<'a> {
   has_image: i32,
 
   // details
-  collection_manual: Option<SeedCollectionManual>,
+  collection_manual: Option<SeedCollectionManual<'a>>,
   collection_dynamic: Option<SeedCollectionDynamic>,
 }
 
@@ -436,8 +436,8 @@ impl<'a> Default for SeedCollection<'a> {
 }
 
 #[derive(Default, Clone)]
-struct SeedCollectionManual {
-  media_ids: Vec<i32>,
+struct SeedCollectionManual<'a> {
+  media_ids: Vec<&'a str>,
 }
 
 #[derive(Default, Clone)]
@@ -463,14 +463,13 @@ pub fn seed_data(connection: &mut Connection) -> Result<()> {
     // conversion Enums -> String (format SCREAMING_SNAKE_CASE)
     let media_type_str = m.media_type.to_string();
     let status_str = m.status.to_string();
-    let media_id_str = m.id.to_string();
 
     // insert in parent table Media
     tx.execute(
       "INSERT INTO media (id, external_id, media_type, poster_width, poster_height, title, description, release_date, added_date, status, favorite, notes, score, has_poster, has_backdrop)
         VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12, ?13, ?14, ?15)",
       params![
-        media_id_str,
+        m.id,
         m.external_id,
         media_type_str,
         m.image_width,
@@ -494,33 +493,33 @@ pub fn seed_data(connection: &mut Connection) -> Result<()> {
     if let Some(details) = m.movie_details {
       tx.execute(
         "INSERT INTO movie (media_id, duration) VALUES (?1, ?2)",
-        params![media_id_str, details.duration],
+        params![m.id, details.duration],
       )?;
-      seed_persons(&tx, &media_id_str, details.directors, "DIRECTOR")?;
+      seed_persons(&tx, &m.id, details.directors, "DIRECTOR")?;
       if let Some(serie) = details.serie {
-        seed_saga(&tx, &media_id_str, vec![serie])?;
+        seed_saga(&tx, &m.id, vec![serie])?;
       }
-      seed_genres(&tx, &media_id_str, details.genres)?;
+      seed_genres(&tx, &m.id, details.genres)?;
     }
     // series
     else if let Some(details) = m.series_details {
       tx.execute(
         "INSERT INTO series (media_id, seasons, episodes) VALUES (?1, ?2, ?3)",
-        params![media_id_str, details.seasons, details.episodes],
+        params![m.id, details.seasons, details.episodes],
       )?;
-      seed_persons(&tx, &media_id_str, details.creators, "CREATOR")?;
-      seed_genres(&tx, &media_id_str, details.genres)?;
+      seed_persons(&tx, &m.id, details.creators, "CREATOR")?;
+      seed_genres(&tx, &m.id, details.genres)?;
     }
     // tabletop game
     else if let Some(details) = m.tabletop_game_details {
       tx.execute(
         "INSERT INTO tabletop_game (media_id, player_count, playing_time) VALUES (?1, ?2, ?3)",
-        params![media_id_str, details.player_count, details.playing_time],
+        params![m.id, details.player_count, details.playing_time],
       )?;
-      seed_persons(&tx, &media_id_str, details.designers, "DESIGNER")?;
-      seed_persons(&tx, &media_id_str, details.artists, "ARTIST")?;
-      seed_companies(&tx, &media_id_str, details.publishers, "PUBLISHER")?;
-      seed_game_mechanics(&tx, &media_id_str, details.game_mechanics)?;
+      seed_persons(&tx, &m.id, details.designers, "DESIGNER")?;
+      seed_persons(&tx, &m.id, details.artists, "ARTIST")?;
+      seed_companies(&tx, &m.id, details.publishers, "PUBLISHER")?;
+      seed_game_mechanics(&tx, &m.id, details.game_mechanics)?;
     }
   }
 
@@ -532,7 +531,7 @@ pub fn seed_data(connection: &mut Connection) -> Result<()> {
     if c.id == 201 {
       if let Some(manual) = &mut c.collection_manual {
         for _ in 1..10000 {
-          manual.media_ids.push(1);
+          manual.media_ids.push("1");
         }
       }
     }
@@ -716,7 +715,7 @@ fn seed_collection(tx: &rusqlite::Transaction, c: SeedCollection) -> rusqlite::R
 fn seed_media_data() -> Vec<SeedMedia<'static>> {
   vec![
     SeedMedia {
-      id: 1,
+      id: "1",
       external_id: Some(438631),
       media_type: MediaType::Movie,
       title: "Dune : Première partie",
@@ -736,7 +735,7 @@ fn seed_media_data() -> Vec<SeedMedia<'static>> {
       ..Default::default()
     },
     SeedMedia {
-      id: 2,
+      id: "16ac10bf-1790-41fd-a66a-19c84d601bff",
       media_type: MediaType::Movie,
       title: "Donnie Darko",
       description: "A troubled teenager experiences disturbing visions that lead him to question time, fate, and reality.",
@@ -745,6 +744,7 @@ fn seed_media_data() -> Vec<SeedMedia<'static>> {
       status: MediaStatus::Finished,
       favorite: 1,
       notes: "Un classique du cinéma indépendant.",
+      has_backdrop: 1,
       movie_details: Some(SeedMovie {
         directors: vec!["Richard Kelly"],
         genres: vec!["Sci-Fi", "Psychological", "Drama"],
@@ -754,7 +754,7 @@ fn seed_media_data() -> Vec<SeedMedia<'static>> {
       ..Default::default()
     },
     SeedMedia {
-      id: 3,
+      id: "aa5190dc-d52b-4a56-afe6-e5c9a2694fc9",
       media_type: MediaType::Movie,
       title: "Fight Club",
       description: "Un employé de bureau insomniaque...",
@@ -763,6 +763,7 @@ fn seed_media_data() -> Vec<SeedMedia<'static>> {
       status: MediaStatus::Finished,
       favorite: 1,
       notes: "Ce film est fou !",
+      has_backdrop: 1,
       movie_details: Some(SeedMovie {
         directors: vec!["David Fincher"],
         genres: vec!["Drama"],
@@ -772,7 +773,7 @@ fn seed_media_data() -> Vec<SeedMedia<'static>> {
       ..Default::default()
     },
     SeedMedia {
-      id: 4,
+      id: "d709c1cb-f412-4c3f-a6e2-a6e791a0e8be",
       media_type: MediaType::Movie,
       title: "Alien",
       description: "The crew of a commercial spaceship encounters a deadly extraterrestrial lifeform.",
@@ -781,6 +782,7 @@ fn seed_media_data() -> Vec<SeedMedia<'static>> {
       status: MediaStatus::Finished,
       favorite: 1,
       notes: "Dans l'espace, personne ne vous entend crier.",
+      has_backdrop: 1,
       movie_details: Some(SeedMovie {
         directors: vec!["Ridley Scott"],
         genres: vec!["Sci-Fi", "Horror", "Thriller"],
@@ -790,7 +792,7 @@ fn seed_media_data() -> Vec<SeedMedia<'static>> {
       ..Default::default()
     },
     SeedMedia {
-      id: 5,
+      id: "b5a6c793-ecd4-46b1-9243-a84ed9532c84",
       media_type: MediaType::Movie,
       title: "Interstellar",
       description: "A team of explorers travels through a wormhole in space to ensure humanity’s survival.",
@@ -799,6 +801,7 @@ fn seed_media_data() -> Vec<SeedMedia<'static>> {
       status: MediaStatus::Finished,
       favorite: 1,
       notes: "Une claque visuelle et émotionnelle.",
+      has_backdrop: 1,
       movie_details: Some(SeedMovie {
         directors: vec!["Christopher Nolan"],
         genres: vec!["Sci-Fi", "Adventure", "Drama"],
@@ -808,7 +811,7 @@ fn seed_media_data() -> Vec<SeedMedia<'static>> {
       ..Default::default()
     },
     SeedMedia {
-      id: 6,
+      id: "3288a59f-25ff-4522-9650-3c3889a044f0",
       media_type: MediaType::Movie,
       title: "Everything Everywhere All at Once",
       description: "Evelyn Wang est à bout...",
@@ -817,6 +820,7 @@ fn seed_media_data() -> Vec<SeedMedia<'static>> {
       status: MediaStatus::Finished,
       favorite: 0,
       notes: "Le multivers à son meilleur.",
+      has_backdrop: 1,
       movie_details: Some(SeedMovie {
         directors: vec!["Daniel Kwan", "Daniel Scheinert"],
         genres: vec!["Comedy", "Sci-Fi", "Drama"],
@@ -826,7 +830,7 @@ fn seed_media_data() -> Vec<SeedMedia<'static>> {
       ..Default::default()
     },
     SeedMedia {
-      id: 7,
+      id: "d03d3c6f-d8b5-4acc-9413-55687ab6984e",
       media_type: MediaType::Movie,
       title: "28 Days Later",
       description: "A virus outbreak devastates the UK...",
@@ -835,6 +839,7 @@ fn seed_media_data() -> Vec<SeedMedia<'static>> {
       status: MediaStatus::ToDiscover,
       favorite: 0,
       notes: "",
+      has_backdrop: 1,
       movie_details: Some(SeedMovie {
         directors: vec!["Danny Boyle"],
         genres: vec!["Horror", "Thriller", "Sci-Fi"],
@@ -844,7 +849,7 @@ fn seed_media_data() -> Vec<SeedMedia<'static>> {
       ..Default::default()
     },
     SeedMedia {
-      id: 8,
+      id: "95f2822b-67e6-4f71-9630-bd50230c023f",
       media_type: MediaType::Movie,
       title: "Blade Runner",
       description: "A detective hunts rogue androids in a dystopian future.",
@@ -853,6 +858,7 @@ fn seed_media_data() -> Vec<SeedMedia<'static>> {
       status: MediaStatus::Finished,
       favorite: 1,
       notes: "Cyberpunk absolu.",
+      has_backdrop: 1,
       movie_details: Some(SeedMovie {
         directors: vec!["Ridley Scott"],
         genres: vec!["Sci-Fi", "Thriller", "Drama"],
@@ -862,7 +868,7 @@ fn seed_media_data() -> Vec<SeedMedia<'static>> {
       ..Default::default()
     },
     SeedMedia {
-      id: 9,
+      id: "4264c2f7-a518-40b5-9081-dd75e5e4d816",
       media_type: MediaType::Movie,
       title: "District 9",
       description: "Aliens are segregated in a slum on Earth...",
@@ -871,6 +877,7 @@ fn seed_media_data() -> Vec<SeedMedia<'static>> {
       status: MediaStatus::Finished,
       favorite: 0,
       notes: "",
+      has_backdrop: 1,
       movie_details: Some(SeedMovie {
         directors: vec!["Neill Blomkamp"],
         genres: vec!["Sci-Fi", "Action", "Drama"],
@@ -880,7 +887,7 @@ fn seed_media_data() -> Vec<SeedMedia<'static>> {
       ..Default::default()
     },
     SeedMedia {
-      id: 10,
+      id: "34306069-ea69-42fc-9413-87ab2cdc5abb",
       media_type: MediaType::Movie,
       title: "Tenet",
       description: "A secret agent manipulates time...",
@@ -889,6 +896,7 @@ fn seed_media_data() -> Vec<SeedMedia<'static>> {
       status: MediaStatus::InProgress,
       favorite: 0,
       notes: "Besoin de deux visionnages pour comprendre.",
+      has_backdrop: 1,
       movie_details: Some(SeedMovie {
         directors: vec!["Christopher Nolan"],
         genres: vec!["Action", "Sci-Fi", "Thriller"],
@@ -898,7 +906,7 @@ fn seed_media_data() -> Vec<SeedMedia<'static>> {
       ..Default::default()
     },
     SeedMedia {
-      id: 11,
+      id: "1f26ae5d-4cfe-49fe-8c6a-10ff124a3695",
       media_type: MediaType::Movie,
       title: "Snowpiercer",
       description: "Survivors of a new ice age live on a train...",
@@ -907,6 +915,7 @@ fn seed_media_data() -> Vec<SeedMedia<'static>> {
       status: MediaStatus::Finished,
       favorite: 0,
       notes: "",
+      has_backdrop: 1,
       movie_details: Some(SeedMovie {
         directors: vec!["Bong Joon-ho"],
         genres: vec!["Sci-Fi", "Action", "Drama"],
@@ -916,7 +925,7 @@ fn seed_media_data() -> Vec<SeedMedia<'static>> {
       ..Default::default()
     },
     SeedMedia {
-      id: 12,
+      id: "1e239e05-e1a7-4a55-b131-f170c0b78551",
       media_type: MediaType::Movie,
       title: "La La Land",
       description: "A musician and an actress fall in love...",
@@ -925,6 +934,7 @@ fn seed_media_data() -> Vec<SeedMedia<'static>> {
       status: MediaStatus::Dropped,
       favorite: 1,
       notes: "La scène d'ouverture est magistrale.",
+      has_backdrop: 1,
       movie_details: Some(SeedMovie {
         directors: vec!["Damien Chazelle"],
         genres: vec!["Romance", "Drama", "Musical"],
@@ -934,7 +944,7 @@ fn seed_media_data() -> Vec<SeedMedia<'static>> {
       ..Default::default()
     },
     SeedMedia {
-      id: 13,
+      id: "44ecd7c4-11c2-4bf1-822f-86de7566f612",
       media_type: MediaType::Movie,
       title: "My Neighbor Totoro",
       description: "Two girls discover magical forest spirits...",
@@ -943,6 +953,7 @@ fn seed_media_data() -> Vec<SeedMedia<'static>> {
       status: MediaStatus::Finished,
       favorite: 1,
       notes: "Poétique et intemporel.",
+      has_backdrop: 1,
       movie_details: Some(SeedMovie {
         directors: vec!["Hayao Miyazaki"],
         genres: vec!["Animation", "Family", "Fantasy"],
@@ -952,7 +963,7 @@ fn seed_media_data() -> Vec<SeedMedia<'static>> {
       ..Default::default()
     },
     SeedMedia {
-      id: 14,
+      id: "552c11ef-e5bf-4de5-b1d4-6328476c45b0",
       media_type: MediaType::Movie,
       title: "Mars Express",
       description: "En l’an 2200...",
@@ -961,6 +972,7 @@ fn seed_media_data() -> Vec<SeedMedia<'static>> {
       status: MediaStatus::ToDiscover,
       favorite: 0,
       notes: "SF française de haute volée.",
+      has_backdrop: 1,
       movie_details: Some(SeedMovie {
         directors: vec!["Jérémie Périn"],
         genres: vec!["Sci-Fi", "Adventure", "Drama"],
@@ -970,7 +982,7 @@ fn seed_media_data() -> Vec<SeedMedia<'static>> {
       ..Default::default()
     },
     SeedMedia {
-      id: 15,
+      id: "dc1ab169-d72a-4884-8c26-37743fa6a098",
       media_type: MediaType::Movie,
       title: "Akira",
       description: "In post-apocalyptic Neo-Tokyo...",
@@ -979,6 +991,7 @@ fn seed_media_data() -> Vec<SeedMedia<'static>> {
       status: MediaStatus::Finished,
       favorite: 1,
       notes: "Indispensable.",
+      has_backdrop: 1,
       score: Some(95),
       movie_details: Some(SeedMovie {
         directors: vec!["Katsuhiro Otomo"],
@@ -989,7 +1002,7 @@ fn seed_media_data() -> Vec<SeedMedia<'static>> {
       ..Default::default()
     },
     SeedMedia {
-      id: 16,
+      id: "b09bae50-c4c3-427f-b5a7-065e4e4c9872",
       media_type: MediaType::Movie,
       title: "Nausicaä of the Valley of the Wind",
       description: "A princess fights to save a toxic world...",
@@ -998,6 +1011,7 @@ fn seed_media_data() -> Vec<SeedMedia<'static>> {
       status: MediaStatus::Finished,
       favorite: 1,
       notes: "L'origine de Ghibli.",
+      has_backdrop: 1,
       movie_details: Some(SeedMovie {
         directors: vec!["Hayao Miyazaki"],
         genres: vec!["Animation", "Adventure", "Fantasy"],
@@ -1007,7 +1021,7 @@ fn seed_media_data() -> Vec<SeedMedia<'static>> {
       ..Default::default()
     },
     SeedMedia {
-      id: 17,
+      id: "2dd2bd0d-7114-48dd-9c9b-60eaadb37ed2",
       media_type: MediaType::Movie,
       title: "Dune",
       description: "En l'an 10191, la substance la plus importante est l'Épice. Elle ne se trouve que sur une seule planète, Arakis, connue aussi sous le nom de Dune. La famille Atréide vient à gouverner cette planète mais son ennemi, la dynastie des Harkonnen lui tend un piège dès son arrivée. Paul, le fils du Duc Leto Atréide se réfugie alors dans le désert avec sa mère et y rencontre les Fremens, peuple caché dans le désert attendant l'arrivée d'un Messie",
@@ -1016,6 +1030,7 @@ fn seed_media_data() -> Vec<SeedMedia<'static>> {
       status: MediaStatus::Finished,
       favorite: 0,
       notes: "Tellement kitch ",
+      has_backdrop: 1,
       movie_details: Some(SeedMovie {
         directors: vec!["David Lynch"],
         genres: vec!["Action", "Adventure", "Sci-Fi"],
@@ -1030,11 +1045,12 @@ fn seed_media_data() -> Vec<SeedMedia<'static>> {
 
 
     SeedMedia {
-      id: 102,
+      id: "7d4e24f4-72b9-416c-8575-a79cdaa2f496",
       media_type: MediaType::Series,
       title: "Lost",
       description: "Les survivants d'un crash d'avion sur une île mystérieuse.",
       status: MediaStatus::Finished,
+      has_backdrop: 1,
       series_details: Some(SeedSeries {
         creators: vec!["J.J. Abrams", "Damon Lindelof"],
         genres: vec!["Aventure", "Drame", "Mystère"],
@@ -1044,10 +1060,11 @@ fn seed_media_data() -> Vec<SeedMedia<'static>> {
       ..Default::default()
     },
     SeedMedia {
-      id: 103,
+      id: "609c1288-3484-43e5-8206-1a0aee0de40a",
       media_type: MediaType::Series,
       title: "Silo",
       description: "Dans un futur toxique, une communauté vit dans un silo géant souterrain.",
+      has_backdrop: 1,
       series_details: Some(SeedSeries {
         creators: vec!["Graham Yost"],
         genres: vec!["Sci-Fi", "Dystopie"],
@@ -1057,10 +1074,11 @@ fn seed_media_data() -> Vec<SeedMedia<'static>> {
       ..Default::default()
     },
     SeedMedia {
-      id: 104,
+      id: "f2059404-fbda-401d-b254-8ffcdf4afb4c",
       media_type: MediaType::Series,
       title: "The OA",
       description: "Une jeune femme aveugle réapparaît après 7 ans avec la vue retrouvée.",
+      has_backdrop: 1,
       series_details: Some(SeedSeries {
         creators: vec!["Brit Marling", "Zal Batmanglij"],
         genres: vec!["Fantastique", "Mystère"],
@@ -1070,10 +1088,11 @@ fn seed_media_data() -> Vec<SeedMedia<'static>> {
       ..Default::default()
     },
     SeedMedia {
-      id: 105,
+      id: "d610bf53-10a9-450b-8288-c3d565a55432",
       media_type: MediaType::Series,
       title: "Love, Death + Robots",
       description: "Anthologie de courts-métrages d'animation de genres variés.",
+      has_backdrop: 1,
       series_details: Some(SeedSeries {
         creators: vec!["Tim Miller", "David Fincher"],
         genres: vec!["Animation", "Sci-Fi", "Horreur"],
@@ -1083,10 +1102,11 @@ fn seed_media_data() -> Vec<SeedMedia<'static>> {
       ..Default::default()
     },
     SeedMedia {
-      id: 106,
+      id: "b64836a1-b202-4780-815a-d2ec5528e0e4",
       media_type: MediaType::Series,
       title: "Scavengers Reign",
       description: "L'équipage d'un cargo spatial tente de survivre sur une planète alien magnifique mais mortelle.",
+      has_backdrop: 1,
       series_details: Some(SeedSeries {
         creators: vec!["Joseph Bennett", "Charles Huettner"],
         genres: vec!["Animation", "Sci-Fi", "Survie"],
@@ -1096,10 +1116,11 @@ fn seed_media_data() -> Vec<SeedMedia<'static>> {
       ..Default::default()
     },
     SeedMedia {
-      id: 107,
+      id: "86d7d049-1e08-4e84-9a1a-74dacc37bd6d",
       media_type: MediaType::Series,
       title: "Bee and PuppyCat",
       description: "Une jeune femme au chômage rencontre une créature mystérieuse tombée du ciel.",
+      has_backdrop: 1,
       series_details: Some(SeedSeries {
         creators: vec!["Natasha Allegri"],
         genres: vec!["Animation", "Fantasy", "Tranche de vie"],
@@ -1109,10 +1130,11 @@ fn seed_media_data() -> Vec<SeedMedia<'static>> {
       ..Default::default()
     },
     SeedMedia {
-      id: 108,
+      id: "31c2dca2-ad0d-4156-bc66-e39dc4f58fa4",
       media_type: MediaType::Series,
       title: "Cowboy Bebop",
       description: "Les aventures d'un groupe de chasseurs de primes dans l'espace en 2071.",
+      has_backdrop: 1,
       series_details: Some(SeedSeries {
         creators: vec!["Shin'ichirō Watanabe"],
         genres: vec!["Animation", "Space Western", "Neo-noir"],
@@ -1122,10 +1144,11 @@ fn seed_media_data() -> Vec<SeedMedia<'static>> {
       ..Default::default()
     },
     SeedMedia {
-      id: 109,
+      id: "4f59dcb0-8126-4119-b093-901b11d133bb",
       media_type: MediaType::Series,
       title: "Neon Genesis Evangelion",
       description: "Des adolescents pilotent des géants organiques pour protéger l'humanité contre les Anges.",
+      has_backdrop: 1,
       series_details: Some(SeedSeries {
         creators: vec!["Hideaki Anno"],
         genres: vec!["Animation", "Mecha", "Psychologique"],
@@ -1135,10 +1158,11 @@ fn seed_media_data() -> Vec<SeedMedia<'static>> {
       ..Default::default()
     },
     SeedMedia {
-      id: 110,
+      id: "d9d7db17-eac6-4050-bc08-a0036f6ffe67",
       media_type: MediaType::Series,
       title: "Death Note",
       description: "Un lycéen trouve un carnet capable de tuer toute personne dont on y écrit le nom.",
+      has_backdrop: 1,
       series_details: Some(SeedSeries {
         creators: vec!["Tsugumi Ōba"],
         genres: vec!["Animation", "Thriller", "Surnaturel"],
@@ -1148,10 +1172,11 @@ fn seed_media_data() -> Vec<SeedMedia<'static>> {
       ..Default::default()
     },
     SeedMedia {
-      id: 111,
+      id: "51f9ccdd-f81e-4a4c-87c8-675198e2f3c1",
       media_type: MediaType::Series,
       title: "The Promised Neverland",
       description: "Des orphelins découvrent le terrible secret caché derrière leur existence paisible.",
+      has_backdrop: 1,
       series_details: Some(SeedSeries {
         creators: vec!["Kaiu Shirai"],
         genres: vec!["Animation", "Mystère", "Horreur"],
@@ -1167,7 +1192,7 @@ fn seed_media_data() -> Vec<SeedMedia<'static>> {
 
     // 1. 7 Wonders Duel
     SeedMedia {
-      id: 201,
+      id: "201",
       media_type: MediaType::TabletopGame,
       image_width: 601,
       image_height: 600,
@@ -1185,7 +1210,7 @@ fn seed_media_data() -> Vec<SeedMedia<'static>> {
     },
     // 2. Carcassonne
     SeedMedia {
-      id: 202,
+      id: "202",
       media_type: MediaType::TabletopGame,
       image_width: 415,
       image_height: 600,
@@ -1203,7 +1228,7 @@ fn seed_media_data() -> Vec<SeedMedia<'static>> {
     },
     // 3. Dune Impérium
     SeedMedia {
-      id: 203,
+      id: "203",
       media_type: MediaType::TabletopGame,
       image_width: 600,
       image_height: 600,
@@ -1221,7 +1246,7 @@ fn seed_media_data() -> Vec<SeedMedia<'static>> {
     },
     // 4. Écosystème: Forêt
     SeedMedia {
-      id: 204,
+      id: "204",
       media_type: MediaType::TabletopGame,
       image_width: 720,
       image_height: 954,
@@ -1239,7 +1264,7 @@ fn seed_media_data() -> Vec<SeedMedia<'static>> {
     },
     // 5. Écosystème: Savane
     SeedMedia {
-      id: 205,
+      id: "205",
       media_type: MediaType::TabletopGame,
       image_width: 573,
       image_height: 750,
@@ -1257,7 +1282,7 @@ fn seed_media_data() -> Vec<SeedMedia<'static>> {
     },
     // 6. Harmonies
     SeedMedia {
-      id: 206,
+      id: "206",
       media_type: MediaType::TabletopGame,
       image_width: 1200,
       image_height: 1200,
@@ -1276,7 +1301,7 @@ fn seed_media_data() -> Vec<SeedMedia<'static>> {
     },
     // 7. Not Alone
     SeedMedia {
-      id: 207,
+      id: "207",
       media_type: MediaType::TabletopGame,
       image_width: 437,
       image_height: 600,
@@ -1295,7 +1320,7 @@ fn seed_media_data() -> Vec<SeedMedia<'static>> {
     },
     // 8. Spicy
     SeedMedia {
-      id: 208,
+      id: "208",
       media_type: MediaType::TabletopGame,
       image_width: 426,
       image_height: 600,
@@ -1312,7 +1337,7 @@ fn seed_media_data() -> Vec<SeedMedia<'static>> {
       ..Default::default()
     },
     SeedMedia {
-      id: 209,
+      id: "209",
       media_type: MediaType::TabletopGame,
       image_width: 1539,
       image_height: 1200,
@@ -1329,7 +1354,7 @@ fn seed_media_data() -> Vec<SeedMedia<'static>> {
       ..Default::default()
     },
     SeedMedia {
-      id: 210,
+      id: "210",
       media_type: MediaType::TabletopGame,
       image_width: 1714,
       image_height: 1200,
@@ -1533,7 +1558,14 @@ fn seed_collection_data() -> Vec<SeedCollection<'static>> {
       collection_type: CollectionType::Manual,
       prefered_view: CollectionLayout::Row,
       collection_manual: Some(SeedCollectionManual {
-        media_ids: vec![1, 1, 4, 16, 102, 201],
+        media_ids: vec![
+          "1",
+          "1",
+          "1f26ae5d-4cfe-49fe-8c6a-10ff124a3695",
+          "7d4e24f4-72b9-416c-8575-a79cdaa2f496",
+          "552c11ef-e5bf-4de5-b1d4-6328476c45b0",
+          "201",
+        ],
       }),
       ..Default::default()
     },
@@ -1544,7 +1576,12 @@ fn seed_collection_data() -> Vec<SeedCollection<'static>> {
       media_type: CollectionMediaType::Specific(MediaType::Movie),
       prefered_view: CollectionLayout::Row,
       collection_manual: Some(SeedCollectionManual {
-        media_ids: vec![7, 5, 6, 15],
+        media_ids: vec![
+          "dc1ab169-d72a-4884-8c26-37743fa6a098",
+          "d03d3c6f-d8b5-4acc-9413-55687ab6984e",
+          "4264c2f7-a518-40b5-9081-dd75e5e4d816",
+          "44ecd7c4-11c2-4bf1-822f-86de7566f612",
+        ],
       }),
       ..Default::default()
     },
@@ -1554,7 +1591,7 @@ fn seed_collection_data() -> Vec<SeedCollection<'static>> {
       collection_type: CollectionType::Manual,
       prefered_view: CollectionLayout::Row,
       collection_manual: Some(SeedCollectionManual {
-        media_ids: vec![1, 4, 16, 102, 201],
+        media_ids: vec!["1", "204", "201"],
       }),
       ..Default::default()
     },
