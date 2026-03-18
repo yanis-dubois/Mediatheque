@@ -3,6 +3,18 @@
 <section class="settings-group">
   <h1>Settings</h1>
 
+  <h2>Localisation</h2>
+  <div class="setting-item">
+    <label>Language</label>
+    <select [value]="settings.language()" (change)="onModeChange(SettingsKeys.LANGUAGE, $event)">
+      @for (language of languages; track language) {
+        <option [value]="language" [selected]="language === settings.language()">
+          {{ language }}
+        </option>
+      }
+    </select>
+  </div>
+
   <h2>Display Preferences</h2>
   <div class="setting-item">
     <label>Theme</label>

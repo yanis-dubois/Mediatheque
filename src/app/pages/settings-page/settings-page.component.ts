@@ -6,7 +6,7 @@ import { SettingsKeys, SettingsService } from '@app/services/settings.service';
 import { ScoreDisplayMode } from '@app/models/score.model';
 import { ActionBarComponent } from "@app/components/action-bar/action-bar.component";
 import { HumanizePipe } from "@pipe/humanize";
-import { Theme } from '@app/models/settings.model';
+import { Language, Theme } from '@app/models/settings.model';
 
 @Component({
   selector: 'app-settings-page',
@@ -21,6 +21,7 @@ export class SettingsPageComponent {
   protected readonly SettingsKeys = SettingsKeys;
   scoreDisplayModes = Object.values(ScoreDisplayMode);
   themes = Object.values(Theme);
+  languages = Object.values(Language);
 
   onModeChange(key: keyof typeof SettingsKeys, event: Event) {
     const select = event.target as HTMLSelectElement;
