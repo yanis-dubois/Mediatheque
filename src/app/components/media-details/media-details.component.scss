@@ -172,6 +172,10 @@
         .saga {
           font-weight: var(--font-black);
           font-size: var(--text-lg);
+          // Tablet
+          @media (max-width: 600px) {
+            font-size: var(--text-normal);
+          }
         }
 
         .tag-group {
@@ -283,15 +287,24 @@
 
       .secondary-section {
         flex: 1;
-        max-width: 256px;
+        max-width: 384px;
 
         &.synopsis {
           max-width: none;
         }
 
-        h3 {
+        h2, h3 {
           margin-top: 0;
         }
+      }
+    }
+
+    .secondary-separator-container {
+      padding: 0 var(--side-margin);
+
+      .secondary-separator {
+        border: 0.5px solid rgba(255, 255, 255, 0.05);
+        width: 100%;
       }
     }
   }

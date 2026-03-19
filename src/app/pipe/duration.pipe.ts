@@ -6,16 +6,21 @@ import { Pipe, PipeTransform } from '@angular/core';
 })
 export class DurationPipe implements PipeTransform {
 
-  // 134 -> 2h14min
-  transform(minutes: number): string {
-    if (!minutes || minutes <= 0) return '0min';
+  // 134min -> 2h14min
+  // 1200s -> 20min
+  transform(value: number, unit: 's' | 'm' = 'm', truncate: boolean = false, showUnit: boolean = true): string {
+    const minUnit = showUnit ? 'min' : '';
+    const hourUnit = showUnit ? 'h' : '';
 
-    const h = Math.floor(minutes / 60);
-    const m = minutes % 60;
+    if (!value || value <= 0) return `0${minUnit}`;
 
-    if (h === 0) return `${m}min`;
-    if (m === 0) return `${h}h`;
-    return `${h}h ${m.toString().padStart(2, '0')}m`;
+    const totalMinutes = unit === 's' ? Math.floor(value / 60) : value;
+    const h = Math.floor(totalMinutes / 60);
+    const m = totalMinutes % 60;
+
+    if (h === 0) return `${m}${minUnit}`;
+    if (m === 0 || truncate) return `${h}${hourUnit}`;
+    return `${h}h ${m.toString().padStart(2, '0')}${minUnit.charAt(0)}`;
   }
 
 }

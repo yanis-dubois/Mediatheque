@@ -209,6 +209,20 @@ pub fn fill_media_extension(
         .unwrap_or((0, 0));
       media.data.extension = MediaExtension::Series { seasons, episodes };
     }
+    MediaType::VideoGame => {
+      let (synopsis, normal_playing_time, complete_playing_time): (Option<String>, Option<u32>, Option<u32>) = connection
+        .query_row(
+          "SELECT synopsis, normal_playing_time, complete_playing_time FROM video_game WHERE media_id = ?1",
+          [media_id],
+          |row| Ok((row.get(0)?, row.get(1)?, row.get(2)?)),
+        )
+        .unwrap_or((None, None, None));
+      media.data.extension = MediaExtension::VideoGame {
+        synopsis,
+        normal_playing_time,
+        complete_playing_time,
+      };
+    }
     MediaType::TabletopGame => {
       let (player_count, playing_time): (String, String) = connection
         .query_row(
@@ -820,6 +834,17 @@ pub async fn update_media_data(
       )
       .map_err(|e| e.to_string())?;
     }
+    MediaExtension::VideoGame {
+      synopsis,
+      normal_playing_time,
+      complete_playing_time,
+    } => {
+      tx.execute(
+        "REPLACE INTO video_game (media_id, synopsis, normal_playing_time, complete_playing_time) VALUES (?1, ?2, ?3, ?4)",
+        params![id, synopsis, normal_playing_time, complete_playing_time],
+      )
+      .map_err(|e| e.to_string())?;
+    }
     MediaExtension::TabletopGame {
       player_count,
       playing_time,
@@ -831,7 +856,6 @@ pub async fn update_media_data(
       .map_err(|e| e.to_string())?;
     }
     MediaExtension::None => {}
-    _ => {}
   }
 
   tx.commit().map_err(|e| e.to_string())?;
@@ -897,6 +921,16 @@ pub fn insert_external_media(
         params![media_uuid, seasons, episodes],
       )?;
     }
+    MediaExtension::VideoGame {
+      synopsis,
+      normal_playing_time,
+      complete_playing_time,
+    } => {
+      tx.execute(
+        "INSERT INTO video_game (media_id, synopsis, normal_playing_time, complete_playing_time) VALUES (?1, ?2, ?3, ?4)",
+        params![media_uuid, synopsis, normal_playing_time, complete_playing_time],
+      )?;
+    }
     MediaExtension::TabletopGame {
       player_count,
       playing_time,
@@ -907,7 +941,6 @@ pub fn insert_external_media(
       )?;
     }
     MediaExtension::None => {}
-    _ => {}
   }
 
   Ok(())

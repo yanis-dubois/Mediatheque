@@ -196,6 +196,16 @@ pub fn init_db(connection: &mut Connection) -> Result<()> {
       FOREIGN KEY (media_id) REFERENCES media(id) ON DELETE CASCADE
     );
 
+    CREATE TABLE IF NOT EXISTS video_game (
+      media_id TEXT PRIMARY KEY,
+
+      synopsis TEXT,
+      normal_playing_time INTEGER,
+      complete_playing_time INTEGER,
+
+      FOREIGN KEY (media_id) REFERENCES media(id) ON DELETE CASCADE
+    );
+
     CREATE TABLE IF NOT EXISTS tabletop_game (
       media_id TEXT PRIMARY KEY,
 
@@ -272,7 +282,7 @@ pub fn init_db(connection: &mut Connection) -> Result<()> {
       media_id TEXT NOT NULL,
       tag_id INTEGER NOT NULL,
       type TEXT NOT NULL CHECK(
-        type IN ('GENRE', 'SAGA', 'GAME_MECHANIC')
+        type IN ('GENRE', 'SAGA', 'GAME_MECHANIC', 'RELEASE_STATUS', 'FRANCHISE', 'GAME_MODE', 'CAMERA_PERSPECTIVE')
       ),
       PRIMARY KEY (media_id, tag_id, type),
       FOREIGN KEY (media_id) REFERENCES media(id) ON DELETE CASCADE,
@@ -340,6 +350,7 @@ struct SeedMedia<'a> {
   // details
   movie_details: Option<SeedMovie<'a>>,
   series_details: Option<SeedSeries<'a>>,
+  video_game_details: Option<SeedVideoGame<'a>>,
   tabletop_game_details: Option<SeedTabletopGame<'a>>,
 }
 
@@ -363,6 +374,7 @@ impl<'a> Default for SeedMedia<'a> {
       score: None,
       movie_details: None,
       series_details: None,
+      video_game_details: None,
       tabletop_game_details: None,
     }
   }
@@ -382,6 +394,18 @@ struct SeedSeries<'a> {
   genres: Vec<&'a str>,
   seasons: i32,
   episodes: i32,
+}
+
+#[derive(Default)]
+struct SeedVideoGame<'a> {
+  developers: Vec<&'a str>,
+  publishers: Vec<&'a str>,
+  game_mechanics: Vec<&'a str>,
+  themes: Vec<&'a str>,
+  series: Vec<&'a str>,
+  synopsis: &'a str,
+  normal_time: i32,
+  complete_time: i32,
 }
 
 #[derive(Default)]
@@ -510,6 +534,18 @@ pub fn seed_data(connection: &mut Connection) -> Result<()> {
       seed_persons(&tx, &m.id, details.creators, "CREATOR")?;
       seed_genres(&tx, &m.id, details.genres)?;
     }
+    // video game
+    else if let Some(details) = m.video_game_details {
+      tx.execute(
+        "INSERT INTO video_game (media_id, synopsis, normal_playing_time, complete_playing_time) VALUES (?1, ?2, ?3, ?4)",
+        params![m.id, details.synopsis, details.normal_time, details.complete_time],
+      )?;
+      seed_companies(&tx, &m.id, details.developers, "DEVELOPER")?;
+      seed_companies(&tx, &m.id, details.publishers, "PUBLISHER")?;
+      seed_tag(&tx, &m.id, details.game_mechanics, "GAME_MECHANIC")?;
+      seed_tag(&tx, &m.id, details.series, "SAGA")?;
+      seed_tag(&tx, &m.id, details.themes, "GENRE")?;
+    }
     // tabletop game
     else if let Some(details) = m.tabletop_game_details {
       tx.execute(
@@ -637,6 +673,17 @@ fn seed_saga(tx: &rusqlite::Transaction, media_id: &str, sagas: Vec<&str>) -> ru
       "INSERT INTO media_tag (media_id, tag_id, type)
         SELECT ?1, id, ?3 FROM tag WHERE name = ?2",
       params![media_id, saga, "SAGA"],
+    )?;
+  }
+  Ok(())
+}
+fn seed_tag(tx: &rusqlite::Transaction, media_id: &str, tags: Vec<&str>, tag_name: &str) -> rusqlite::Result<()> {
+  for tag in tags {
+    tx.execute("INSERT OR IGNORE INTO tag (name) VALUES (?1)", [tag])?;
+    tx.execute(
+      "INSERT INTO media_tag (media_id, tag_id, type)
+        SELECT ?1, id, ?3 FROM tag WHERE name = ?2",
+      params![media_id, tag, tag_name],
     )?;
   }
   Ok(())
@@ -1182,6 +1229,71 @@ fn seed_media_data() -> Vec<SeedMedia<'static>> {
         genres: vec!["Animation", "Mystère", "Horreur"],
         seasons: 2,
         episodes: 23,
+      }),
+      ..Default::default()
+    },
+
+
+
+
+
+    // Hollow Knight
+    SeedMedia {
+      id: "14593",
+      external_id: Some(14593),
+      media_type: MediaType::VideoGame,
+      title: "Hollow Knight",
+      description: "A 2D metroidvania with an emphasis on close combat and exploration in which the player enters the once-prosperous now-bleak insect kingdom of Hallownest, travels through its various districts, meets friendly inhabitants, fights hostile ones and uncovers the kingdom's history while improving their combat abilities and movement arsenal by fighting bosses and accessing out-of-the-way areas.",
+      has_backdrop: 1,
+      video_game_details: Some(SeedVideoGame { 
+        developers: vec!["Team Cherry"], 
+        publishers: vec!["Team Cherry"], 
+        game_mechanics: vec!["Platform", "Adventure", "Indie"], 
+        themes: vec!["Action", "Fantasy"], 
+        series: vec!["Hollow Knight"], 
+        synopsis: "Beneath the fading town of Dirtmouth sleeps a vast, ancient kingdom. Many are drawn beneath the surface, searching for riches, or glory, or answers to old secrets. As the enigmatic Knight, you’ll traverse the depths, unravel its mysteries and conquer its evils.", 
+        normal_time: 2220*60, 
+        complete_time: 4200*60
+      }),
+      ..Default::default()
+    },
+    // Rain World
+    SeedMedia {
+      id: "14761",
+      external_id: Some(14761),
+      media_type: MediaType::VideoGame,
+      title: "Rain World",
+      description: "Rain World is a survival platformer set in an abandoned industrial environment ravaged by a shattered ecosystem. Bone-crushingly intense rains pound the surface, making life as we know it almost impossible. The creatures in this world hibernate most of the time, but in the few brief dry periods they go out in search of food",
+      has_backdrop: 1,
+      video_game_details: Some(SeedVideoGame { 
+        developers: vec!["Videocult"], 
+        publishers: vec!["Adult Swim Games"], 
+        game_mechanics: vec!["Platform", "Adventure", "Indie"], 
+        themes: vec!["Action", "Fantasy", "Science Fiction", "Horror", "Survival", "Mystery"], 
+        series: vec!["Rain World"], 
+        synopsis: "\"You are a nomadic slugcat, both predator and prey in a broken ecosystem. Intense, bone-crushing rains pound the surface and make life almost impossible for most of the year, but the dry season has just arrived. Grab your spear and brave the industrial wastes, hunting enough food to survive another hibernation cycle, but be wary— other, bigger creatures have the same plan... and slugcats look delicious.\"", 
+        normal_time: 900*60, 
+        complete_time: 3480*60
+      }),
+      ..Default::default()
+    },
+    // Animal Well
+    SeedMedia {
+      id: "191435",
+      external_id: Some(191435),
+      media_type: MediaType::VideoGame,
+      title: "Animal Well",
+      description: "What lurks beneath the surface of this deceptively minimalistic adventure? In Animal Well there is more than what you see. Explore a dense interconnected labyrinth, and unravel its many secrets. Collect items to manipulate your environment in surprising and meaningful ways. Encounter creatures both beautiful and unsettling, and try to survive what lurks in the dark",
+      has_backdrop: 1,
+      video_game_details: Some(SeedVideoGame { 
+        developers: vec!["Shared Memory"], 
+        publishers: vec!["Bigmode"], 
+        game_mechanics: vec!["Platform", "Adventure", "Indie", "Puzzle"], 
+        themes: vec!["Action", "Horror", "Survival", "Mystery"], 
+        series: vec![], 
+        synopsis: "It is dark. It is lonely. You don't belong in this world. It's not that it’s a hostile world... it's just... not yours. As you uncover its secrets, the world grows on you. It takes on a feel of familiarity, yet you know that you've only probed the surface. The more you discover, the more you realize how much more there is to discover. Secrets leading to more secrets. You recall the feeling of zooming closer and closer in on a very high-resolution photo. As you hone your focus, the world betrays its secrets.", 
+        normal_time: 540*60, 
+        complete_time: 1200*60 
       }),
       ..Default::default()
     },

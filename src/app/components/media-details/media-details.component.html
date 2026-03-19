@@ -62,7 +62,12 @@
               }
               @case (MediaType.VIDEO_GAME) {
                 <div class="meta-block">
-                  <span>{{media.tags.RELEASE_STATUS}}</span>
+                  @if (isLibraryMedia(media)) {
+                    <span>@for (status of media.tags.RELEASE_STATUS; track status) { {{status.name}} }</span>
+                  }
+                  @else {
+                    <span>{{media.tags.RELEASE_STATUS}}</span>
+                  }
                 </div>
               }
               @case (MediaType.TABLETOP_GAME) {
@@ -77,6 +82,15 @@
               }
             }
           </span>
+          @if (media.mediaType === MediaType.VIDEO_GAME) {
+            <span class="separator">–</span>
+            <span class="specific-info">
+              <div class="meta-block">
+                <img class="icon" src="assets/icons/time.svg"/>
+                <span>&nbsp;{{ asVideoGame(media).normalPlayingTime | duration:'s' : true : false }}-{{ asVideoGame(media).completePlayingTime | duration:'s' : true }}</span>
+              </div>
+            </span>
+          }
         </div>
 
         <!-- tags -->
@@ -237,6 +251,9 @@
 
           @let videoGame = asVideoGame(media);
           @if (videoGame.synopsis && videoGame.synopsis !== "") {
+            <div class="secondary-separator-container">
+                <hr class="secondary-separator">
+            </div>
             <div class="secondary-content">
               <div class="secondary-section synopsis">
                 <h2>Synopsis</h2>

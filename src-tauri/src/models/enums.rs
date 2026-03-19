@@ -260,7 +260,11 @@ pub fn match_tag_type(s: &str) -> TagType {
     "GENRE" => TagType::Genre,
     "SAGA" => TagType::Saga,
     "GAME_MECHANIC" => TagType::GameMechanic,
-    _ => TagType::Genre, // default
+    "RELEASE_STATUS" => TagType::ReleaseStatus,
+    "FRANCHISE" => TagType::Franchise,
+    "GAME_MODE" => TagType::GameMode,
+    "CAMERA_PERSPECTIVE" => TagType::CameraPerspective,
+    _ => todo!(), // default
   }
 }
 pub fn match_collection_media_type(s: &str) -> CollectionMediaType {
