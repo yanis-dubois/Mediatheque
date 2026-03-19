@@ -13,3 +13,10 @@ ios
 /Users/[username]/Library/Developer/CoreSimulator/Devices/[hash]/data/Containers/Data/Application/[hash]/Library/Application Support/com.mediatheque.app
 android
 data > data > com.mediatheque.nom_app
+
+Get twitch API token :
+curl -X POST 'https://id.twitch.tv/oauth2/token' \
+-d 'client_id=TON_CLIENT_ID' \
+-d 'client_secret=TON_CLIENT_SECRET' \
+-d 'grant_type=client_credentials'
+(62 days from 18/03/26)

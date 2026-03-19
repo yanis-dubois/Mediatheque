@@ -103,6 +103,10 @@ pub enum TagType {
   Genre,
   Saga,
   GameMechanic,
+  ReleaseStatus,
+  Franchise,
+  GameMode,
+  CameraPerspective,
 }
 
 /* Media Query */

@@ -12,6 +12,7 @@ import { FileService } from "./file.services";
 import { convertFileSrc } from "@tauri-apps/api/core";
 import { ImageSize, ImageType } from "@app/models/image.model";
 import { map } from "rxjs";
+import { IgdbImageProvider } from "./image-provider/igdb-image-provider.provider";
 
 @Injectable({ providedIn: 'root' })
 export class ImageService {
@@ -28,7 +29,7 @@ export class ImageService {
     [MediaType.BOOK]: new TmdbImageProvider(),
     [MediaType.MOVIE]: new TmdbImageProvider(),
     [MediaType.SERIES]: new TmdbImageProvider(),
-    [MediaType.VIDEO_GAME]: new TmdbImageProvider(),
+    [MediaType.VIDEO_GAME]: new IgdbImageProvider(),
     [MediaType.TABLETOP_GAME]: new TmdbImageProvider(),
   };
 

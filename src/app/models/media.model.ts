@@ -4,48 +4,47 @@ import { KeyValue } from "@angular/common";
 import { Tag } from "./entity.model";
 
 export enum MediaType {
-  BOOK = 'BOOK',
-  MOVIE = 'MOVIE',
-  SERIES = 'SERIES',
-  VIDEO_GAME = 'VIDEO_GAME',
-  TABLETOP_GAME = 'TABLETOP_GAME'
+  BOOK = "BOOK",
+  MOVIE = "MOVIE",
+  SERIES = "SERIES",
+  VIDEO_GAME = "VIDEO_GAME",
+  TABLETOP_GAME = "TABLETOP_GAME"
 }
 
 export enum MediaStatus {
-  TO_DISCOVER = 'TO_DISCOVER', 
-  IN_PROGRESS = 'IN_PROGRESS', 
-  FINISHED = 'FINISHED', 
-  DROPPED = 'DROPPED'
+  TO_DISCOVER = "TO_DISCOVER", 
+  IN_PROGRESS = "IN_PROGRESS", 
+  FINISHED = "FINISHED", 
+  DROPPED = "DROPPED"
 }
 
 export const getStatusColor = (status: MediaStatus): string => {
   switch (status) {
-    case MediaStatus.FINISHED: return 'var(--color-status-finished)';
-    case MediaStatus.IN_PROGRESS: return 'var(--color-status-in-progress)';
-    case MediaStatus.TO_DISCOVER: return 'var(--color-status-to-discover)';
-    case MediaStatus.DROPPED: return 'var(--color-status-dropped)';
+    case MediaStatus.FINISHED: return "var(--color-status-finished)";
+    case MediaStatus.IN_PROGRESS: return "var(--color-status-in-progress)";
+    case MediaStatus.TO_DISCOVER: return "var(--color-status-to-discover)";
+    case MediaStatus.DROPPED: return "var(--color-status-dropped)";
   }
 };
 
 export enum TagType {
-  GENRE = 'GENRE', 
-  SAGA = 'SAGA', 
-  GAME_MECHANIC = 'GAME_MECHANIC',
+  GENRE = "GENRE", 
+  SAGA = "SAGA", 
+  GAME_MECHANIC = "GAME_MECHANIC",
+  RELEASE_STATUS = "RELEASE_STATUS",
+  FRANCHISE = "FRANCHISE",
+  GAME_MODE = "GAME_MODE",
+  CAMERA_PERSPECTIVE = "CAMERA_PERSPECTIVE",
 }
 
 export const TAG_ORDER: Record<TagType, number> = {
+  [TagType.RELEASE_STATUS]: 0,
   [TagType.SAGA]: 1,
   [TagType.GENRE]: 2,
   [TagType.GAME_MECHANIC]: 3,
-};
-
-export const sortTags = (
-  a: KeyValue<TagType, Tag[]> | KeyValue<TagType, string[]>, 
-  b: KeyValue<TagType, Tag[]> | KeyValue<TagType, string[]>
-): number => {
-  const orderA = TAG_ORDER[a.key] ?? 99;
-  const orderB = TAG_ORDER[b.key] ?? 99;
-  return orderA - orderB;
+  [TagType.FRANCHISE]: 4,
+  [TagType.GAME_MODE]: 5,
+  [TagType.CAMERA_PERSPECTIVE]: 6,
 };
 
 export interface LibraryEntityRelation {
@@ -104,6 +103,11 @@ export interface SeriesExtension {
   seasons: number; 
   episodes: number; 
 }
+export interface VideoGameExtension { 
+  synopsis: string; 
+  normalPlayingTime: number; 
+  completePlayingTime: number;
+}
 export interface TabletopGameExtension { 
   playerCount: string; 
   playingTime: string; 
@@ -111,6 +115,7 @@ export interface TabletopGameExtension {
 export type MediaExtension = 
   MovieExtension | 
   SeriesExtension | 
+  VideoGameExtension |
   TabletopGameExtension;
 
 export type MediaData = 

@@ -2,7 +2,7 @@ import { Component, computed, effect, inject, input, signal } from '@angular/cor
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 
-import { DetailedMedia, isLibraryMedia, MediaStatus, MediaType, MovieExtension, SeriesExtension, sortEntityByOrder, sortTags, TabletopGameExtension } from '@models/media.model'
+import { DetailedMedia, isLibraryMedia, MediaStatus, MediaType, MovieExtension, SeriesExtension, sortEntityByOrder, TabletopGameExtension, TagType, VideoGameExtension } from '@models/media.model'
 
 import { MediaService } from '@services/media.service'
 import { ScoreDisplayComponent } from "@app/components/score-display/score-display.component";
@@ -18,13 +18,14 @@ import { ExternalImagePathPipe } from '@app/pipe/external-image.pipe';
 import { LocalImagePathPipe } from '@app/pipe/local-image.pipe';
 import { ImageSize, ImageType } from '@app/models/image.model';
 import { ImageService } from '@app/services/image.service';
+import { FilterTagsPipe } from "../../pipe/filter-tag.pipe";
 
 const MAX_LENGTH_NOTES = 5000;
 
 @Component({
   selector: 'app-media-details',
   standalone: true,
-  imports: [CommonModule, RouterModule, ScoreDisplayComponent, PosterLightboxComponent, MediaStatusActionComponent, DurationPipe, MediaImageComponent, MediaFavoriteActionComponent],
+  imports: [CommonModule, RouterModule, ScoreDisplayComponent, PosterLightboxComponent, MediaStatusActionComponent, DurationPipe, MediaImageComponent, MediaFavoriteActionComponent, FilterTagsPipe],
   providers: [ExternalImagePathPipe, LocalImagePathPipe],
   templateUrl: './media-details.component.html',
   styleUrl: './media-details.component.scss'
@@ -40,10 +41,11 @@ export class MediaDetailsComponent {
   protected readonly MediaStatus = MediaStatus;
   protected readonly ImageType = ImageType;
   protected readonly ImageSize = ImageSize;
+  protected readonly TagType = TagType;
   statusOptions = Object.values(MediaStatus);
   sortEntityByOrder = sortEntityByOrder;
-  sortTags = sortTags;
 
+  originalPosterUrl = signal<string | null>(null);
   posterUrl = signal<string | null>(null);
   backdropUrl = signal<string | null>(null);
 
@@ -110,6 +112,9 @@ export class MediaDetailsComponent {
       this.loadData();
 
       if (media) {
+        this.originalPosterUrl.set(
+          await this.getSource(ImageType.POSTER, ImageSize.ORIGINAL)
+        );
         const posterSize = this.imageService.getRecommendedSize('detail');
         this.posterUrl.set(
           await this.getSource(ImageType.POSTER, posterSize)
@@ -138,8 +143,14 @@ export class MediaDetailsComponent {
   asSerie(m: DetailedMedia): SeriesExtension {
     return m as SeriesExtension;
   }
+  asVideoGame(m: DetailedMedia): VideoGameExtension {
+    return m as VideoGameExtension;
+  }
   asTabletopGame(m: DetailedMedia): TabletopGameExtension {
     return m as TabletopGameExtension;
+  }
+  asTagType(t: any): TagType {
+    return t as TagType;
   }
 
   async onNotesBlur(newNotes: string) {

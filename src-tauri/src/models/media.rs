@@ -60,11 +60,18 @@ pub enum MediaExtension {
     seasons: i32,
     episodes: i32,
   },
-  Game {
+  TabletopGame {
     #[serde(rename = "playerCount")]
     player_count: String,
     #[serde(rename = "playingTime")]
     playing_time: String,
+  },
+  VideoGame {
+    synopsis: Option<String>,
+    #[serde(rename = "normalPlayingTime")]
+    normal_playing_time: Option<u32>,
+    #[serde(rename = "completePlayingTime")]
+    complete_playing_time: Option<u32>,
   },
   None,
 }

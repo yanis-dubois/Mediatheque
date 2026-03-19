@@ -256,6 +256,7 @@
   .secondary-container {
     width: 100%;
     display: flex;
+    flex-direction: column;
     justify-content: center;
 
     background: rgba(0, 0, 0, 0.2);
@@ -265,7 +266,6 @@
     border-left: none;
 
     .secondary-content {
-      width: 100%;
       position: relative;
       z-index: 1;
       padding: 32px var(--side-margin);
@@ -275,13 +275,20 @@
       justify-content: space-around;
 
       // Phone
-      @media (max-width: 800px) {
+      @media (max-width: 900px) {
         width: auto;
         flex-direction: column;
         gap: 32px;
       }
 
       .secondary-section {
+        flex: 1;
+        max-width: 256px;
+
+        &.synopsis {
+          max-width: none;
+        }
+
         h3 {
           margin-top: 0;
         }

@@ -15,12 +15,6 @@ use crate::{
 
 // utils
 
-fn get_tmdb_token() -> String {
-  option_env!("TMDB_API_TOKEN")
-    .unwrap_or("unable to find TMDB API token")
-    .to_string()
-}
-
 fn get_endpoint_from_media_type(media_type: MediaType) -> String {
   if media_type == MediaType::Series {
     "tv".to_string()
@@ -59,8 +53,10 @@ pub struct TmdbProvider {
 
 impl TmdbProvider {
   pub fn new(media_type: MediaType) -> Self {
+    let token = std::env::var("TMDB_API_TOKEN").unwrap_or("TMDB_API_TOKEN not found".to_string());
+
     Self {
-      token: get_tmdb_token(),
+      token,
       base_media_url: "https://api.themoviedb.org/3".to_string(),
       base_image_url: "https://image.tmdb.org/t/p".to_string(),
       image_format: "jpg".to_string(),

@@ -1,5 +1,5 @@
 use crate::{
-  api::tmdb::TmdbProvider,
+  api::{igdb::IgdbProvider, tmdb::TmdbProvider},
   models::{
     enums::{Language, MediaType},
     image::{ImageSize, ImageType},
@@ -18,6 +18,7 @@ pub trait MediaProvider: Send + Sync {
 pub fn get_provider(media_type: &MediaType) -> Box<dyn MediaProvider + Send + Sync> {
   match media_type {
     MediaType::Movie | MediaType::Series => Box::new(TmdbProvider::new(media_type.clone())),
+    MediaType::VideoGame => Box::new(IgdbProvider::new()),
     _ => todo!(),
   }
 }

@@ -217,7 +217,7 @@ pub fn fill_media_extension(
           |row| Ok((row.get(0)?, row.get(1)?)),
         )
         .unwrap_or(("".to_string(), "".to_string()));
-      media.data.extension = MediaExtension::Game {
+      media.data.extension = MediaExtension::TabletopGame {
         player_count,
         playing_time,
       };
@@ -820,7 +820,7 @@ pub async fn update_media_data(
       )
       .map_err(|e| e.to_string())?;
     }
-    MediaExtension::Game {
+    MediaExtension::TabletopGame {
       player_count,
       playing_time,
     } => {
@@ -831,6 +831,7 @@ pub async fn update_media_data(
       .map_err(|e| e.to_string())?;
     }
     MediaExtension::None => {}
+    _ => {}
   }
 
   tx.commit().map_err(|e| e.to_string())?;
@@ -896,7 +897,7 @@ pub fn insert_external_media(
         params![media_uuid, seasons, episodes],
       )?;
     }
-    MediaExtension::Game {
+    MediaExtension::TabletopGame {
       player_count,
       playing_time,
     } => {
@@ -906,6 +907,7 @@ pub fn insert_external_media(
       )?;
     }
     MediaExtension::None => {}
+    _ => {}
   }
 
   Ok(())
