@@ -110,12 +110,13 @@ export class MediaDetailsComponent {
     effect(async () => {
       const media = this.media();
       this.loadData();
+      const posterSize = this.imageService.getRecommendedSize('detail');
+      console.log("poster size : ", posterSize);
 
       if (media) {
         this.originalPosterUrl.set(
           await this.getSource(ImageType.POSTER, ImageSize.ORIGINAL)
         );
-        const posterSize = this.imageService.getRecommendedSize('detail');
         this.posterUrl.set(
           await this.getSource(ImageType.POSTER, posterSize)
         );

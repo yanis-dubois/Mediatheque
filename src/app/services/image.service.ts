@@ -5,14 +5,11 @@ import { toSignal } from '@angular/core/rxjs-interop';
 import { join } from "@tauri-apps/api/path";
 import { exists } from '@tauri-apps/plugin-fs';
 
-import { ImageProvider } from "./image-provider/image-provider.provider";
-import { TmdbImageProvider } from "./image-provider/tmdb-image-provider.provider";
 import { MediaType } from "@app/models/media.model";
 import { FileService } from "./file.services";
-import { convertFileSrc } from "@tauri-apps/api/core";
-import { ImageSize, ImageType } from "@app/models/image.model";
+import { convertFileSrc, invoke } from "@tauri-apps/api/core";
+import { get_image_size_file_name, get_image_type_file_name, ImageConfiguration, ImageSize, ImageType } from "@app/models/image.model";
 import { map } from "rxjs";
-import { IgdbImageProvider } from "./image-provider/igdb-image-provider.provider";
 
 @Injectable({ providedIn: 'root' })
 export class ImageService {
@@ -20,18 +17,21 @@ export class ImageService {
   private breakpointObserver = inject(BreakpointObserver);
   private fileService = inject(FileService);
 
+  // all provider config necessary to build image url
+  private configs: Record<MediaType, ImageConfiguration> | null = null;
+
+  async loadConfigs() {
+    try {
+      this.configs = await invoke<Record<MediaType, ImageConfiguration> >('get_image_configurations');
+      console.log('Image Configs loaded:', this.configs);
+    } catch (err) {
+      console.error('Failed to load image configs', err);
+    }
+  }
+
   // cache that memorize image path
   private readonly MAX_CACHE_SIZE = 500;
   private pathCache = new Map<string, string | null>();
-
-  // TODO: change that for other API
-  private providers: Record<MediaType, ImageProvider> = {
-    [MediaType.BOOK]: new TmdbImageProvider(),
-    [MediaType.MOVIE]: new TmdbImageProvider(),
-    [MediaType.SERIES]: new TmdbImageProvider(),
-    [MediaType.VIDEO_GAME]: new IgdbImageProvider(),
-    [MediaType.TABLETOP_GAME]: new TmdbImageProvider(),
-  };
 
   // size priorities for fallback image search
   private sizePriorities: Record<ImageSize, ImageSize[]> = {
@@ -71,17 +71,17 @@ export class ImageService {
   }
 
   resolveExternalUrl(path: string | undefined, source: MediaType, type: ImageType, size: ImageSize): string {
-    const provider = this.providers[source];
-    if (!provider || !path) return '';
+    if (!this.configs || !path) return '';
 
-    return type === ImageType.POSTER
-      ? provider.getPosterUrl(path, size) 
-      : provider.getBackdropUrl(path, size);
+    const config = this.configs[source];
+    if (!config) return '';
+
+    return `${config.baseUrl}/${config.sizes[type][size]}/${path}.${config.format}`;
   }
 
   async resolveLocalUrl(id: string, source: MediaType, type: ImageType, size: ImageSize): Promise<string | null> {
     const appDataPath = this.fileService.appDataPath();
-    if (!appDataPath) return null;
+    if (!appDataPath || !this.configs) return null;
 
     const cacheKey = `${id}-${type}-${size}`;
     if (this.pathCache.has(cacheKey)) {
@@ -93,9 +93,9 @@ export class ImageService {
       }
     }
 
-    const provider = this.providers[source];
-    const file_format = provider.getFileFormat();
-    const category = type.toString();
+    const config = this.configs[source];
+    const file_format = config ? config.format : 'jpg';
+    const category = get_image_type_file_name(type);
     const searchOrder = this.sizePriorities[size];
 
     let resolvedUrl: string | null = null;
@@ -104,7 +104,7 @@ export class ImageService {
     for (const targetSize of searchOrder) {
       const fileName = `${id}.${file_format}`;
       try {
-        const fullPath = await join(appDataPath, category, targetSize.toString(), fileName);
+        const fullPath = await join(appDataPath, category, get_image_size_file_name(targetSize), fileName);
 
         if (await exists(fullPath)) {
           resolvedUrl = convertFileSrc(fullPath);

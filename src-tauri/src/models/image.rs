@@ -21,7 +21,7 @@ pub enum ImageType {
   Backdrop,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct ImageConfiguration {
   pub base_url: String,

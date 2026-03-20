@@ -41,6 +41,16 @@ fn get_job_priority(job: &str) -> i32 {
   }
 }
 
+fn clean_image_path(path: &str) -> String {
+  let path = path.trim_start_matches('/');
+
+  if let Some(dot_index) = path.rfind('.') {
+    path[..dot_index].to_string()
+  } else {
+    path.to_string()
+  }
+}
+
 // provider
 
 pub struct TmdbProvider {
@@ -141,8 +151,8 @@ impl MediaProvider for TmdbProvider {
             external_id: item["id"].as_u64()? as u32,
             id: None,
             is_in_library: false,
-            poster_path: item["poster_path"].as_str().map(|s| s.to_string()),
-            backdrop_path: item["backdrop_path"].as_str().map(|s| s.to_string()),
+            poster_path: item["poster_path"].as_str().map(|s| clean_image_path(s)),
+            backdrop_path: item["backdrop_path"].as_str().map(|s| clean_image_path(s)),
           },
         })
       })
@@ -305,8 +315,8 @@ impl MediaProvider for TmdbProvider {
         external_id,
         id: None,
         is_in_library: false,
-        poster_path: data["poster_path"].as_str().map(|s| s.to_string()),
-        backdrop_path: data["backdrop_path"].as_str().map(|s| s.to_string()),
+        poster_path: data["poster_path"].as_str().map(|s| clean_image_path(s)),
+        backdrop_path: data["backdrop_path"].as_str().map(|s| clean_image_path(s)),
       },
       relations: ApiMediaRelations {
         persons,

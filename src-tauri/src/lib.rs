@@ -67,6 +67,7 @@ pub fn run() {
       commands::api::get_api_media_by_id,
       commands::api::add_media_from_internet,
       commands::api::refresh_media_data_from_internet,
+      commands::api::get_image_configurations,
     ])
     .run(tauri::generate_context!())
     .expect("error while running tauri application");

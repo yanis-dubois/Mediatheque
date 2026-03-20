@@ -1,3 +1,5 @@
+use std::collections::HashMap;
+
 use tauri::Manager;
 
 use crate::{
@@ -9,9 +11,23 @@ use crate::{
   db::DbState,
   models::{
     enums::{Language, MediaType},
+    image::ImageConfiguration,
     media::{ApiMedia, ApiSearchResult},
   },
 };
+
+#[tauri::command]
+pub async fn get_image_configurations(
+  state: tauri::State<'_, ProviderStore>,
+) -> Result<HashMap<MediaType, ImageConfiguration>, String> {
+  let configs = state
+    .get_all_configs()
+    .iter()
+    .map(|(&k, &v)| (k.clone(), v.clone()))
+    .collect();
+
+  Ok(configs)
+}
 
 #[tauri::command]
 pub async fn search_media_on_internet(

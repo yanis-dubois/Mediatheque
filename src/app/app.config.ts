@@ -7,12 +7,14 @@ import { routes } from "@app/app.routes";
 import { FileService } from "@services/file.services";
 import { SettingsService } from "@services/settings.service";
 import { PinService } from "@services/pin.service";
+import { ImageService } from "./services/image.service";
 
-function initializeApp(fileService: FileService, settingsService: SettingsService, pinService: PinService) {
+function initializeApp(fileService: FileService, settingsService: SettingsService, pinService: PinService, imageService: ImageService) {
   return () => {
     fileService.initDirectory();
     settingsService.loadSettings();
     pinService.refresh();
+    imageService.loadConfigs();
   };
 }
 
@@ -22,7 +24,7 @@ export const appConfig: ApplicationConfig = {
     {
       provide: APP_INITIALIZER,
       useFactory: initializeApp,
-      deps: [FileService, SettingsService, PinService],
+      deps: [FileService, SettingsService, PinService, ImageService],
       multi: true
     },
     provideAnimations(),

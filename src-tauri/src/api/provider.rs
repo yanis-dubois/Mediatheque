@@ -31,6 +31,14 @@ impl ProviderStore {
     Self { providers }
   }
 
+  pub fn get_all_configs(&self) -> HashMap<&MediaType, &ImageConfiguration> {
+    let mut all_configs = HashMap::new();
+    for (media_type, provider) in &self.providers {
+      all_configs.insert(media_type, provider.get_image_config());
+    }
+    all_configs
+  }
+
   pub fn get(&self, media_type: &MediaType) -> Option<&(dyn MediaProvider + Send + Sync)> {
     self.providers.get(media_type).map(|p| p.as_ref())
   }
