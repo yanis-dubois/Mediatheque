@@ -10,12 +10,14 @@ pub fn run() {
     .plugin(tauri_plugin_fs::init())
     .plugin(tauri_plugin_dialog::init())
     .plugin(tauri_plugin_opener::init())
+    // init local DB
     .setup(|app| {
       db::setup_db(&app.handle()).expect("failed to initialize database");
       Ok(())
     })
+    // init API providers
+    .manage(api::provider::ProviderStore::new())
     .invoke_handler(tauri::generate_handler![
-      commands::path::get_posters_dir,
       commands::settings::get_all_settings,
       commands::settings::save_setting,
       commands::media::get_media_by_id,

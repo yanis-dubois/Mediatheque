@@ -66,7 +66,7 @@ pub enum ScoreDisplayMode {
 
 /* Media */
 
-#[derive(Debug, Serialize, Deserialize, PartialEq, Clone, EnumIter)]
+#[derive(Debug, Serialize, Deserialize, PartialEq, Clone, EnumIter, Hash, Eq)]
 #[serde(rename_all = "SCREAMING_SNAKE_CASE")]
 #[derive(strum::Display, strum::EnumString)]
 #[strum(serialize_all = "SCREAMING_SNAKE_CASE")]

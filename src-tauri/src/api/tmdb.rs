@@ -5,7 +5,7 @@ use crate::{
   models::{
     api::ApiResponse,
     enums::{Language, MediaType, TagType},
-    image::{ImageSize, ImageType},
+    image::{ImageConfiguration, ImageSize, ImageType},
     media::{
       ApiEntityRelation, ApiMedia, ApiMediaRelations, ApiSearchResult, ApiState, MediaBase,
       MediaData, MediaExtension,
@@ -46,8 +46,7 @@ fn get_job_priority(job: &str) -> i32 {
 pub struct TmdbProvider {
   pub token: String,
   pub base_media_url: String,
-  pub base_image_url: String,
-  pub image_format: String,
+  pub image_config: ImageConfiguration,
   pub media_type: MediaType,
 }
 
@@ -58,8 +57,7 @@ impl TmdbProvider {
     Self {
       token,
       base_media_url: "https://api.themoviedb.org/3".to_string(),
-      base_image_url: "https://image.tmdb.org/t/p".to_string(),
-      image_format: "jpg".to_string(),
+      image_config: Self::create_config(),
       media_type,
     }
   }
@@ -67,29 +65,31 @@ impl TmdbProvider {
 
 #[async_trait::async_trait]
 impl MediaProvider for TmdbProvider {
-  fn get_image_url(&self, path: &str, image_type: ImageType, size: ImageSize) -> String {
-    let size_str = match image_type {
-      ImageType::Poster => match size {
-        ImageSize::Small => "w92",
-        ImageSize::Medium => "w342",
-        ImageSize::Original => "original",
-      },
-      ImageType::Backdrop => match size {
-        ImageSize::Small => "w300",
-        ImageSize::Medium => "w1280",
-        ImageSize::Original => "original",
-      },
-    };
+  fn create_config() -> ImageConfiguration {
+    let mut sizes = HashMap::new();
 
-    let clean_path = path.trim_start_matches('/');
-    format!(
-      "{}/{}/{}.{}",
-      self.base_image_url, size_str, clean_path, self.image_format
-    )
+    let mut poster_sizes = HashMap::new();
+    poster_sizes.insert(ImageSize::Small, "w92".to_string());
+    poster_sizes.insert(ImageSize::Medium, "w342".to_string());
+    poster_sizes.insert(ImageSize::Original, "original".to_string());
+
+    let mut backdrop_sizes = HashMap::new();
+    backdrop_sizes.insert(ImageSize::Small, "w300".to_string());
+    backdrop_sizes.insert(ImageSize::Medium, "w1280".to_string());
+    backdrop_sizes.insert(ImageSize::Original, "original".to_string());
+
+    sizes.insert(ImageType::Poster, poster_sizes);
+    sizes.insert(ImageType::Backdrop, backdrop_sizes);
+
+    ImageConfiguration {
+      base_url: "https://image.tmdb.org/t/p".to_string(),
+      format: "jpg".to_string(),
+      sizes,
+    }
   }
 
-  fn get_image_format(&self) -> &str {
-    &self.image_format
+  fn get_image_config(&self) -> &ImageConfiguration {
+    &self.image_config
   }
 
   async fn search(&self, query: &str, language: Language) -> Result<Vec<ApiSearchResult>, String> {

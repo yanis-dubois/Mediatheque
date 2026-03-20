@@ -3,7 +3,7 @@ use std::collections::HashMap;
 use rusqlite::{params, Connection, Transaction};
 use tauri::{Emitter, Manager};
 
-use crate::api::provider::get_provider;
+use crate::api::provider::ProviderStore;
 use crate::db::DbState;
 use crate::models::enums::{
   match_media_status, match_media_type, match_tag_type, CollectionMediaType, CollectionType,
@@ -768,11 +768,14 @@ pub async fn update_media_data(
   id: String,
   api_media: ApiMedia,
 ) -> Result<(), String> {
-  let provider = get_provider(&api_media.data.base.media_type);
+  let provider_store = app.state::<ProviderStore>();
+  let provider = provider_store
+    .get(&api_media.data.base.media_type)
+    .ok_or_else(|| "Failed to retrieve provider".to_string())?;
 
   let assets = download_assets(
     &app,
-    provider.as_ref(),
+    provider,
     &id,
     api_media.state.poster_path.clone(),
     api_media.state.backdrop_path.clone(),
@@ -1006,12 +1009,16 @@ pub async fn add_media_to_library(
   app: tauri::AppHandle,
   api_media: ApiMedia,
 ) -> Result<String, String> {
+  let provider_store = app.state::<ProviderStore>();
+  let provider = provider_store
+    .get(&api_media.data.base.media_type)
+    .ok_or_else(|| "Failed to retrieve provider".to_string())?;
+
   let media_uuid = uuid::Uuid::new_v4().to_string();
-  let provider = get_provider(&api_media.data.base.media_type);
 
   let assets = download_assets(
     &app,
-    provider.as_ref(),
+    provider,
     &media_uuid,
     api_media.state.poster_path.clone(),
     api_media.state.backdrop_path.clone(),

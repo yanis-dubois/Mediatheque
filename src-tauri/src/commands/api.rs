@@ -1,5 +1,7 @@
+use tauri::Manager;
+
 use crate::{
-  api::provider::get_provider,
+  api::provider::ProviderStore,
   commands::media::{
     add_media_to_library, get_local_id_batch_by_external, get_local_id_by_external,
     update_media_data,
@@ -13,18 +15,21 @@ use crate::{
 
 #[tauri::command]
 pub async fn search_media_on_internet(
-  state: tauri::State<'_, DbState>,
+  db_state: tauri::State<'_, DbState>,
+  provider_store: tauri::State<'_, ProviderStore>,
   query: String,
   media_type: MediaType,
   language: Language,
 ) -> Result<Vec<ApiSearchResult>, String> {
   // get API results
-  let provider = get_provider(&media_type);
+  let provider = provider_store
+    .get(&media_type)
+    .ok_or_else(|| "Failed to retrieve provider".to_string())?;
   let mut results = provider.search(&query, language).await?;
 
   // check if results are already in library
   let ids: Vec<u32> = results.iter().map(|r| r.state.external_id).collect();
-  let existing_media = get_local_id_batch_by_external(&state, &ids, media_type)?;
+  let existing_media = get_local_id_batch_by_external(&db_state, &ids, media_type)?;
   for item in &mut results {
     if let Some(local_id) = existing_media.get(&item.state.external_id) {
       item.state.is_in_library = true;
@@ -36,27 +41,31 @@ pub async fn search_media_on_internet(
 }
 
 async fn get_api_media(
+  provider_store: &tauri::State<'_, ProviderStore>,
   external_id: u32,
   media_type: &MediaType,
   language: Language,
 ) -> Result<ApiMedia, String> {
   // get API results
-  let provider = get_provider(&media_type);
+  let provider = provider_store
+    .get(&media_type)
+    .ok_or_else(|| "Failed to retrieve provider".to_string())?;
   provider.get_by_id(external_id, language).await
 }
 
 #[tauri::command]
 pub async fn get_api_media_by_id(
-  state: tauri::State<'_, DbState>,
+  db_state: tauri::State<'_, DbState>,
+  provider_store: tauri::State<'_, ProviderStore>,
   external_id: u32,
   media_type: MediaType,
   language: Language,
 ) -> Result<ApiMedia, String> {
   // get API results
-  let mut result = get_api_media(external_id, &media_type, language).await?;
+  let mut result = get_api_media(&provider_store, external_id, &media_type, language).await?;
 
   // check if result is already in library
-  let local_id = get_local_id_by_external(&state, external_id, &media_type);
+  let local_id = get_local_id_by_external(&db_state, external_id, &media_type);
   result.state.id = local_id.clone();
   result.state.is_in_library = local_id.is_some();
 
@@ -70,7 +79,13 @@ pub async fn add_media_from_internet(
   media_type: MediaType,
   language: Language,
 ) -> Result<String, String> {
-  let api_media = get_api_media(external_id, &media_type, language).await?;
+  let api_media = get_api_media(
+    &app.state::<ProviderStore>(),
+    external_id,
+    &media_type,
+    language,
+  )
+  .await?;
 
   add_media_to_library(app, api_media).await
 }
@@ -83,7 +98,13 @@ pub async fn refresh_media_data_from_internet(
   media_type: MediaType,
   language: Language,
 ) -> Result<(), String> {
-  let api_media = get_api_media(external_id, &media_type, language).await?;
+  let api_media = get_api_media(
+    &app.state::<ProviderStore>(),
+    external_id,
+    &media_type,
+    language,
+  )
+  .await?;
 
   update_media_data(app, id, api_media).await
 }

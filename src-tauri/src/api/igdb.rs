@@ -8,7 +8,7 @@ use crate::{
       MultiQueryResponse,
     },
     enums::{Language, MediaType, TagType},
-    image::{ImageSize, ImageType},
+    image::{ImageConfiguration, ImageSize, ImageType},
     media::{
       ApiEntityRelation, ApiMedia, ApiMediaRelations, ApiSearchResult, ApiState, MediaBase,
       MediaData, MediaExtension,
@@ -126,8 +126,7 @@ pub struct IgdbProvider {
   pub token: String,
   pub client_id: String,
   pub base_media_url: String,
-  pub base_image_url: String,
-  pub image_format: String,
+  pub image_config: ImageConfiguration,
 }
 
 impl IgdbProvider {
@@ -140,37 +139,38 @@ impl IgdbProvider {
       token,
       client_id,
       base_media_url: "https://api.igdb.com/v4".to_string(),
-      base_image_url: "https://images.igdb.com/igdb/image/upload".to_string(),
-      image_format: "jpg".to_string(),
+      image_config: Self::create_config(),
     }
   }
 }
 
 #[async_trait::async_trait]
 impl MediaProvider for IgdbProvider {
-  fn get_image_url(&self, path: &str, image_type: ImageType, size: ImageSize) -> String {
-    let size_str = match image_type {
-      ImageType::Poster => match size {
-        ImageSize::Small => "cover_small",
-        ImageSize::Medium => "cover_big",
-        ImageSize::Original => "1080p",
-      },
-      ImageType::Backdrop => match size {
-        ImageSize::Small => "screenshot_med",
-        ImageSize::Medium => "screenshot_huge",
-        ImageSize::Original => "1080p",
-      },
-    };
+  fn create_config() -> ImageConfiguration {
+    let mut sizes = HashMap::new();
 
-    let clean_path = path.trim_start_matches('/');
-    format!(
-      "{}/t_{}/{}.{}",
-      self.base_image_url, size_str, clean_path, self.image_format
-    )
+    let mut poster_sizes = HashMap::new();
+    poster_sizes.insert(ImageSize::Small, "t_cover_small".to_string());
+    poster_sizes.insert(ImageSize::Medium, "t_cover_big".to_string());
+    poster_sizes.insert(ImageSize::Original, "t_1080p".to_string());
+
+    let mut backdrop_sizes = HashMap::new();
+    backdrop_sizes.insert(ImageSize::Small, "t_screenshot_med".to_string());
+    backdrop_sizes.insert(ImageSize::Medium, "t_screenshot_huge".to_string());
+    backdrop_sizes.insert(ImageSize::Original, "t_1080p".to_string());
+
+    sizes.insert(ImageType::Poster, poster_sizes);
+    sizes.insert(ImageType::Backdrop, backdrop_sizes);
+
+    ImageConfiguration {
+      base_url: "https://images.igdb.com/igdb/image/upload".to_string(),
+      format: "jpg".to_string(),
+      sizes,
+    }
   }
 
-  fn get_image_format(&self) -> &str {
-    &self.image_format
+  fn get_image_config(&self) -> &ImageConfiguration {
+    &self.image_config
   }
 
   async fn search(&self, query: &str, _language: Language) -> Result<Vec<ApiSearchResult>, String> {
