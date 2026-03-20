@@ -82,14 +82,26 @@
               }
             }
           </span>
+          <!-- time to beat for video game -->
           @if (media.mediaType === MediaType.VIDEO_GAME) {
-            <span class="separator">–</span>
-            <span class="specific-info">
-              <div class="meta-block">
-                <img class="icon" src="assets/icons/time.svg"/>
-                <span>&nbsp;{{ asVideoGame(media).normalPlayingTime | duration:'s' : true : false }}-{{ asVideoGame(media).completePlayingTime | duration:'s' : true }}</span>
-              </div>
-            </span>
+            @let videoGame = asVideoGame(media);
+            @if (videoGame.normalPlayingTime || videoGame.completePlayingTime) {
+              <span class="separator">–</span>
+              <span class="specific-info">
+                <div class="meta-block">
+                  <img class="icon" src="assets/icons/time.svg"/>
+                  @if (videoGame.normalPlayingTime && videoGame.completePlayingTime) {
+                    <span>&nbsp;{{ videoGame.normalPlayingTime | duration:'s' : true : false }}-{{ videoGame.completePlayingTime | duration:'s' : true }}</span>
+                  }
+                  @else if (videoGame.normalPlayingTime) {
+                    <span>&nbsp;{{ videoGame.normalPlayingTime | duration:'s' : true }}</span>
+                  }
+                  @else if (videoGame.completePlayingTime) {
+                    <span>&nbsp;{{ videoGame.completePlayingTime | duration:'s' : true }}</span>
+                  }
+                </div>
+              </span>
+            }
           }
         </div>
 

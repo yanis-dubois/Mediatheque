@@ -104,9 +104,9 @@ export interface SeriesExtension {
   episodes: number; 
 }
 export interface VideoGameExtension { 
-  synopsis: string; 
-  normalPlayingTime: number; 
-  completePlayingTime: number;
+  synopsis?: string; 
+  normalPlayingTime?: number; 
+  completePlayingTime?: number;
 }
 export interface TabletopGameExtension { 
   playerCount: string; 
