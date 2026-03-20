@@ -19,14 +19,16 @@ use crate::{
 #[tauri::command]
 pub async fn get_image_configurations(
   state: tauri::State<'_, ProviderStore>,
-) -> Result<HashMap<MediaType, ImageConfiguration>, String> {
-  let configs = state
-    .get_all_configs()
-    .iter()
-    .map(|(&k, &v)| (k.clone(), v.clone()))
-    .collect();
+) -> Result<HashMap<String, ImageConfiguration>, String> {
+  let mut map = HashMap::new();
 
-  Ok(configs)
+  for ((media_type, source), provider) in &state.providers {
+    // format "type_source"
+    let key = format!("{}_{}", media_type.to_string(), source.to_string());
+    map.insert(key, provider.get_image_config().clone());
+  }
+
+  Ok(map)
 }
 
 #[tauri::command]
@@ -39,7 +41,7 @@ pub async fn search_media_on_internet(
 ) -> Result<Vec<ApiSearchResult>, String> {
   // get API results
   let provider = provider_store
-    .get(&media_type)
+    .get_default(&media_type)
     .ok_or_else(|| "Failed to retrieve provider".to_string())?;
   let mut results = provider.search(&query, language).await?;
 
@@ -64,7 +66,7 @@ async fn get_api_media(
 ) -> Result<ApiMedia, String> {
   // get API results
   let provider = provider_store
-    .get(&media_type)
+    .get_default(&media_type)
     .ok_or_else(|| "Failed to retrieve provider".to_string())?;
   provider.get_by_id(external_id, language).await
 }

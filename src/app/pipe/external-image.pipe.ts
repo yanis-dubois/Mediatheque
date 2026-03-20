@@ -1,6 +1,6 @@
 import { Pipe, PipeTransform, inject } from '@angular/core';
 import { ImageSize, ImageType } from '@app/models/image.model';
-import { MediaType } from '@app/models/media.model';
+import { MediaSource, MediaType } from '@app/models/media.model';
 import { ImageService } from '@app/services/image.service';
 
 @Pipe({
@@ -12,10 +12,11 @@ export class ExternalImagePathPipe implements PipeTransform {
 
   transform(
     path: string | undefined,
-    source: MediaType,
+    mediaType: MediaType,
+    source: MediaSource,
     type: ImageType,
     size: ImageSize
   ): string {
-    return this.imageService.resolveExternalUrl(path, source, type, size);
+    return this.imageService.resolveExternalUrl(path, mediaType, source, type, size);
   }
 }

@@ -3,44 +3,56 @@ use std::collections::HashMap;
 use crate::{
   api::{igdb::IgdbProvider, tmdb::TmdbProvider},
   models::{
-    enums::{Language, MediaType},
+    enums::{Language, MediaSource, MediaType},
     image::{ImageConfiguration, ImageSize, ImageType},
     media::{ApiMedia, ApiSearchResult},
   },
 };
 
 pub struct ProviderStore {
-  pub providers: HashMap<MediaType, Box<dyn MediaProvider + Send + Sync>>,
+  pub providers: HashMap<(MediaType, MediaSource), Box<dyn MediaProvider + Send + Sync>>,
 }
 
 impl ProviderStore {
   pub fn new() -> Self {
-    let mut providers: HashMap<MediaType, Box<dyn MediaProvider + Send + Sync>> = HashMap::new();
+    let mut providers: HashMap<(MediaType, MediaSource), Box<dyn MediaProvider + Send + Sync>> =
+      HashMap::new();
 
     // Init providers at app launch
-    providers.insert(MediaType::VideoGame, Box::new(IgdbProvider::new()));
     providers.insert(
-      MediaType::Movie,
+      (MediaType::VideoGame, MediaSource::Igdb),
+      Box::new(IgdbProvider::new()),
+    );
+    providers.insert(
+      (MediaType::Movie, MediaSource::Tmdb),
       Box::new(TmdbProvider::new(MediaType::Movie)),
     );
     providers.insert(
-      MediaType::Series,
+      (MediaType::Series, MediaSource::Tmdb),
       Box::new(TmdbProvider::new(MediaType::Series)),
     );
 
     Self { providers }
   }
 
-  pub fn get_all_configs(&self) -> HashMap<&MediaType, &ImageConfiguration> {
-    let mut all_configs = HashMap::new();
-    for (media_type, provider) in &self.providers {
-      all_configs.insert(media_type, provider.get_image_config());
-    }
-    all_configs
+  pub fn get(
+    &self,
+    media_type: &MediaType,
+    source: &MediaSource,
+  ) -> Option<&(dyn MediaProvider + Send + Sync)> {
+    self
+      .providers
+      .get(&(media_type.clone(), source.clone()))
+      .map(|p| p.as_ref())
   }
 
-  pub fn get(&self, media_type: &MediaType) -> Option<&(dyn MediaProvider + Send + Sync)> {
-    self.providers.get(media_type).map(|p| p.as_ref())
+  pub fn get_default(&self, media_type: &MediaType) -> Option<&(dyn MediaProvider + Send + Sync)> {
+    let source = match media_type {
+      MediaType::VideoGame => MediaSource::Igdb,
+      MediaType::Movie | MediaType::Series => MediaSource::Tmdb,
+      _ => return None,
+    };
+    self.get(media_type, &source)
   }
 }
 

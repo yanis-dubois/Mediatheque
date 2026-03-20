@@ -3,6 +3,13 @@
 import { KeyValue } from "@angular/common";
 import { Tag } from "./entity.model";
 
+export enum MediaSource {
+  MANUAL = "MANUAL",
+  TMDB = "TMDB",
+  IGDB = "IGDB", 
+  // TODO
+}
+
 export enum MediaType {
   BOOK = "BOOK",
   MOVIE = "MOVIE",
@@ -72,6 +79,7 @@ export const sortEntityByOrder = (
 // base
 export interface MediaBase {
   mediaType: MediaType;
+  source: MediaSource;
   title: string;
   releaseDate: string;
   description: string;

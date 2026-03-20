@@ -5,11 +5,11 @@ import { toSignal } from '@angular/core/rxjs-interop';
 import { join } from "@tauri-apps/api/path";
 import { exists } from '@tauri-apps/plugin-fs';
 
-import { MediaType } from "@app/models/media.model";
 import { FileService } from "./file.services";
 import { convertFileSrc, invoke } from "@tauri-apps/api/core";
 import { get_image_size_file_name, get_image_type_file_name, ImageConfiguration, ImageSize, ImageType } from "@app/models/image.model";
 import { map } from "rxjs";
+import { MediaSource, MediaType } from "@app/models/media.model";
 
 @Injectable({ providedIn: 'root' })
 export class ImageService {
@@ -18,15 +18,19 @@ export class ImageService {
   private fileService = inject(FileService);
 
   // all provider config necessary to build image url
-  private configs: Record<MediaType, ImageConfiguration> | null = null;
+  private configs: Record<string, ImageConfiguration> | null = null;
 
   async loadConfigs() {
     try {
-      this.configs = await invoke<Record<MediaType, ImageConfiguration> >('get_image_configurations');
+      this.configs = await invoke<Record<string, ImageConfiguration>>('get_image_configurations');
       console.log('Image Configs loaded:', this.configs);
     } catch (err) {
       console.error('Failed to load image configs', err);
     }
+  }
+
+  getConfigKey(mediaType: MediaType, source: MediaSource): string {
+    return `${mediaType}_${source}`; 
   }
 
   // cache that memorize image path
@@ -70,16 +74,16 @@ export class ImageService {
     return current === ImageSize.SMALL ? ImageSize.MEDIUM : current;
   }
 
-  resolveExternalUrl(path: string | undefined, source: MediaType, type: ImageType, size: ImageSize): string {
+  resolveExternalUrl(path: string | undefined, mediaType: MediaType, source: MediaSource, type: ImageType, size: ImageSize): string {
     if (!this.configs || !path) return '';
 
-    const config = this.configs[source];
+    const config = this.configs[this.getConfigKey(mediaType, source)];
     if (!config) return '';
 
     return `${config.baseUrl}/${config.sizes[type][size]}/${path}.${config.format}`;
   }
 
-  async resolveLocalUrl(id: string, source: MediaType, type: ImageType, size: ImageSize): Promise<string | null> {
+  async resolveLocalUrl(id: string, mediaType: MediaType, source: MediaSource, type: ImageType, size: ImageSize): Promise<string | null> {
     const appDataPath = this.fileService.appDataPath();
     if (!appDataPath || !this.configs) return null;
 
@@ -93,7 +97,7 @@ export class ImageService {
       }
     }
 
-    const config = this.configs[source];
+    const config = this.configs[this.getConfigKey(mediaType, source)];
     const file_format = config ? config.format : 'jpg';
     const category = get_image_type_file_name(type);
     const searchOrder = this.sizePriorities[size];

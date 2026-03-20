@@ -7,7 +7,7 @@ use crate::{
       IgdbArtwork, IgdbGame, IgdbGameType, IgdbImage, IgdbInvolvedCompany, IgdbTag, IgdbTimeToBeat,
       MultiQueryResponse,
     },
-    enums::{Language, MediaType, TagType},
+    enums::{Language, MediaSource, MediaType, TagType},
     image::{ImageConfiguration, ImageSize, ImageType},
     media::{
       ApiEntityRelation, ApiMedia, ApiMediaRelations, ApiSearchResult, ApiState, MediaBase,
@@ -123,6 +123,7 @@ fn extract_tags_names(
 // provider
 
 pub struct IgdbProvider {
+  pub source: MediaSource,
   pub token: String,
   pub client_id: String,
   pub base_media_url: String,
@@ -136,6 +137,7 @@ impl IgdbProvider {
     let token = std::env::var("IGDB_API_TOKEN").unwrap_or("IGDB_API_TOKEN not found".to_string());
 
     Self {
+      source: MediaSource::Igdb,
       token,
       client_id,
       base_media_url: "https://api.igdb.com/v4".to_string(),
@@ -209,6 +211,7 @@ impl MediaProvider for IgdbProvider {
         ApiSearchResult {
           core: MediaBase {
             media_type: MediaType::VideoGame,
+            source: self.source.clone(),
             title: title,
             release_date,
             description: game.summary.unwrap_or_default(),
@@ -318,6 +321,7 @@ impl MediaProvider for IgdbProvider {
 
     let base = MediaBase {
       media_type: MediaType::VideoGame,
+      source: self.source.clone(),
       title: title,
       release_date,
       description: game.summary.unwrap_or_default(),

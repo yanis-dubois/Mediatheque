@@ -4,7 +4,7 @@ use crate::{
   api::provider::MediaProvider,
   models::{
     api::ApiResponse,
-    enums::{Language, MediaType, TagType},
+    enums::{Language, MediaSource, MediaType, TagType},
     image::{ImageConfiguration, ImageSize, ImageType},
     media::{
       ApiEntityRelation, ApiMedia, ApiMediaRelations, ApiSearchResult, ApiState, MediaBase,
@@ -54,6 +54,7 @@ fn clean_image_path(path: &str) -> String {
 // provider
 
 pub struct TmdbProvider {
+  pub source: MediaSource,
   pub token: String,
   pub base_media_url: String,
   pub image_config: ImageConfiguration,
@@ -65,6 +66,7 @@ impl TmdbProvider {
     let token = std::env::var("TMDB_API_TOKEN").unwrap_or("TMDB_API_TOKEN not found".to_string());
 
     Self {
+      source: MediaSource::Tmdb,
       token,
       base_media_url: "https://api.themoviedb.org/3".to_string(),
       image_config: Self::create_config(),
@@ -135,6 +137,7 @@ impl MediaProvider for TmdbProvider {
         Some(ApiSearchResult {
           core: MediaBase {
             media_type: self.media_type.clone(),
+            source: self.source.clone(),
             title: item["title"]
               .as_str()
               .or(item["name"].as_str())
@@ -284,6 +287,7 @@ impl MediaProvider for TmdbProvider {
 
     let base = MediaBase {
       media_type: self.media_type.clone(),
+      source: self.source.clone(),
       title: data["title"]
         .as_str()
         .or(data["name"].as_str())

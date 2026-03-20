@@ -4,6 +4,7 @@ use strum::IntoEnumIterator;
 use tauri::AppHandle;
 use tauri::Manager;
 
+use crate::models::enums::MediaSource;
 use crate::models::enums::match_collection_media_type;
 use crate::models::enums::CollectionLayout;
 use crate::models::enums::CollectionMediaType;
@@ -155,6 +156,9 @@ pub fn init_db(connection: &mut Connection) -> Result<()> {
       external_id INTEGER,
       media_type TEXT NOT NULL CHECK(
         media_type IN ('BOOK', 'MOVIE', 'SERIES', 'VIDEO_GAME', 'TABLETOP_GAME')
+      ),
+      source TEXT NOT NULL CHECK(
+        source IN ('MANUAL', 'TMDB', 'IGDB')
       ),
 
       poster_width INTEGER NOT NULL,
@@ -334,6 +338,7 @@ struct SeedMedia<'a> {
   id: &'a str,
   external_id: Option<u32>,
   media_type: MediaType,
+  source: MediaSource,
   title: &'a str,
   description: &'a str,
   image_width: u32,
@@ -360,6 +365,7 @@ impl<'a> Default for SeedMedia<'a> {
       id: "0",
       external_id: None,
       media_type: MediaType::Series,
+      source: MediaSource::Manual,
       title: "Sans titre",
       description: "",
       image_width: 1280,
@@ -490,12 +496,13 @@ pub fn seed_data(connection: &mut Connection) -> Result<()> {
 
     // insert in parent table Media
     tx.execute(
-      "INSERT INTO media (id, external_id, media_type, poster_width, poster_height, title, description, release_date, added_date, status, favorite, notes, score, has_poster, has_backdrop)
-        VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12, ?13, ?14, ?15)",
+      "INSERT INTO media (id, external_id, media_type, source, poster_width, poster_height, title, description, release_date, added_date, status, favorite, notes, score, has_poster, has_backdrop)
+        VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12, ?13, ?14, ?15, ?16)",
       params![
         m.id,
         m.external_id,
         media_type_str,
+        m.source.to_string(),
         m.image_width,
         m.image_height,
         m.title,
@@ -765,6 +772,7 @@ fn seed_media_data() -> Vec<SeedMedia<'static>> {
       id: "1",
       external_id: Some(438631),
       media_type: MediaType::Movie,
+      source: MediaSource::Tmdb,
       title: "Dune : Première partie",
       description: "L'histoire de Paul Atreides...",
       release_date: "2021-09-15",
@@ -1242,6 +1250,7 @@ fn seed_media_data() -> Vec<SeedMedia<'static>> {
       id: "14593",
       external_id: Some(14593),
       media_type: MediaType::VideoGame,
+      source: MediaSource::Igdb,
       title: "Hollow Knight",
       description: "A 2D metroidvania with an emphasis on close combat and exploration in which the player enters the once-prosperous now-bleak insect kingdom of Hallownest, travels through its various districts, meets friendly inhabitants, fights hostile ones and uncovers the kingdom's history while improving their combat abilities and movement arsenal by fighting bosses and accessing out-of-the-way areas.",
       has_backdrop: 1,
@@ -1262,6 +1271,7 @@ fn seed_media_data() -> Vec<SeedMedia<'static>> {
       id: "14761",
       external_id: Some(14761),
       media_type: MediaType::VideoGame,
+      source: MediaSource::Igdb,
       title: "Rain World",
       description: "Rain World is a survival platformer set in an abandoned industrial environment ravaged by a shattered ecosystem. Bone-crushingly intense rains pound the surface, making life as we know it almost impossible. The creatures in this world hibernate most of the time, but in the few brief dry periods they go out in search of food",
       has_backdrop: 1,
@@ -1282,6 +1292,7 @@ fn seed_media_data() -> Vec<SeedMedia<'static>> {
       id: "191435",
       external_id: Some(191435),
       media_type: MediaType::VideoGame,
+      source: MediaSource::Igdb,
       title: "Animal Well",
       description: "What lurks beneath the surface of this deceptively minimalistic adventure? In Animal Well there is more than what you see. Explore a dense interconnected labyrinth, and unravel its many secrets. Collect items to manipulate your environment in surprising and meaningful ways. Encounter creatures both beautiful and unsettling, and try to survive what lurks in the dark",
       has_backdrop: 1,

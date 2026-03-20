@@ -41,7 +41,7 @@ export class SearchPageComponent {
     this.refreshInternetData$.pipe(
       debounceTime(300)
     ).subscribe(() => {
-      this.loadInternetData();
+      this.loadApiData();
     });
 
     this.refreshLibraryData$.pipe(
@@ -73,7 +73,7 @@ export class SearchPageComponent {
     );
   }
 
-  private async loadInternetData() {
+  private async loadApiData() {
     this.isLoading.set(true);
     try {
       const results = await this.apiService.search(this.searchQuery(), this.mediaType());

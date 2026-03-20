@@ -70,6 +70,16 @@ pub enum ScoreDisplayMode {
 #[serde(rename_all = "SCREAMING_SNAKE_CASE")]
 #[derive(strum::Display, strum::EnumString)]
 #[strum(serialize_all = "SCREAMING_SNAKE_CASE")]
+pub enum MediaSource {
+  Manual,
+  Tmdb,
+  Igdb,
+}
+
+#[derive(Debug, Serialize, Deserialize, PartialEq, Clone, EnumIter, Hash, Eq)]
+#[serde(rename_all = "SCREAMING_SNAKE_CASE")]
+#[derive(strum::Display, strum::EnumString)]
+#[strum(serialize_all = "SCREAMING_SNAKE_CASE")]
 #[derive(Default)]
 pub enum MediaType {
   Book,
@@ -238,6 +248,14 @@ pub enum MetadataType {
 /* Convertion */
 
 // convert SQL TEXT -> Enums
+pub fn match_media_source(s: &str) -> MediaSource {
+  match s {
+    "MANUAL" => MediaSource::Manual,
+    "TMDB" => MediaSource::Tmdb,
+    "IGDB" => MediaSource::Igdb,
+    _ => todo!(),
+  }
+}
 pub fn match_media_type(s: &str) -> MediaType {
   match s {
     "BOOK" => MediaType::Book,

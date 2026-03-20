@@ -10,7 +10,7 @@
         class="image"
       >
         <app-media-image 
-          [source]="media.posterPath | externalImagePath: media.mediaType : ImageType.POSTER : ImageSize.SMALL"
+          [source]="media.posterPath | externalImagePath: media.mediaType : media.source : ImageType.POSTER : ImageSize.SMALL"
           [title]="media.title" 
           [type]="'poster'" 
           [hasImage]="hasPoster()"

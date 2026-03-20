@@ -10,7 +10,7 @@
         class="image"
       >
         <app-media-image 
-          [source]="(media.id | localImagePath: media.mediaType : ImageType.POSTER : ImageSize.SMALL) | async"
+          [source]="(media.id | localImagePath: media.mediaType : media.source : ImageType.POSTER : ImageSize.SMALL) | async"
           [title]="media.title" 
           [type]="'poster'" 
           [hasImage]="media.hasPoster"

@@ -6,8 +6,8 @@ use tauri::{Emitter, Manager};
 use crate::api::provider::ProviderStore;
 use crate::db::DbState;
 use crate::models::enums::{
-  match_media_status, match_media_type, match_tag_type, CollectionMediaType, CollectionType,
-  MediaOrderField, MediaStatus, MediaType, TagType,
+  match_media_source, match_media_status, match_media_type, match_tag_type, CollectionMediaType,
+  CollectionType, MediaOrderField, MediaStatus, MediaType, TagType,
 };
 use crate::models::media::{
   ApiEntityRelation, ApiMedia, LibraryEntityRelation, LibraryMedia, LibraryMediaRelations,
@@ -21,28 +21,31 @@ use crate::utils::image::{delete_media_files, download_assets};
 pub fn map_row_to_media(row: &rusqlite::Row) -> rusqlite::Result<LibraryMedia> {
   let type_str: String = row.get(2)?;
   let media_type = match_media_type(&type_str);
+  let source_str: String = row.get(3)?;
+  let media_source = match_media_source(&source_str);
 
   // build base
   let base = MediaBase {
     media_type: media_type.clone(),
-    title: row.get(5)?,
-    description: row.get(6)?,
-    release_date: row.get(7)?,
+    source: media_source,
+    title: row.get(6)?,
+    description: row.get(7)?,
+    release_date: row.get(8)?,
   };
 
   // build state
   let state = LibraryState {
     id: row.get(0)?,
     external_id: row.get(1)?,
-    added_date: row.get(8)?,
-    status: match_media_status(&row.get::<_, String>(9)?),
-    favorite: row.get::<_, i32>(10)? == 1,
-    notes: row.get(11)?,
-    score: row.get(12)?,
-    has_poster: row.get::<_, i32>(13)? == 1,
-    has_backdrop: row.get::<_, i32>(14)? == 1,
-    poster_width: row.get(3)?,
-    poster_height: row.get(4)?,
+    added_date: row.get(9)?,
+    status: match_media_status(&row.get::<_, String>(10)?),
+    favorite: row.get::<_, i32>(11)? == 1,
+    notes: row.get(12)?,
+    score: row.get(13)?,
+    has_poster: row.get::<_, i32>(14)? == 1,
+    has_backdrop: row.get::<_, i32>(15)? == 1,
+    poster_width: row.get(4)?,
+    poster_height: row.get(5)?,
   };
 
   // init extension
@@ -770,7 +773,7 @@ pub async fn update_media_data(
 ) -> Result<(), String> {
   let provider_store = app.state::<ProviderStore>();
   let provider = provider_store
-    .get(&api_media.data.base.media_type)
+    .get(&api_media.data.base.media_type, &api_media.data.base.source)
     .ok_or_else(|| "Failed to retrieve provider".to_string())?;
 
   let assets = download_assets(
@@ -886,12 +889,13 @@ pub fn insert_external_media(
 
   // insert in parent media table
   tx.execute(
-    "INSERT INTO media (id, external_id, media_type, poster_width, poster_height, title, description, release_date, added_date, status, favorite, notes, has_poster, has_backdrop)
-      VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12, ?13, ?14)",
+    "INSERT INTO media (id, external_id, media_type, source, poster_width, poster_height, title, description, release_date, added_date, status, favorite, notes, has_poster, has_backdrop)
+      VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12, ?13, ?14, ?15)",
     params![
       media_uuid,
       external_id,
       base.media_type.to_string(),
+      base.source.to_string(),
       poster_width,
       poster_height,
       base.title,
@@ -1011,7 +1015,7 @@ pub async fn add_media_to_library(
 ) -> Result<String, String> {
   let provider_store = app.state::<ProviderStore>();
   let provider = provider_store
-    .get(&api_media.data.base.media_type)
+    .get(&api_media.data.base.media_type, &api_media.data.base.source)
     .ok_or_else(|| "Failed to retrieve provider".to_string())?;
 
   let media_uuid = uuid::Uuid::new_v4().to_string();

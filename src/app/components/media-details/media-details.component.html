@@ -205,10 +205,10 @@
     </div>
 
     <!-- secondary info -->
-    @switch (media.mediaType) {
-      <!-- tags for video games -->
-      @case (MediaType.VIDEO_GAME) {
-        <div class="secondary-container">
+    <div class="secondary-container">
+      @switch (media.mediaType) {
+        <!-- tags for video games -->
+        @case (MediaType.VIDEO_GAME) {
           <div class="secondary-content">
             <ng-template #tagSection let-type="type" let-label="label">
               @let categoryTags = media.tags[asTagType(type)];
@@ -273,13 +273,11 @@
               </div>
             </div>
           }
-        </div>
-      }
-      @default {
-        @let hasCast = media.cast && (media.cast | keyvalue).length > 0;
-        @let hasCompanies = media.companies && (media.companies | keyvalue).length > 0;
-        @if (hasCast || hasCompanies) {
-          <div class="secondary-container">
+        }
+        @default {
+          @let hasCast = media.cast && (media.cast | keyvalue).length > 0;
+          @let hasCompanies = media.companies && (media.companies | keyvalue).length > 0;
+          @if (hasCast || hasCompanies) {
             <div class="secondary-content">
 
               <!-- cast (Movie & Series) -->
@@ -344,10 +342,18 @@
                 </div>
               }
             </div>
-          </div>
+          }
         }
       }
-    }
+      @if (!isLibraryMedia(media)) {
+        <div class="secondary-separator-container">
+          <hr class="secondary-separator">
+        </div>
+        <div class="secondary-content footer">
+          <ng-container *ngTemplateOutlet="footer;"></ng-container>
+        </div>
+      }
+    </div>
 
     <!-- notes -->
     @if (isLibraryMedia(media)) {
@@ -373,12 +379,22 @@
     }
 
     <!-- tertiary info -->
-    <div class="tertiary-content">
+    <ng-template #footer>
       @if (isLibraryMedia(media)) {
         <p class="text">Added to library on the {{ media.addedDate | date:'mediumDate' }}</p>
       }
-      <!-- finished-date, ... -->
-    </div>
+      @if (media.source === 'MANUAL') {
+        <p class="text">Data added manually</p>
+      }
+      @else {
+        <p class="text">Data provided by {{ media.source }}</p>
+      }
+    </ng-template>
+    @if (isLibraryMedia(media)) { 
+      <div class="tertiary-content" [class.library]="isLibraryMedia(media)">
+        <ng-container *ngTemplateOutlet="footer;"></ng-container>
+      </div>
+    }
 
     @if (hasPoster() && isLightboxOpen()) {
       <app-poster-lightbox 

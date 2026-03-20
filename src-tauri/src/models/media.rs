@@ -2,7 +2,10 @@ use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 
 use super::enums::{MediaStatus, MediaType};
-use crate::models::{enums::TagType, metadata::Tag};
+use crate::models::{
+  enums::{MediaSource, TagType},
+  metadata::Tag,
+};
 
 /* ****** Relation ****** */
 
@@ -45,6 +48,7 @@ pub struct ApiMediaRelations {
 #[serde(rename_all = "camelCase")]
 pub struct MediaBase {
   pub media_type: MediaType,
+  pub source: MediaSource,
   pub title: String,
   pub release_date: String,
   pub description: String,

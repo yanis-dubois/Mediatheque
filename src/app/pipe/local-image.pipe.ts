@@ -1,6 +1,6 @@
 import { Pipe, PipeTransform, inject } from '@angular/core';
 import { ImageSize, ImageType } from '@app/models/image.model';
-import { MediaType } from '@app/models/media.model';
+import { MediaSource, MediaType } from '@app/models/media.model';
 import { ImageService } from '@app/services/image.service';
 
 @Pipe({
@@ -12,11 +12,12 @@ export class LocalImagePathPipe implements PipeTransform {
 
   async transform(
     id: string | undefined,
-    source: MediaType,
+    mediaType: MediaType,
+    source: MediaSource,
     type: ImageType,
     size: ImageSize
   ): Promise<string | null> {
     if (!id) return '';
-    return await this.imageService.resolveLocalUrl(id, source, type, size);
+    return await this.imageService.resolveLocalUrl(id, mediaType, source, type, size);
   }
 }

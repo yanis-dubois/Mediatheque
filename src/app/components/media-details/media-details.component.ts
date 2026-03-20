@@ -79,13 +79,14 @@ export class MediaDetailsComponent {
 
     // local image
     if (isLibraryMedia(media)) {
-      return await this.localImagePath.transform(media.id, media.mediaType, type, size);
+      return await this.localImagePath.transform(media.id, media.mediaType, media.source, type, size);
     }
 
     // external image
     return this.externalImagePath.transform(
       isPoster ? media.posterPath : media.backdropPath,
-      media.mediaType, 
+      media.mediaType,
+      media.source, 
       type,
       size
     );
@@ -111,7 +112,6 @@ export class MediaDetailsComponent {
       const media = this.media();
       this.loadData();
       const posterSize = this.imageService.getRecommendedSize('detail');
-      console.log("poster size : ", posterSize);
 
       if (media) {
         this.originalPosterUrl.set(

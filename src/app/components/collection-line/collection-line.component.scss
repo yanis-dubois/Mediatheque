@@ -145,14 +145,14 @@
         transform: rotate(180deg);
       }
       &::before {
-        background: linear-gradient(to right, rgba(0,0,0,0.8) 25%, transparent);
+        background: linear-gradient(to right, rgba(0,0,0,0.6) 25%, transparent 100%);
       }
     }
 
     &.right { 
       right: 0;
       &::before {
-        background: linear-gradient(to left, rgba(0,0,0,0.8) 25%, transparent);
+        background: linear-gradient(to left, rgba(0,0,0,0.6) 25%, transparent 100%);
       }
     }
 
