@@ -1,12 +1,19 @@
 @let src = source();
 @let hasImg = hasImage();
 
-@if (hasImg && src) {
-  <img 
-    [src]="src" 
-    [alt]="title()"
-    [style]="customStyle()"
-  >
+@if (hasImg) {
+  @if (src) {
+    <img 
+      [src]="src" 
+      [alt]="title()"
+      [style]="customStyle()"
+    >
+  } @else {
+    <div 
+      class="skeleton-card"
+      [style]="customStyle()"
+    ></div>
+  }
 } @else {
   <app-default-image 
     [type]="type()" 

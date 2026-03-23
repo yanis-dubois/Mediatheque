@@ -17,14 +17,14 @@ import { ExternalImagePathPipe } from "../../pipe/external-image.pipe";
 })
 export class ApiSearchRowComponent {
   imageService = inject(ImageService);
-  entity = input.required<ApiSearchResult>();
+  entity = input.required<(ApiSearchResult | undefined)>();
   height = input.required<number>();
   width = input.required<number>();
   isMenuOpen = input.required<boolean>();
 
   hasPoster = computed(() => {
     const media = this.entity();
-    if (media.posterPath) return true;
+    if (media && media.posterPath) return true;
     return false;
   });
 

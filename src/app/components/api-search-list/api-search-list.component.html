@@ -2,12 +2,13 @@
   [items]="enrichedData()"
   [itemHeight]="containerHeight()"
   (windowResize)="updateDimensions()" 
+  (endReached)="endReached.emit()"
 >
   <ng-template #rowRef let-item let-index="index">
     @if (item; as result) {
       @let route = result.isInLibrary && result.id
         ? ['/search/media', result.id]
-        : ['/search/media', 'api', result.mediaType, result.externalId, hasBeenAdded()];
+        : ['/search/media', result.externalId, result.mediaType, result.source, hasBeenAdded()];
       <a [routerLink]="route">
         <app-api-search-row 
           [entity]="result" 
@@ -23,6 +24,14 @@
           ></app-api-search-action>
         </app-api-search-row>
       </a>
+    } @else {
+      <app-api-search-row 
+        [entity]="undefined" 
+        [width]="containerWidth()" 
+        [height]="containerHeight()"
+        [isMenuOpen]="false"
+      >
+      </app-api-search-row>
     }
   </ng-template>
 </app-generic-list>

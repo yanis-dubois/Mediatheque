@@ -62,7 +62,12 @@ pub trait MediaProvider: Send + Sync {
   where
     Self: Sized;
   fn get_image_config(&self) -> &ImageConfiguration;
-  async fn search(&self, query: &str, language: Language) -> Result<Vec<ApiSearchResult>, String>;
+  async fn search(
+    &self,
+    query: &str,
+    language: Language,
+    page: u32,
+  ) -> Result<Vec<ApiSearchResult>, String>;
   async fn get_by_id(&self, external_id: u32, language: Language) -> Result<ApiMedia, String>;
 
   fn get_image_url(&self, path: &str, image_type: ImageType, size: ImageSize) -> String {

@@ -18,8 +18,12 @@ export class GenericListComponent<T> {
   itemHeight = input.required<number>();
   listPadding = signal<number>(8);
 
+  isCooldown = signal(false);
+  private COOLDOWN_TIME = 500;
+
   visibleItemsChanged = output<T[]>();
   windowResize = output();
+  endReached = output<void>();
 
   private el = inject(ElementRef);
   private destroyRef = inject(DestroyRef);
@@ -31,12 +35,31 @@ export class GenericListComponent<T> {
     getScrollElement: () => this.scrollElement?.nativeElement || null,
     estimateSize: () => this.itemHeight() + (this.listPadding()*2),
     overscan: 5,
+    paddingEnd: 2 * (this.itemHeight() + (this.listPadding()*2)),
     onChange: (instance) => {
       if (this.isDestroyed) return;
-      const visible = instance.getVirtualItems().map(v => this.items()[v.index]);
+
+      const virtualItems = instance.getVirtualItems();
+      if (virtualItems.length === 0) return;
+
+      const lastItemIndex = virtualItems[virtualItems.length - 1].index;
+      if (lastItemIndex >= this.items().length - 1) {
+        this.triggerCooldown();
+      }
+
+      const visible = virtualItems.map(v => this.items()[v.index]);
       this.visibleItemsChanged.emit(visible);
     }
   }));
+
+  private triggerCooldown() {
+    this.isCooldown.set(true);
+
+    setTimeout(() => {
+      this.endReached.emit();
+      this.isCooldown.set(false);
+    }, this.COOLDOWN_TIME);
+  }
 
   constructor() {
     effect(() => {

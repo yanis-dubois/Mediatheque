@@ -2,7 +2,7 @@ import { inject, Injectable } from '@angular/core';
 
 import { invoke } from '@tauri-apps/api/core';
 
-import { LibraryMedia, ApiMedia, MediaStatus, MediaType } from '@models/media.model';
+import { LibraryMedia, ApiMedia, MediaStatus, MediaType, MediaSource } from '@models/media.model';
 import { EntityService } from './entity.service';
 import { EntityType } from '@app/models/entity.model';
 import { Language } from '@app/models/settings.model';
@@ -25,14 +25,6 @@ export class MediaService {
   }
 
   /* get media */
-
-  async getApiMediaById(externalId: string, mediaType: MediaType, language: Language): Promise<ApiMedia> {
-    const idAsInt = parseInt(externalId, 10);
-    if (isNaN(idAsInt)) {
-      throw new Error(`Invalid externalId: ${externalId} is not a number`);
-    }
-    return await invoke<ApiMedia>('get_api_media_by_id', { externalId: idAsInt, mediaType, language });
-  }
 
   async getById(id: string): Promise<LibraryMedia> {
     const media = await invoke<LibraryMedia>('get_media_by_id', { id });
@@ -68,12 +60,13 @@ export class MediaService {
     this.updateCache(id, { score: score } );
   }
 
-  async refreshMediaData(id: string, externalId: number, mediaType: MediaType): Promise<void> {
+  async refreshMediaData(id: string, externalId: number, mediaType: MediaType, mediaSource: MediaSource): Promise<void> {
     this.entityService.removeEntity(EntityType.MEDIA, id);
     await invoke<void>('refresh_media_data_from_internet', { 
       id,
       externalId, 
       mediaType, 
+      mediaSource,
       language: this.settingsService.language(),
     });
     this.entityService.getMedia(id, true);

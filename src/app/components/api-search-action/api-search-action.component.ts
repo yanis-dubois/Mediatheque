@@ -43,7 +43,7 @@ export class ApiSearchActionComponent {
         this.onAdded.emit(id);
       } 
       else {
-        await this.apiService.addMedia(data.externalId, data.mediaType);
+        await this.apiService.addMedia(data.externalId, data.mediaType, data.source);
       }
     } catch (e) {
       console.error("Error while adding media", e);

@@ -1,4 +1,4 @@
-import { Component, ContentChild, effect, ElementRef, inject, input, signal, TemplateRef } from '@angular/core';
+import { Component, ContentChild, effect, ElementRef, inject, input, output, signal, TemplateRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 
@@ -18,8 +18,8 @@ import { EntityService } from '@app/services/entity.service';
 export class ApiSearchListComponent {
   @ContentChild('rowRef') rowTemplate!: TemplateRef<any>;
 
-  layoutData = input.required<ApiSearchResult[]>();
-  enrichedData = signal<ApiSearchResult[]>([]);
+  layoutData = input.required<(ApiSearchResult)[]>();
+  enrichedData = signal<(ApiSearchResult)[]>([]);
 
   private el = inject(ElementRef);
   private entityService = inject(EntityService);
@@ -29,6 +29,8 @@ export class ApiSearchListComponent {
   containerWidth = signal(100);
   gap = signal(8);
   hasBeenAdded = signal<boolean>(false);
+
+  endReached = output<void>();
 
   constructor() {
     effect(() => {
@@ -52,7 +54,8 @@ export class ApiSearchListComponent {
       this.entityService.mediaInserted$.subscribe((media) => {
         this.enrichedData.update(items => 
           items.map(item => {
-            if (item.externalId.toString() === media.externalId?.toString()) {
+
+            if (item && item.externalId.toString() === media.externalId?.toString()) {
               return { ...item, id: media.id, isInLibrary: true };
             }
             return item;

@@ -136,7 +136,7 @@ export class MediaActionComponent {
     if (!media || !media.externalId) return;
 
     await this.mediaService.refreshMediaData(
-      media.id, media.externalId, media.mediaType
+      media.id, media.externalId, media.mediaType, media.source
     );
   }
 

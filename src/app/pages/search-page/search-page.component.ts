@@ -31,8 +31,10 @@ export class SearchPageComponent {
   layoutData = signal<[string, EntityType][]>([]);
 
   private refreshInternetData$ = new Subject<void>();
-  apiResults = signal<ApiSearchResult[]>([]);
+  apiResults = signal<(ApiSearchResult)[]>([]);
   isLoading = signal<boolean>(false);
+  currentPage = signal<number>(1);
+  canLoadMore = signal<boolean>(true);
 
   constructor(
     private entityService: EntityService,
@@ -73,13 +75,50 @@ export class SearchPageComponent {
     );
   }
 
-  private async loadApiData() {
+  private async loadApiData(isNextPage = false) {
     this.isLoading.set(true);
+
+    if (!isNextPage) {
+      this.currentPage.set(1);
+      this.canLoadMore.set(true);
+    }
+
     try {
-      const results = await this.apiService.search(this.searchQuery(), this.mediaType());
-      this.apiResults.set(results);
+      let newResults = await this.apiService.search(
+        this.searchQuery(), 
+        this.mediaType(), 
+        this.currentPage()
+      );
+
+      if (newResults.length < 20) {
+        this.canLoadMore.set(false);
+      }
+
+      // add loading item to the end of results
+      if (this.canLoadMore()) {
+        newResults.push(undefined as any);
+      }
+
+      this.apiResults.update(current => {
+        // delete loading item
+        const base = current.filter(item => item !== undefined);
+
+        // fill results
+        if (isNextPage) {
+          return [...base, ...newResults];
+        }
+        // change result
+        return newResults;
+      });
     } finally {
       this.isLoading.set(false);
+    }
+  }
+
+  onScroll() {
+    if (!this.isLoading() && this.mode() === 'internet' && this.canLoadMore()) {
+      this.currentPage.update(p => p + 1);
+      this.loadApiData(true);
     }
   }
 

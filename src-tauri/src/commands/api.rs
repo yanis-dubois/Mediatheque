@@ -10,7 +10,7 @@ use crate::{
   },
   db::DbState,
   models::{
-    enums::{Language, MediaType},
+    enums::{Language, MediaSource, MediaType},
     image::ImageConfiguration,
     media::{ApiMedia, ApiSearchResult},
   },
@@ -38,12 +38,13 @@ pub async fn search_media_on_internet(
   query: String,
   media_type: MediaType,
   language: Language,
+  page: u32,
 ) -> Result<Vec<ApiSearchResult>, String> {
   // get API results
   let provider = provider_store
     .get_default(&media_type)
     .ok_or_else(|| "Failed to retrieve provider".to_string())?;
-  let mut results = provider.search(&query, language).await?;
+  let mut results = provider.search(&query, language, page).await?;
 
   // check if results are already in library
   let ids: Vec<u32> = results.iter().map(|r| r.state.external_id).collect();
@@ -62,11 +63,12 @@ async fn get_api_media(
   provider_store: &tauri::State<'_, ProviderStore>,
   external_id: u32,
   media_type: &MediaType,
+  media_source: &MediaSource,
   language: Language,
 ) -> Result<ApiMedia, String> {
   // get API results
   let provider = provider_store
-    .get_default(&media_type)
+    .get(&media_type, &media_source)
     .ok_or_else(|| "Failed to retrieve provider".to_string())?;
   provider.get_by_id(external_id, language).await
 }
@@ -77,10 +79,18 @@ pub async fn get_api_media_by_id(
   provider_store: tauri::State<'_, ProviderStore>,
   external_id: u32,
   media_type: MediaType,
+  media_source: MediaSource,
   language: Language,
 ) -> Result<ApiMedia, String> {
   // get API results
-  let mut result = get_api_media(&provider_store, external_id, &media_type, language).await?;
+  let mut result = get_api_media(
+    &provider_store,
+    external_id,
+    &media_type,
+    &media_source,
+    language,
+  )
+  .await?;
 
   // check if result is already in library
   let local_id = get_local_id_by_external(&db_state, external_id, &media_type);
@@ -95,12 +105,14 @@ pub async fn add_media_from_internet(
   app: tauri::AppHandle,
   external_id: u32,
   media_type: MediaType,
+  media_source: MediaSource,
   language: Language,
 ) -> Result<String, String> {
   let api_media = get_api_media(
     &app.state::<ProviderStore>(),
     external_id,
     &media_type,
+    &media_source,
     language,
   )
   .await?;
@@ -114,12 +126,14 @@ pub async fn refresh_media_data_from_internet(
   id: String,
   external_id: u32,
   media_type: MediaType,
+  media_source: MediaSource,
   language: Language,
 ) -> Result<(), String> {
   let api_media = get_api_media(
     &app.state::<ProviderStore>(),
     external_id,
     &media_type,
+    &media_source,
     language,
   )
   .await?;

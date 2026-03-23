@@ -1,5 +1,5 @@
 import { APP_INITIALIZER, ApplicationConfig } from "@angular/core";
-import { provideRouter } from "@angular/router";
+import { provideRouter, withInMemoryScrolling } from "@angular/router";
 import { provideAnimations } from '@angular/platform-browser/animations';
 
 import { routes } from "@app/app.routes";
@@ -20,7 +20,13 @@ function initializeApp(fileService: FileService, settingsService: SettingsServic
 
 export const appConfig: ApplicationConfig = {
   providers: [
-    provideRouter(routes),
+    provideRouter(
+      routes, 
+      withInMemoryScrolling({
+        scrollPositionRestoration: 'top',
+        anchorScrolling: 'enabled',
+      })
+    ),
     {
       provide: APP_INITIALIZER,
       useFactory: initializeApp,

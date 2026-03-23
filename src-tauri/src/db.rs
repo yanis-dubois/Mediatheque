@@ -552,6 +552,7 @@ pub fn seed_data(connection: &mut Connection) -> Result<()> {
       seed_tag(&tx, &m.id, details.game_mechanics, "GAME_MECHANIC")?;
       seed_tag(&tx, &m.id, details.series, "SAGA")?;
       seed_tag(&tx, &m.id, details.themes, "GENRE")?;
+      seed_tag(&tx, &m.id, vec!["Released"], "RELEASE_STATUS")?;
     }
     // tabletop game
     else if let Some(details) = m.tabletop_game_details {

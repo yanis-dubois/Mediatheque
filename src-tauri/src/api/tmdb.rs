@@ -104,16 +104,22 @@ impl MediaProvider for TmdbProvider {
     &self.image_config
   }
 
-  async fn search(&self, query: &str, language: Language) -> Result<Vec<ApiSearchResult>, String> {
+  async fn search(
+    &self,
+    query: &str,
+    language: Language,
+    page: u32,
+  ) -> Result<Vec<ApiSearchResult>, String> {
     // build url
     let endpoint = get_endpoint_from_media_type(self.media_type.clone());
     let formatted_language = format_language(language);
     let url = format!(
-      "{}/search/{}?query={}&language={}",
+      "{}/search/{}?query={}&language={}&page={}",
       self.base_media_url,
       endpoint,
       urlencoding::encode(query),
-      formatted_language
+      formatted_language,
+      page
     );
 
     // get row data

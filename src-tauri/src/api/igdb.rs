@@ -128,6 +128,7 @@ pub struct IgdbProvider {
   pub client_id: String,
   pub base_media_url: String,
   pub image_config: ImageConfiguration,
+  pub page_size: u32,
 }
 
 impl IgdbProvider {
@@ -142,6 +143,7 @@ impl IgdbProvider {
       client_id,
       base_media_url: "https://api.igdb.com/v4".to_string(),
       image_config: Self::create_config(),
+      page_size: 20,
     }
   }
 }
@@ -175,15 +177,20 @@ impl MediaProvider for IgdbProvider {
     &self.image_config
   }
 
-  async fn search(&self, query: &str, _language: Language) -> Result<Vec<ApiSearchResult>, String> {
+  async fn search(
+    &self,
+    query: &str,
+    language: Language,
+    page: u32,
+  ) -> Result<Vec<ApiSearchResult>, String> {
     // build request
     let url = format!("{}/games", self.base_media_url);
     let body = format!(
       "search \"{}\"; 
       fields name, summary, first_release_date, cover.image_id, artworks.image_id, artworks.artwork_type, artworks.height, artworks.width, screenshots.image_id, game_type.type; 
       where game_type = (0, 8, 9);
-      limit 20;",
-      query
+      limit {}; offset {};",
+      query, self.page_size, page*self.page_size
     );
 
     // get response

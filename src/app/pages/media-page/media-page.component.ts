@@ -4,14 +4,13 @@ import { Router, ActivatedRoute } from '@angular/router';
 
 import { ActionBarComponent } from '@components/action-bar/action-bar.component';
 import { MediaDetailsComponent } from '@components/media-details/media-details.component';
-import { MediaService } from '@app/services/media.service';
-import { ApiMedia, isLibraryMedia, MediaType } from '@app/models/media.model';
-import { SettingsService } from '@app/services/settings.service';
+import { ApiMedia, isLibraryMedia, MediaSource, MediaType } from '@app/models/media.model';
 import { MediaActionComponent } from "@app/components/media-action/media-action.component";
 import { DropdownComponent } from "@app/components/dropdown/dropdown.component";
 import { ApiSearchActionComponent } from "@app/components/api-search-action/api-search-action.component";
 import { EntityService } from '@app/services/entity.service';
 import { Subscription } from 'rxjs';
+import { ApiService } from '@app/services/api.service';
 
 @Component({
   selector: 'app-media-page',
@@ -41,8 +40,7 @@ export class MediaPageComponent {
   constructor(
     private route: ActivatedRoute,
     private router: Router,
-    private mediaService: MediaService,
-    private settingsService: SettingsService,
+    private apiService: ApiService,
     private entityService: EntityService
   ) {}
 
@@ -66,8 +64,8 @@ export class MediaPageComponent {
   }
 
   async ngOnInit() {
-    const source = this.route.snapshot.paramMap.get('source');
     const type = this.route.snapshot.paramMap.get('type');
+    const source = this.route.snapshot.paramMap.get('source');
     const isInLibrary_str = this.route.snapshot.paramMap.get('isInLibrary');
     const id = this.route.snapshot.paramMap.get('id');
 
@@ -79,10 +77,11 @@ export class MediaPageComponent {
     }
 
     // load from api
-    if (source && source === 'api' && type) {
+    if (source && type) {
       this.externalId = id;
       const mediaType = type as MediaType;
-      const apiMedia = await this.mediaService.getApiMediaById(id, mediaType, this.settingsService.language());
+      const apiSource = source as MediaSource;
+      const apiMedia = await this.apiService.getById(id, mediaType, apiSource);
       this.apiMedia.set({...apiMedia, isInLibrary: isInLibrary});
     }
     // load from DB 
