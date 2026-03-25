@@ -80,7 +80,7 @@ fn get_title_extended_by_type(name: String, game_type: Option<IgdbGameType>) -> 
 
 fn get_company_relation(company: &IgdbInvolvedCompany) -> ApiEntityRelation {
   let mut role = Vec::new();
-  let mut order: u32 = 0;
+  let mut order: u32 = 999;
 
   if company.publisher {
     role.push("PUBLISHER".to_string());
@@ -173,14 +173,36 @@ impl MediaProvider for IgdbProvider {
     }
   }
 
+  fn supports_native_lods(&self) -> bool {
+    true
+  }
+
   fn get_image_config(&self) -> &ImageConfiguration {
     &self.image_config
+  }
+
+  fn get_image_url(&self, path: &str, image_type: ImageType, size: ImageSize) -> String {
+    let config = self.get_image_config();
+
+    let size_str = config
+      .sizes
+      .get(&image_type)
+      .and_then(|type_sizes| type_sizes.get(&size))
+      .map(|s| s.as_str())
+      .unwrap_or("original");
+
+    let clean_path = path.trim_start_matches('/');
+
+    format!(
+      "{}/{}/{}.{}",
+      config.base_url, size_str, clean_path, config.format
+    )
   }
 
   async fn search(
     &self,
     query: &str,
-    language: Language,
+    _language: Language,
     page: u32,
   ) -> Result<Vec<ApiSearchResult>, String> {
     // build request
@@ -275,9 +297,7 @@ impl MediaProvider for IgdbProvider {
       .find(|r| r.name == "game_details")
       .and_then(|r| r.result.get(0))
       .and_then(|v| serde_json::from_value(v.clone()).ok())
-      .ok_or_else(|| {
-        "Impossible de trouver les détails du jeu (ID invalide ou erreur API)".to_string()
-      })?;
+      .ok_or_else(|| "Can't find game details (invalid ID or API error)".to_string())?;
 
     // get time_to_beat info (set default if not founded)
     let playing_time: IgdbTimeToBeat = raw_responses

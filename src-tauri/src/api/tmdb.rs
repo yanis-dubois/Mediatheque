@@ -100,8 +100,30 @@ impl MediaProvider for TmdbProvider {
     }
   }
 
+  fn supports_native_lods(&self) -> bool {
+    true
+  }
+
   fn get_image_config(&self) -> &ImageConfiguration {
     &self.image_config
+  }
+
+  fn get_image_url(&self, path: &str, image_type: ImageType, size: ImageSize) -> String {
+    let config = self.get_image_config();
+
+    let size_str = config
+      .sizes
+      .get(&image_type)
+      .and_then(|type_sizes| type_sizes.get(&size))
+      .map(|s| s.as_str())
+      .unwrap_or("original");
+
+    let clean_path = path.trim_start_matches('/');
+
+    format!(
+      "{}/{}/{}.{}",
+      config.base_url, size_str, clean_path, config.format
+    )
   }
 
   async fn search(
@@ -284,8 +306,8 @@ impl MediaProvider for TmdbProvider {
     if let Some(collection) = data["belongs_to_collection"].as_object() {
       let raw_name = collection["name"].as_str().unwrap_or("");
       let saga_name = raw_name
-        .replace(" Collection", " Saga")
-        .replace(" collection", " Saga")
+        .replace(" Collection", "")
+        .replace(" collection", "")
         .trim()
         .to_string();
       tags.insert(TagType::Saga, vec![saga_name]);

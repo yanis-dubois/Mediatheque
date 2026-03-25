@@ -1,5 +1,6 @@
 use std::path::PathBuf;
 
+use image::ImageReader;
 use tauri::Manager;
 
 use crate::{
@@ -51,41 +52,135 @@ async fn download_image_lods(
     ("original", ImageSize::Original),
   ];
 
-  // create 'future' for each LoDs
-  let mut tasks = Vec::new();
-  for (folder_name, size_type) in variants {
-    let url = provider.get_image_url(api_path, image_type, size_type);
-    let dest =
-      base_target_dir
-        .join(folder_name)
-        .join(format!("{}.{}", id, provider.get_image_format()));
+  // download lods if available
+  if provider.supports_native_lods() {
+    // create 'future' for each LoDs
+    let mut tasks = Vec::new();
+    for (folder_name, size_type) in variants {
+      let url = provider.get_image_url(api_path, image_type, size_type);
+      let dest =
+        base_target_dir
+          .join(folder_name)
+          .join(format!("{}.{}", id, provider.get_image_format()));
 
-    tasks.push(async move {
-      download_file(&url, dest.clone())
-        .await
-        .map(|_| (size_type, dest))
-    });
-  }
+      tasks.push(async move {
+        download_file(&url, dest.clone())
+          .await
+          .map(|_| (size_type, dest))
+      });
+    }
 
-  // execute in parallel
-  let results = futures::future::join_all(tasks).await;
+    // download in parallel
+    let results = futures::future::join_all(tasks).await;
 
-  let mut dims = None;
-  let mut success = false;
+    let mut dims = None;
+    let mut success = false;
 
-  // treat results
-  for res in results {
-    let (size_type, dest) = res?;
-    success = true;
+    // treat results
+    for res in results {
+      let (size_type, dest) = res?;
+      success = true;
 
-    if extract_dims && matches!(size_type, ImageSize::Original) {
-      if let Ok(size) = imagesize::size(&dest) {
-        dims = Some((size.width as u32, size.height as u32));
+      if extract_dims && matches!(size_type, ImageSize::Original) {
+        if let Ok(size) = imagesize::size(&dest) {
+          dims = Some((size.width as u32, size.height as u32));
+        }
       }
     }
-  }
 
-  Ok((success, dims))
+    Ok((success, dims))
+  }
+  // generate lods if necessary
+  else {
+    // download in temp file
+    let format = provider.get_image_format();
+    let temp_path = base_target_dir.join(format!("temp_{}.{}", id, format));
+    let source_url = provider.get_image_url(api_path, image_type, ImageSize::Original);
+    download_file(&source_url, temp_path.clone()).await?;
+
+    // get image size
+    let img = ImageReader::open(&temp_path)
+      .map_err(|e| e.to_string())?
+      .decode()
+      .map_err(|e| e.to_string())?;
+    let width = img.width();
+    let height = img.height();
+
+    // define target directory
+    let original_dir = base_target_dir.join("original");
+    let medium_dir = base_target_dir.join("medium");
+    let small_dir = base_target_dir.join("small");
+    for dir in [&original_dir, &medium_dir, &small_dir] {
+      std::fs::create_dir_all(dir).map_err(|e| e.to_string())?;
+    }
+
+    let filename = format!("{}.{}", id, format);
+    let medium_width = if image_type == ImageType::Poster {
+      272
+    } else {
+      1280
+    };
+    let small_width = if image_type == ImageType::Poster {
+      92
+    } else {
+      384
+    };
+
+    let img_arc = std::sync::Arc::new(img);
+    let mut tasks = Vec::new();
+
+    // image is high resolution
+    if width > 2 * medium_width {
+      std::fs::rename(&temp_path, original_dir.join(&filename)).map_err(|e| e.to_string())?;
+
+      let img_m = img_arc.clone();
+      let path_m = medium_dir.join(&filename);
+      tasks.push(tokio::task::spawn_blocking(move || {
+        img_m
+          .resize(
+            medium_width,
+            u32::MAX,
+            image::imageops::FilterType::Lanczos3,
+          )
+          .save(path_m)
+          .map_err(|e| e.to_string())
+      }));
+
+      let img_s = img_arc.clone();
+      let path_s = small_dir.join(&filename);
+      tasks.push(tokio::task::spawn_blocking(move || {
+        img_s
+          .resize(small_width, u32::MAX, image::imageops::FilterType::Lanczos3)
+          .save(path_s)
+          .map_err(|e| e.to_string())
+      }));
+    }
+    // image is medium resolution
+    else if width > 2 * small_width {
+      std::fs::rename(&temp_path, medium_dir.join(&filename)).map_err(|e| e.to_string())?;
+
+      let img_s = img_arc.clone();
+      let path_s = small_dir.join(&filename);
+      tasks.push(tokio::task::spawn_blocking(move || {
+        img_s
+          .resize(small_width, u32::MAX, image::imageops::FilterType::Lanczos3)
+          .save(path_s)
+          .map_err(|e| e.to_string())
+      }));
+    }
+    // image is low resolution
+    else {
+      std::fs::rename(&temp_path, small_dir.join(&filename)).map_err(|e| e.to_string())?;
+    }
+
+    let dims = if extract_dims {
+      Some((width, height))
+    } else {
+      None
+    };
+
+    Ok((true, dims))
+  }
 }
 
 pub async fn download_assets(

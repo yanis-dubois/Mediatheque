@@ -2,7 +2,7 @@ import { Component, computed, effect, inject, input, signal } from '@angular/cor
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 
-import { DetailedMedia, isLibraryMedia, MediaStatus, MediaType, MovieExtension, SeriesExtension, sortEntityByOrder, TabletopGameExtension, TagType, VideoGameExtension } from '@models/media.model'
+import { BookExtension, DetailedMedia, isLibraryMedia, MediaStatus, MediaType, MovieExtension, SeriesExtension, sortEntityByOrder, TabletopGameExtension, TagType, VideoGameExtension } from '@models/media.model'
 
 import { MediaService } from '@services/media.service'
 import { ScoreDisplayComponent } from "@app/components/score-display/score-display.component";
@@ -149,6 +149,9 @@ export class MediaDetailsComponent {
   }
   asTabletopGame(m: DetailedMedia): TabletopGameExtension {
     return m as TabletopGameExtension;
+  }
+  asBook(m: DetailedMedia): BookExtension {
+    return m as BookExtension;
   }
   asTagType(t: any): TagType {
     return t as TagType;

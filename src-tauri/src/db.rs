@@ -158,7 +158,7 @@ pub fn init_db(connection: &mut Connection) -> Result<()> {
         media_type IN ('BOOK', 'MOVIE', 'SERIES', 'VIDEO_GAME', 'TABLETOP_GAME')
       ),
       source TEXT NOT NULL CHECK(
-        source IN ('MANUAL', 'TMDB', 'IGDB')
+        source IN ('MANUAL', 'TMDB', 'IGDB', 'HARDCOVER')
       ),
 
       poster_width INTEGER NOT NULL,
@@ -182,6 +182,15 @@ pub fn init_db(connection: &mut Connection) -> Result<()> {
     );
 
     -- Detailed Media
+
+    CREATE TABLE IF NOT EXISTS book (
+      media_id TEXT PRIMARY KEY,
+
+      pages INTEGER,
+      category TEXT,
+
+      FOREIGN KEY (media_id) REFERENCES media(id) ON DELETE CASCADE
+    );
 
     CREATE TABLE IF NOT EXISTS movie (
       media_id TEXT PRIMARY KEY,
@@ -357,6 +366,7 @@ struct SeedMedia<'a> {
   series_details: Option<SeedSeries<'a>>,
   video_game_details: Option<SeedVideoGame<'a>>,
   tabletop_game_details: Option<SeedTabletopGame<'a>>,
+  book_details: Option<SeedBook<'a>>,
 }
 
 impl<'a> Default for SeedMedia<'a> {
@@ -382,6 +392,7 @@ impl<'a> Default for SeedMedia<'a> {
       series_details: None,
       video_game_details: None,
       tabletop_game_details: None,
+      book_details: None,
     }
   }
 }
@@ -422,6 +433,14 @@ struct SeedTabletopGame<'a> {
   game_mechanics: Vec<&'a str>,
   player_count: &'a str,
   playing_time: &'a str,
+}
+
+#[derive(Default)]
+struct SeedBook<'a> {
+  artists: Vec<&'a str>,
+  genre: Vec<&'a str>,
+  pages: u32,
+  category: &'a str,
 }
 
 /* --------------------------- */
@@ -564,6 +583,15 @@ pub fn seed_data(connection: &mut Connection) -> Result<()> {
       seed_persons(&tx, &m.id, details.artists, "ARTIST")?;
       seed_companies(&tx, &m.id, details.publishers, "PUBLISHER")?;
       seed_game_mechanics(&tx, &m.id, details.game_mechanics)?;
+    }
+    // book
+    else if let Some(details) = m.book_details {
+      tx.execute(
+        "INSERT INTO book (media_id, pages, category) VALUES (?1, ?2, ?3)",
+        params![m.id, details.pages, details.category],
+      )?;
+      seed_persons(&tx, &m.id, details.artists, "AUTHOR")?;
+      seed_genres(&tx, &m.id, details.genre)?;
     }
   }
 
@@ -769,6 +797,30 @@ fn seed_collection(tx: &rusqlite::Transaction, c: SeedCollection) -> rusqlite::R
 
 fn seed_media_data() -> Vec<SeedMedia<'static>> {
   vec![
+    SeedMedia {
+      id: "312460",
+      external_id: Some(312460),
+      media_type: MediaType::Book,
+      source: MediaSource::Hardcover,
+      title: "Dune",
+      description: "L'histoire de Paul Atreides...",
+      release_date: "1965-09-15",
+      added_date: "2026-02-01",
+      status: MediaStatus::Finished,
+      favorite: 1,
+      notes: "Un classique",
+      has_poster: 0,
+      book_details: Some(SeedBook { 
+        artists: vec!["Frank Herbert"], 
+        genre: vec!["Science Fiction", "Adventure"], 
+        pages: 704, 
+        category: "Book"
+      }),
+      ..Default::default()
+    },
+
+
+
     SeedMedia {
       id: "1",
       external_id: Some(438631),

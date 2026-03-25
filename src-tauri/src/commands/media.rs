@@ -239,7 +239,16 @@ pub fn fill_media_extension(
         playing_time,
       };
     }
-    _ => media.data.extension = MediaExtension::None,
+    MediaType::Book => {
+      let (pages, category): (Option<u32>, Option<String>) = connection
+        .query_row(
+          "SELECT pages, category FROM book WHERE media_id = ?1",
+          [media_id],
+          |row| Ok((row.get(0)?, row.get(1)?)),
+        )
+        .unwrap_or((None, None));
+      media.data.extension = MediaExtension::Book { pages, category };
+    }
   }
 
   Ok(())
@@ -824,7 +833,7 @@ pub async fn update_media_data(
     .map_err(|e| e.to_string())?;
   insert_media_tags(&tx, &id, &relations.tags).map_err(|e| e.to_string())?;
 
-  // insert details
+  // update details
   match &api_media.data.extension {
     MediaExtension::Movie { duration } => {
       tx.execute(
@@ -858,6 +867,13 @@ pub async fn update_media_data(
       tx.execute(
         "REPLACE INTO tabletop_game (media_id, player_count, playing_time) VALUES (?1, ?2, ?3)",
         params![id, player_count, playing_time],
+      )
+      .map_err(|e| e.to_string())?;
+    }
+    MediaExtension::Book { pages, category } => {
+      tx.execute(
+        "REPLACE INTO book (media_id, pages, category) VALUES (?1, ?2, ?3)",
+        params![id, pages, category],
       )
       .map_err(|e| e.to_string())?;
     }
@@ -945,6 +961,12 @@ pub fn insert_external_media(
       tx.execute(
         "INSERT INTO tabletop_game (media_id, player_count, playing_time) VALUES (?1, ?2, ?3)",
         params![media_uuid, player_count, playing_time],
+      )?;
+    }
+    MediaExtension::Book { pages, category } => {
+      tx.execute(
+        "INSERT INTO book (media_id, pages, category) VALUES (?1, ?2, ?3)",
+        params![media_uuid, pages, category],
       )?;
     }
     MediaExtension::None => {}

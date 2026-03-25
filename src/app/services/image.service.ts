@@ -77,6 +77,11 @@ export class ImageService {
   resolveExternalUrl(path: string | undefined, mediaType: MediaType, source: MediaSource, type: ImageType, size: ImageSize): string {
     if (!this.configs || !path) return '';
 
+    // TMP 
+    if (source === MediaSource.HARCOVER) {
+      return path;
+    }
+
     const config = this.configs[this.getConfigKey(mediaType, source)];
     if (!config) return '';
 

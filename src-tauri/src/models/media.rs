@@ -77,6 +77,10 @@ pub enum MediaExtension {
     #[serde(rename = "completePlayingTime")]
     complete_playing_time: Option<u32>,
   },
+  Book {
+    pages: Option<u32>,
+    category: Option<String>, // Book, Novel, ...
+  },
   None,
 }
 

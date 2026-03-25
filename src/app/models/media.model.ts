@@ -7,6 +7,7 @@ export enum MediaSource {
   MANUAL = "MANUAL",
   TMDB = "TMDB",
   IGDB = "IGDB", 
+  HARCOVER = "HARDCOVER"
   // TODO
 }
 
@@ -120,7 +121,12 @@ export interface TabletopGameExtension {
   playerCount: string; 
   playingTime: string; 
 }
+export interface BookExtension { 
+  pages?: number; 
+  category?: string; 
+}
 export type MediaExtension = 
+  BookExtension |
   MovieExtension | 
   SeriesExtension | 
   VideoGameExtension |

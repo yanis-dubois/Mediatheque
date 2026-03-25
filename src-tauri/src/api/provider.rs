@@ -1,7 +1,7 @@
 use std::collections::HashMap;
 
 use crate::{
-  api::{igdb::IgdbProvider, tmdb::TmdbProvider},
+  api::{hardcover::HardcoverProvider, igdb::IgdbProvider, tmdb::TmdbProvider},
   models::{
     enums::{Language, MediaSource, MediaType},
     image::{ImageConfiguration, ImageSize, ImageType},
@@ -31,6 +31,10 @@ impl ProviderStore {
       (MediaType::Series, MediaSource::Tmdb),
       Box::new(TmdbProvider::new(MediaType::Series)),
     );
+    providers.insert(
+      (MediaType::Book, MediaSource::Hardcover),
+      Box::new(HardcoverProvider::new()),
+    );
 
     Self { providers }
   }
@@ -50,6 +54,7 @@ impl ProviderStore {
     let source = match media_type {
       MediaType::VideoGame => MediaSource::Igdb,
       MediaType::Movie | MediaType::Series => MediaSource::Tmdb,
+      MediaType::Book => MediaSource::Hardcover,
       _ => return None,
     };
     self.get(media_type, &source)
@@ -61,7 +66,9 @@ pub trait MediaProvider: Send + Sync {
   fn create_config() -> ImageConfiguration
   where
     Self: Sized;
+  fn supports_native_lods(&self) -> bool;
   fn get_image_config(&self) -> &ImageConfiguration;
+  fn get_image_url(&self, path: &str, image_type: ImageType, size: ImageSize) -> String;
   async fn search(
     &self,
     query: &str,
@@ -69,24 +76,6 @@ pub trait MediaProvider: Send + Sync {
     page: u32,
   ) -> Result<Vec<ApiSearchResult>, String>;
   async fn get_by_id(&self, external_id: u32, language: Language) -> Result<ApiMedia, String>;
-
-  fn get_image_url(&self, path: &str, image_type: ImageType, size: ImageSize) -> String {
-    let config = self.get_image_config();
-
-    let size_str = config
-      .sizes
-      .get(&image_type)
-      .and_then(|type_sizes| type_sizes.get(&size))
-      .map(|s| s.as_str())
-      .unwrap_or("original");
-
-    let clean_path = path.trim_start_matches('/');
-
-    format!(
-      "{}/{}/{}.{}",
-      config.base_url, size_str, clean_path, config.format
-    )
-  }
 
   fn get_image_format(&self) -> &str {
     &self.get_image_config().format

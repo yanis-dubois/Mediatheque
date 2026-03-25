@@ -109,7 +109,7 @@ export class MediaActionComponent {
 
       // if on /search/media page -> redirect to api version
       if (isInSearchPage && media.externalId) {
-        this.router.navigate(['/search/media', 'api', media.mediaType, media.externalId, false], { 
+        this.router.navigate(['/search/media', media.externalId, media.mediaType, media.source, false], { 
           replaceUrl: true 
         });
       }

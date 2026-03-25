@@ -74,6 +74,7 @@ pub enum MediaSource {
   Manual,
   Tmdb,
   Igdb,
+  Hardcover,
 }
 
 #[derive(Debug, Serialize, Deserialize, PartialEq, Clone, EnumIter, Hash, Eq)]
@@ -253,6 +254,7 @@ pub fn match_media_source(s: &str) -> MediaSource {
     "MANUAL" => MediaSource::Manual,
     "TMDB" => MediaSource::Tmdb,
     "IGDB" => MediaSource::Igdb,
+    "HARDCOVER" => MediaSource::Hardcover,
     _ => todo!(),
   }
 }

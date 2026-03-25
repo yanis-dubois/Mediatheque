@@ -1,9 +1,13 @@
+use std::collections::HashMap;
+
 use serde::Deserialize;
 
 #[derive(Deserialize)]
 pub struct ApiResponse {
   pub results: Vec<serde_json::Value>,
 }
+
+/* IGDB */
 
 #[derive(Deserialize)]
 pub struct MultiQueryResponse {
@@ -85,4 +89,103 @@ pub struct IgdbInvolvedCompany {
 pub struct IgdbTimeToBeat {
   pub normally: Option<u32>,
   pub completely: Option<u32>,
+}
+
+/* Hardcover */
+
+// search response
+
+#[derive(Deserialize)]
+pub struct HardcoverResponse {
+  pub data: HardcoverData,
+}
+
+#[derive(Deserialize)]
+pub struct HardcoverData {
+  pub search: HardcoverSearch,
+}
+
+#[derive(Deserialize)]
+pub struct HardcoverSearch {
+  pub results: HardcoverResults,
+}
+
+#[derive(Deserialize)]
+pub struct HardcoverResults {
+  pub hits: Vec<HardcoverDocument>,
+}
+
+#[derive(Deserialize)]
+pub struct HardcoverDocument {
+  pub document: HardcoverBookRaw,
+}
+
+#[derive(Deserialize)]
+pub struct HardcoverBookRaw {
+  pub id: String,
+  pub title: String,
+  pub author_names: Vec<String>,
+  pub contribution_types: Vec<String>,
+  // pub genres: Vec<String>,
+  pub description: Option<String>,
+  pub image: Option<HardcoverImage>,
+  pub release_date: Option<String>,
+}
+
+#[derive(Deserialize)]
+pub struct HardcoverImage {
+  pub url: Option<String>,
+  pub height: Option<u32>,
+  pub width: Option<u32>,
+}
+
+// by id response
+
+#[derive(Deserialize)]
+pub struct HardcoverByIdResponse {
+  pub data: HardcoverBook,
+}
+
+#[derive(Deserialize)]
+pub struct HardcoverBook {
+  pub books: Vec<HardcoverBookInfos>,
+}
+
+#[derive(Deserialize)]
+pub struct HardcoverBookInfos {
+  pub title: String,
+  pub contributions: Vec<HardcoverContributions>,
+  pub book_category_id: u32,
+  pub book_series: Vec<HardcoverSeries>,
+  pub cached_tags: HashMap<String, Vec<HardcoverTag>>,
+  pub description: Option<String>,
+  pub image: Option<HardcoverImage>,
+  pub release_date: Option<String>,
+  pub pages: Option<u32>,
+}
+
+#[derive(Deserialize)]
+pub struct HardcoverContributions {
+  pub author: HardcoverAuthor,
+  pub contribution: Option<String>, // role
+}
+
+#[derive(Deserialize)]
+pub struct HardcoverAuthor {
+  pub name: String, // role
+}
+
+#[derive(Deserialize)]
+pub struct HardcoverSeries {
+  pub series: HardcoverSerie,
+}
+
+#[derive(Deserialize)]
+pub struct HardcoverSerie {
+  pub name: String,
+}
+
+#[derive(Deserialize)]
+pub struct HardcoverTag {
+  pub tag: String,
 }
