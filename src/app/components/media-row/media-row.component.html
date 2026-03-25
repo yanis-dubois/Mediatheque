@@ -35,7 +35,12 @@
           <app-media-status-action [mediaId]="media.id"></app-media-status-action>
         </div>
         <p class="sub-info" [class.hide-mobile-default]="display() === 'default'">
-          {{ media.releaseDate | date:'mediumDate' }}
+          @if (media.creators.length > 0) {
+            By @for (creator of media.creators.slice(0, 2); track creator; let lastTag = $last) {{{ creator }}@if (!lastTag) {<span>, </span>}}@if (media.creators.length > 2) {<span>, ...</span>}
+          }
+          @if (media.releaseDate) {
+            ({{ media.releaseDate | date:'y' }})
+          }
         </p>
       } 
       @else if (display() === 'roles' && roles().length > 0) {

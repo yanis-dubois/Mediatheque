@@ -209,18 +209,21 @@ impl MediaProvider for IgdbProvider {
     let url = format!("{}/games", self.base_media_url);
     let body = format!(
       "search \"{}\"; 
-      fields name, summary, first_release_date, cover.image_id, artworks.image_id, artworks.artwork_type, artworks.height, artworks.width, screenshots.image_id, game_type.type; 
+      fields name, summary, involved_companies.company.name, involved_companies.developer, involved_companies.publisher, involved_companies.porting, involved_companies.supporting, first_release_date, cover.image_id, artworks.image_id, artworks.artwork_type, artworks.height, artworks.width, screenshots.image_id, game_type.type; 
       where game_type = (0, 8, 9);
       limit {}; offset {};",
-      query, self.page_size, page*self.page_size
+      query, self.page_size, (page-1)*self.page_size
     );
+    println!("{}", body);
+
+    let client = reqwest::Client::new();
 
     // get response
-    let client = reqwest::Client::new();
     let response: Vec<IgdbGame> = client
       .post(&url)
       .header("Client-ID", &self.client_id)
       .header("Authorization", format!("Bearer {}", &self.token))
+      .header("Content-Type", "text/plain")
       .body(body)
       .send()
       .await
@@ -237,6 +240,20 @@ impl MediaProvider for IgdbProvider {
         let backdrop_path = choose_backgrop(game.artworks, game.screenshots);
         let title = get_title_extended_by_type(game.name, game.game_type);
 
+        // extract companies
+        let mut creators = Vec::new();
+        if let Some(involved_companies) = game.involved_companies {
+          for company in involved_companies {
+            if let Some(company_info) = &company.company {
+              let name = company_info.name.clone();
+              let role = get_company_relation(&company);
+              if role.values.iter().any(|r| r == "DEVELOPER") {
+                creators.push(name);
+              }
+            }
+          }
+        }
+
         ApiSearchResult {
           core: MediaBase {
             media_type: MediaType::VideoGame,
@@ -244,6 +261,7 @@ impl MediaProvider for IgdbProvider {
             title: title,
             release_date,
             description: game.summary.unwrap_or_default(),
+            creators,
           },
           state: ApiState {
             external_id: game.id,
@@ -310,15 +328,21 @@ impl MediaProvider for IgdbProvider {
         completely: None,
       });
 
+    let mut creators: Vec<String> = Vec::new();
     let mut companies: HashMap<String, ApiEntityRelation> = HashMap::new();
     let mut tags: HashMap<TagType, Vec<String>> = HashMap::new();
 
     // extract companies
     if let Some(involved_companies) = game.involved_companies {
-      for company in involved_companies.iter() {
-        companies
-          .entry(company.company.name.clone())
-          .or_insert(get_company_relation(company));
+      for company in involved_companies {
+        if let Some(company_info) = &company.company {
+          let name = company_info.name.clone();
+          let role = get_company_relation(&company);
+          companies.entry(name.clone()).or_insert(role.clone());
+          if role.values.iter().any(|r| r == "DEVELOPER") {
+            creators.push(name);
+          }
+        }
       }
     }
 
@@ -352,6 +376,7 @@ impl MediaProvider for IgdbProvider {
       title: title,
       release_date,
       description: game.summary.unwrap_or_default(),
+      creators,
     };
 
     // add detailed infos

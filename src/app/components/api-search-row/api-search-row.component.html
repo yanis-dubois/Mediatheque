@@ -30,7 +30,12 @@
     @if (media) {
       <p class="title">{{ media.title }}</p>
       <p class="sub-info">
-        {{ media.releaseDate | date:'mediumDate' }}
+        @if (media.creators.length > 0) {
+          By @for (creator of media.creators.slice(0, 2); track creator; let lastTag = $last) {{{ creator }}@if (!lastTag) {<span>, </span>}}@if (media.creators.length > 2) {<span>, ...</span>}
+        }
+        @if (media.releaseDate) {
+          ({{ media.releaseDate | date:'y' }})
+        }
       </p>
     } @else {
       <div class="skeleton-text title"></div>

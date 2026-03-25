@@ -9,7 +9,7 @@ img {
 }
 .title {
   margin: 0px;
-  margin-bottom: 2px;
+  margin-bottom: 1px;
 
   white-space: nowrap;
   overflow: hidden;
@@ -18,15 +18,16 @@ img {
   height: 1.3rem;
 }
 .info {
-  margin: 0px;
-  margin-bottom: 1px;
+  margin: 1px 0;
 
   color: var(--color-light-soft);
-  font-size: var(--text-sm);
+  font-size: var(--text-xs);
   line-height: 1rem;
+
+  --status-size: 16px;
 }
 .sub-info {
-  margin: 0px;
+  margin: 1px 0;
   color: var(--color-light-dark);
   font-size: var(--text-xs);
   line-height: 1rem;

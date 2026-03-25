@@ -84,6 +84,7 @@ export interface MediaBase {
   title: string;
   releaseDate: string;
   description: string;
+  creators: string[];
 }
 
 export interface LibraryMediaRelations {

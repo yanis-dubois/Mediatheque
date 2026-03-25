@@ -87,7 +87,10 @@ export class MediaPageComponent {
     // load from DB 
     else {
       this.id.set(id);
-      this.entityService.getMedia(id, true);
+      const res = this.entityService.getMedia(id, true);
+      if (!res) {
+        this.router.navigate(['/']);
+      }
     }
 
     this.subscription.add(

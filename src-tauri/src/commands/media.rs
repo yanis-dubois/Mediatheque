@@ -23,6 +23,8 @@ pub fn map_row_to_media(row: &rusqlite::Row) -> rusqlite::Result<LibraryMedia> {
   let media_type = match_media_type(&type_str);
   let source_str: String = row.get(3)?;
   let media_source = match_media_source(&source_str);
+  let creators_raw: String = row.get(16)?;
+  let creators: Vec<String> = serde_json::from_str(&creators_raw).unwrap_or_default();
 
   // build base
   let base = MediaBase {
@@ -31,6 +33,7 @@ pub fn map_row_to_media(row: &rusqlite::Row) -> rusqlite::Result<LibraryMedia> {
     title: row.get(6)?,
     description: row.get(7)?,
     release_date: row.get(8)?,
+    creators,
   };
 
   // build state
@@ -801,12 +804,13 @@ pub async fn update_media_data(
 
   let base = &api_media.data.base;
   let relations = &api_media.relations;
+  let creators_json = serde_json::to_string(&base.creators).unwrap_or_else(|_| "[]".to_string());
 
   // update parent media table
   tx.execute(
     "UPDATE media 
      SET poster_width = ?2, poster_height = ?3, title = ?4, description = ?5, 
-         release_date = ?6, has_poster = ?7, has_backdrop = ?8
+         release_date = ?6, has_poster = ?7, has_backdrop = ?8, creators = ?9
      WHERE id = ?1",
     params![
       id,
@@ -816,7 +820,8 @@ pub async fn update_media_data(
       base.description,
       base.release_date,
       assets.has_poster,
-      assets.has_backdrop
+      assets.has_backdrop,
+      creators_json
     ],
   )
   .map_err(|e| e.to_string())?;
@@ -902,11 +907,12 @@ pub fn insert_external_media(
   let base = &api_media.data.base;
   let relations = &api_media.relations;
   let added_date = chrono::Utc::now().to_rfc3339();
+  let creators_json = serde_json::to_string(&base.creators).unwrap_or_else(|_| "[]".to_string());
 
   // insert in parent media table
   tx.execute(
-    "INSERT INTO media (id, external_id, media_type, source, poster_width, poster_height, title, description, release_date, added_date, status, favorite, notes, has_poster, has_backdrop)
-      VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12, ?13, ?14, ?15)",
+    "INSERT INTO media (id, external_id, media_type, source, poster_width, poster_height, title, description, release_date, added_date, status, favorite, notes, has_poster, has_backdrop, creators)
+      VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12, ?13, ?14, ?15, ?16)",
     params![
       media_uuid,
       external_id,
@@ -922,7 +928,8 @@ pub fn insert_external_media(
       false,
       "",
       has_poster,
-      has_backdrop
+      has_backdrop,
+      creators_json
     ],
   )?;
   insert_relations_person(tx, media_uuid, &"crew", &relations.persons)?;

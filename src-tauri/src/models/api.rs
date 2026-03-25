@@ -82,7 +82,7 @@ pub struct IgdbInvolvedCompany {
   pub porting: bool,
   pub publisher: bool,
   pub supporting: bool,
-  pub company: IgdbCompany,
+  pub company: Option<IgdbCompany>,
 }
 
 #[derive(Deserialize)]
@@ -124,9 +124,7 @@ pub struct HardcoverDocument {
 pub struct HardcoverBookRaw {
   pub id: String,
   pub title: String,
-  pub author_names: Vec<String>,
-  pub contribution_types: Vec<String>,
-  // pub genres: Vec<String>,
+  pub contributions: Vec<HardcoverContributions>,
   pub description: Option<String>,
   pub image: Option<HardcoverImage>,
   pub release_date: Option<String>,
@@ -135,8 +133,6 @@ pub struct HardcoverBookRaw {
 #[derive(Deserialize)]
 pub struct HardcoverImage {
   pub url: Option<String>,
-  pub height: Option<u32>,
-  pub width: Option<u32>,
 }
 
 // by id response

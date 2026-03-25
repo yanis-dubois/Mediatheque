@@ -178,7 +178,9 @@ pub fn init_db(connection: &mut Connection) -> Result<()> {
       score INTEGER CHECK(score BETWEEN 0 AND 100),
 
       has_poster INTEGER NOT NULL DEFAULT 0 CHECK(has_poster IN (0, 1)),
-      has_backdrop INTEGER NOT NULL DEFAULT 0 CHECK(has_backdrop IN (0, 1))
+      has_backdrop INTEGER NOT NULL DEFAULT 0 CHECK(has_backdrop IN (0, 1)),
+
+      creators TEXT NOT NULL DEFAULT '[]'
     );
 
     -- Detailed Media

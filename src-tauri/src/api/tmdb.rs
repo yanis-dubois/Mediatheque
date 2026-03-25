@@ -177,6 +177,7 @@ impl MediaProvider for TmdbProvider {
               .unwrap_or("")
               .to_string(),
             description: item["overview"].as_str().unwrap_or("").to_string(),
+            creators: Vec::new(),
           },
           state: ApiState {
             external_id: item["id"].as_u64()? as u32,
@@ -212,6 +213,7 @@ impl MediaProvider for TmdbProvider {
       .await
       .map_err(|e| e.to_string())?;
 
+    let mut creators: Vec<String> = Vec::new();
     let mut persons: HashMap<String, ApiEntityRelation> = HashMap::new();
     let mut cast: HashMap<String, ApiEntityRelation> = HashMap::new();
     let mut companies: HashMap<String, ApiEntityRelation> = HashMap::new();
@@ -235,17 +237,20 @@ impl MediaProvider for TmdbProvider {
       featured_crew.sort_by_key(|item| get_job_priority(&item.1));
 
       for (index, (name, job)) in featured_crew.into_iter().take(6).enumerate() {
-        let entry = persons.entry(name).or_insert(ApiEntityRelation {
+        let entry = persons.entry(name.clone()).or_insert(ApiEntityRelation {
           order: Some(index as u32),
           values: Vec::new(),
         });
         entry.values.push(job.to_uppercase());
+        if job.to_uppercase() == "DIRECTOR" {
+          creators.push(name);
+        }
       }
     }
     // -- for series
     else {
-      if let Some(creators) = data["created_by"].as_array() {
-        for (index, creator) in creators.iter().enumerate() {
+      if let Some(creators_data) = data["created_by"].as_array() {
+        for (index, creator) in creators_data.iter().enumerate() {
           if let Some(name) = creator["name"].as_str() {
             persons
               .entry(name.to_string())
@@ -253,6 +258,7 @@ impl MediaProvider for TmdbProvider {
                 order: Some(index as u32),
                 values: vec!["CREATOR".to_string()],
               });
+            creators.push(name.to_string());
           }
         }
       }
@@ -327,6 +333,7 @@ impl MediaProvider for TmdbProvider {
         .unwrap_or("")
         .to_string(),
       description: data["overview"].as_str().unwrap_or("").to_string(),
+      creators,
     };
 
     // add detailed infos

@@ -143,6 +143,15 @@ impl MediaProvider for HardcoverProvider {
         let book = hit.document;
         let external_id = book.id.parse::<u32>().unwrap_or(0);
 
+        // extract persons
+        let mut creators = Vec::new();
+        for c in book.contributions.into_iter() {
+          let relation = get_contribution_relation(&c);
+          if relation.values.contains(&"AUTHOR".to_string()) {
+            creators.push(c.author.name.clone());
+          }
+        }
+
         ApiSearchResult {
           core: MediaBase {
             media_type: MediaType::Book,
@@ -150,6 +159,7 @@ impl MediaProvider for HardcoverProvider {
             title: book.title,
             release_date: book.release_date.unwrap_or_default(),
             description: book.description.unwrap_or_default(),
+            creators,
           },
           state: ApiState {
             external_id,
@@ -225,6 +235,7 @@ impl MediaProvider for HardcoverProvider {
 
     let mut persons: HashMap<String, ApiEntityRelation> = HashMap::new();
     let mut tags: HashMap<TagType, Vec<String>> = HashMap::new();
+    let mut creators: Vec<String> = Vec::new();
 
     // extract tags
     // genre
@@ -243,7 +254,11 @@ impl MediaProvider for HardcoverProvider {
 
     // extract persons
     for c in book.contributions.into_iter() {
-      persons.insert(c.author.name.clone(), get_contribution_relation(&c));
+      let relation = get_contribution_relation(&c);
+      persons.insert(c.author.name.clone(), relation.clone());
+      if relation.values.contains(&"AUTHOR".to_string()) {
+        creators.push(c.author.name.clone());
+      }
     }
 
     let base = MediaBase {
@@ -252,6 +267,7 @@ impl MediaProvider for HardcoverProvider {
       title: book.title,
       release_date: book.release_date.unwrap_or_default(),
       description: book.description.unwrap_or_default(),
+      creators,
     };
 
     // add detailed infos

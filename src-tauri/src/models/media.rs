@@ -17,7 +17,7 @@ pub struct LibraryEntityRelation {
   pub values: Vec<String>,
 }
 
-#[derive(Debug, Serialize, Deserialize, Default)]
+#[derive(Debug, Serialize, Deserialize, Default, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct ApiEntityRelation {
   pub order: Option<u32>,
@@ -52,6 +52,7 @@ pub struct MediaBase {
   pub title: String,
   pub release_date: String,
   pub description: String,
+  pub creators: Vec<String>,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
