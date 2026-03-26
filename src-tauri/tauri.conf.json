@@ -13,8 +13,8 @@
     "windows": [
       {
         "title": "mediatheque",
-        "width": 1200,
-        "height": 880
+        "width": 1366,
+        "height": 896
       }
     ],
     "security": {

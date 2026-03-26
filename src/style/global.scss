@@ -151,6 +151,11 @@ h1 {
   }
 } 
 
+.api-logo {
+  height: 32px;
+  object-fit: contain;
+}
+
 /* transparent menu */
 .menu-background {
   background: rgba(0, 0, 0, 0.66);

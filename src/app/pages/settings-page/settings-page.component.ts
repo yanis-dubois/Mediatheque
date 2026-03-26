@@ -13,7 +13,7 @@ import { Language, Theme } from '@app/models/settings.model';
   standalone: true,
   imports: [CommonModule, RouterModule, ActionBarComponent, HumanizePipe],
   templateUrl: './settings-page.component.html',
-  styleUrl: './settings-page.component.css'
+  styleUrl: './settings-page.component.scss'
 })
 export class SettingsPageComponent { 
 
