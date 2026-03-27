@@ -37,3 +37,4 @@ futures = "0.3.32"
 async-trait = "0.1.89"
 tauri-plugin-fs = "2"
 tokio = "1.50.0"
+quick-xml = { version = "0.39.2", features = ["serialize"] }

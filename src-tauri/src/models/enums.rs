@@ -75,6 +75,7 @@ pub enum MediaSource {
   Tmdb,
   Igdb,
   Hardcover,
+  Bgg,
 }
 
 #[derive(Debug, Serialize, Deserialize, PartialEq, Clone, EnumIter, Hash, Eq)]
@@ -255,16 +256,18 @@ pub fn match_media_source(s: &str) -> MediaSource {
     "TMDB" => MediaSource::Tmdb,
     "IGDB" => MediaSource::Igdb,
     "HARDCOVER" => MediaSource::Hardcover,
+    "BGG" => MediaSource::Bgg,
     _ => todo!(),
   }
 }
 pub fn match_media_type(s: &str) -> MediaType {
   match s {
     "BOOK" => MediaType::Book,
+    "MOVIE" => MediaType::Movie,
     "SERIES" => MediaType::Series,
     "VIDEO_GAME" => MediaType::VideoGame,
     "TABLETOP_GAME" => MediaType::TabletopGame,
-    _ => MediaType::Movie, // default
+    _ => todo!(),
   }
 }
 pub fn match_media_status(s: &str) -> MediaStatus {

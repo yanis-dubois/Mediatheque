@@ -131,6 +131,10 @@
         --fav-size: 24px;
         --status-size: 24px;
 
+        &.action {
+          opacity: 1;
+        }
+
         &.skeleton-text {
           height: var(--text-base);
           width: 70%;

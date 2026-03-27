@@ -89,7 +89,7 @@ export class MediaPageComponent {
       this.id.set(id);
       const res = this.entityService.getMedia(id, true);
       if (!res) {
-        this.router.navigate(['/']);
+        // this.router.navigate(['/']); // it breaks a lot of things
       }
     }
 

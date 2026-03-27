@@ -157,6 +157,12 @@ export class MediaDetailsComponent {
     return t as TagType;
   }
 
+  hasArtist = (media: DetailedMedia): boolean => {
+    return Object.values(media.persons).some(person => 
+      person.values.includes("ARTIST")
+    );
+  };
+
   async onNotesBlur(newNotes: string) {
     const media = this.media();
     if (!media || !isLibraryMedia(media)) return;

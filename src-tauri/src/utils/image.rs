@@ -105,6 +105,7 @@ async fn download_image_lods(
       .map_err(|e| e.to_string())?;
     let width = img.width();
     let height = img.height();
+    let min_dim = std::cmp::min(width, height);
 
     // define target directory
     let original_dir = base_target_dir.join("original");
@@ -115,22 +116,34 @@ async fn download_image_lods(
     }
 
     let filename = format!("{}.{}", id, format);
-    let medium_width = if image_type == ImageType::Poster {
+    let target_medium = if image_type == ImageType::Poster {
       272
     } else {
       1280
     };
-    let small_width = if image_type == ImageType::Poster {
+    let target_small = if image_type == ImageType::Poster {
       92
     } else {
       384
+    };
+    // width and height depends on image format (portrait / landscape)
+    let is_portrait = width < height;
+    let (medium_width, medium_height) = if is_portrait {
+      (target_medium, u32::MAX)
+    } else {
+      (u32::MAX, target_medium)
+    };
+    let (small_width, small_height) = if is_portrait {
+      (target_small, u32::MAX)
+    } else {
+      (u32::MAX, target_small)
     };
 
     let img_arc = std::sync::Arc::new(img);
     let mut tasks = Vec::new();
 
     // image is high resolution
-    if width > 2 * medium_width {
+    if min_dim > 2 * target_medium {
       std::fs::rename(&temp_path, original_dir.join(&filename)).map_err(|e| e.to_string())?;
 
       let img_m = img_arc.clone();
@@ -139,7 +152,7 @@ async fn download_image_lods(
         img_m
           .resize(
             medium_width,
-            u32::MAX,
+            medium_height,
             image::imageops::FilterType::Lanczos3,
           )
           .save(path_m)
@@ -150,20 +163,28 @@ async fn download_image_lods(
       let path_s = small_dir.join(&filename);
       tasks.push(tokio::task::spawn_blocking(move || {
         img_s
-          .resize(small_width, u32::MAX, image::imageops::FilterType::Lanczos3)
+          .resize(
+            small_width,
+            small_height,
+            image::imageops::FilterType::Lanczos3,
+          )
           .save(path_s)
           .map_err(|e| e.to_string())
       }));
     }
     // image is medium resolution
-    else if width > 2 * small_width {
+    else if min_dim > 2 * target_small {
       std::fs::rename(&temp_path, medium_dir.join(&filename)).map_err(|e| e.to_string())?;
 
       let img_s = img_arc.clone();
       let path_s = small_dir.join(&filename);
       tasks.push(tokio::task::spawn_blocking(move || {
         img_s
-          .resize(small_width, u32::MAX, image::imageops::FilterType::Lanczos3)
+          .resize(
+            small_width,
+            small_height,
+            image::imageops::FilterType::Lanczos3,
+          )
           .save(path_s)
           .map_err(|e| e.to_string())
       }));

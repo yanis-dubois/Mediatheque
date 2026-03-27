@@ -185,3 +185,57 @@ pub struct HardcoverSerie {
 pub struct HardcoverTag {
   pub tag: String,
 }
+
+/* BGG */
+
+#[derive(Debug, Deserialize)]
+pub struct BggSearchResponse {
+  #[serde(rename = "item", default)]
+  pub items: Vec<BggSearchItem>,
+}
+
+#[derive(Debug, Deserialize)]
+pub struct BggSearchItem {
+  #[serde(rename = "@id")]
+  pub id: u32,
+  #[serde(rename = "name", default)]
+  pub names: Vec<BggName>,
+  pub yearpublished: Option<BggValue>,
+  pub minplayers: Option<BggNumericValue>,
+  pub maxplayers: Option<BggNumericValue>,
+  pub minplaytime: Option<BggNumericValue>,
+  pub maxplaytime: Option<BggNumericValue>,
+  pub thumbnail: Option<String>,
+  pub image: Option<String>,
+  pub description: Option<String>,
+  #[serde(rename = "link", default)]
+  pub links: Vec<BggLink>,
+}
+
+#[derive(Debug, Deserialize)]
+pub struct BggValue {
+  #[serde(rename = "@value")]
+  pub value: String,
+}
+
+#[derive(Debug, Deserialize)]
+pub struct BggNumericValue {
+  #[serde(rename = "@value")]
+  pub value: u32,
+}
+
+#[derive(Debug, Deserialize)]
+pub struct BggName {
+  #[serde(rename = "@type")]
+  pub name_type: String,
+  #[serde(rename = "@value")]
+  pub value: String,
+}
+
+#[derive(Debug, Deserialize)]
+pub struct BggLink {
+  #[serde(rename = "@type")]
+  pub link_type: String,
+  #[serde(rename = "@value")]
+  pub value: String,
+}

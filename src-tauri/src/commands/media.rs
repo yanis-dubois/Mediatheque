@@ -230,16 +230,18 @@ pub fn fill_media_extension(
       };
     }
     MediaType::TabletopGame => {
-      let (player_count, playing_time): (String, String) = connection
+      let (min_players, max_players, min_playing_time, max_playing_time): (Option<u32>, Option<u32>, Option<u32>, Option<u32>) = connection
         .query_row(
-          "SELECT player_count, playing_time FROM tabletop_game WHERE media_id = ?1",
+          "SELECT min_players, max_players, min_playing_time, max_playing_time FROM tabletop_game WHERE media_id = ?1",
           [media_id],
-          |row| Ok((row.get(0)?, row.get(1)?)),
+          |row| Ok((row.get(0)?, row.get(1)?, row.get(2)?, row.get(3)?)),
         )
-        .unwrap_or(("".to_string(), "".to_string()));
+        .unwrap_or((None, None, None, None));
       media.data.extension = MediaExtension::TabletopGame {
-        player_count,
-        playing_time,
+        min_players,
+        max_players,
+        min_playing_time,
+        max_playing_time,
       };
     }
     MediaType::Book => {
@@ -866,12 +868,14 @@ pub async fn update_media_data(
       .map_err(|e| e.to_string())?;
     }
     MediaExtension::TabletopGame {
-      player_count,
-      playing_time,
+      min_players,
+      max_players,
+      min_playing_time,
+      max_playing_time,
     } => {
       tx.execute(
-        "REPLACE INTO tabletop_game (media_id, player_count, playing_time) VALUES (?1, ?2, ?3)",
-        params![id, player_count, playing_time],
+        "REPLACE INTO tabletop_game (media_id, min_players, max_players, min_playing_time, max_playing_time) VALUES (?1, ?2, ?3, ?4, ?5)",
+        params![id, min_players, max_players, min_playing_time, max_playing_time],
       )
       .map_err(|e| e.to_string())?;
     }
@@ -962,12 +966,14 @@ pub fn insert_external_media(
       )?;
     }
     MediaExtension::TabletopGame {
-      player_count,
-      playing_time,
+      min_players,
+      max_players,
+      min_playing_time,
+      max_playing_time,
     } => {
       tx.execute(
-        "INSERT INTO tabletop_game (media_id, player_count, playing_time) VALUES (?1, ?2, ?3)",
-        params![media_uuid, player_count, playing_time],
+        "INSERT INTO tabletop_game (media_id, min_players, max_players, min_playing_time, max_playing_time) VALUES (?1, ?2, ?3, ?4, ?5)",
+        params![media_uuid, min_players, max_players, min_playing_time, max_playing_time],
       )?;
     }
     MediaExtension::Book { pages, category } => {

@@ -1,7 +1,7 @@
 use std::collections::HashMap;
 
 use crate::{
-  api::{hardcover::HardcoverProvider, igdb::IgdbProvider, tmdb::TmdbProvider},
+  api::{bgg::BggProvider, hardcover::HardcoverProvider, igdb::IgdbProvider, tmdb::TmdbProvider},
   models::{
     enums::{Language, MediaSource, MediaType},
     image::{ImageConfiguration, ImageSize, ImageType},
@@ -35,6 +35,10 @@ impl ProviderStore {
       (MediaType::Book, MediaSource::Hardcover),
       Box::new(HardcoverProvider::new()),
     );
+    providers.insert(
+      (MediaType::TabletopGame, MediaSource::Bgg),
+      Box::new(BggProvider::new()),
+    );
 
     Self { providers }
   }
@@ -55,7 +59,7 @@ impl ProviderStore {
       MediaType::VideoGame => MediaSource::Igdb,
       MediaType::Movie | MediaType::Series => MediaSource::Tmdb,
       MediaType::Book => MediaSource::Hardcover,
-      _ => return None,
+      MediaType::TabletopGame => MediaSource::Bgg,
     };
     self.get(media_type, &source)
   }

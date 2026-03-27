@@ -214,7 +214,6 @@ impl MediaProvider for IgdbProvider {
       limit {}; offset {};",
       query, self.page_size, (page-1)*self.page_size
     );
-    println!("{}", body);
 
     let client = reqwest::Client::new();
 

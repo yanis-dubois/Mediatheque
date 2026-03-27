@@ -4,13 +4,13 @@ use strum::IntoEnumIterator;
 use tauri::AppHandle;
 use tauri::Manager;
 
-use crate::models::enums::MediaSource;
 use crate::models::enums::match_collection_media_type;
 use crate::models::enums::CollectionLayout;
 use crate::models::enums::CollectionMediaType;
 use crate::models::enums::CollectionType;
 use crate::models::enums::MediaOrderDirection;
 use crate::models::enums::MediaOrderField;
+use crate::models::enums::MediaSource;
 use crate::models::enums::TagType;
 use crate::models::enums::{MediaStatus, MediaType};
 use crate::models::query::MediaFilter;
@@ -158,7 +158,7 @@ pub fn init_db(connection: &mut Connection) -> Result<()> {
         media_type IN ('BOOK', 'MOVIE', 'SERIES', 'VIDEO_GAME', 'TABLETOP_GAME')
       ),
       source TEXT NOT NULL CHECK(
-        source IN ('MANUAL', 'TMDB', 'IGDB', 'HARDCOVER')
+        source IN ('MANUAL', 'TMDB', 'IGDB', 'HARDCOVER', 'BGG')
       ),
 
       poster_width INTEGER NOT NULL,
@@ -224,8 +224,10 @@ pub fn init_db(connection: &mut Connection) -> Result<()> {
     CREATE TABLE IF NOT EXISTS tabletop_game (
       media_id TEXT PRIMARY KEY,
 
-      player_count TEXT NOT NULL,
-      playing_time TEXT NOT NULL,
+      min_players INTEGER,
+      max_players INTEGER,
+      min_playing_time INTEGER,
+      max_playing_time INTEGER,
 
       FOREIGN KEY (media_id) REFERENCES media(id) ON DELETE CASCADE
     );
@@ -433,8 +435,10 @@ struct SeedTabletopGame<'a> {
   artists: Vec<&'a str>,
   publishers: Vec<&'a str>,
   game_mechanics: Vec<&'a str>,
-  player_count: &'a str,
-  playing_time: &'a str,
+  min_players: Option<u32>,
+  max_players: Option<u32>,
+  min_playing_time: Option<u32>,
+  max_playing_time: Option<u32>,
 }
 
 #[derive(Default)]
@@ -578,8 +582,8 @@ pub fn seed_data(connection: &mut Connection) -> Result<()> {
     // tabletop game
     else if let Some(details) = m.tabletop_game_details {
       tx.execute(
-        "INSERT INTO tabletop_game (media_id, player_count, playing_time) VALUES (?1, ?2, ?3)",
-        params![m.id, details.player_count, details.playing_time],
+        "INSERT INTO tabletop_game (media_id, min_players, max_players, min_playing_time, max_playing_time) VALUES (?1, ?2, ?3, ?4, ?5)",
+        params![m.id, details.min_players, details.max_players, details.min_playing_time, details.max_playing_time],
       )?;
       seed_persons(&tx, &m.id, details.designers, "DESIGNER")?;
       seed_persons(&tx, &m.id, details.artists, "ARTIST")?;
@@ -715,7 +719,12 @@ fn seed_saga(tx: &rusqlite::Transaction, media_id: &str, sagas: Vec<&str>) -> ru
   }
   Ok(())
 }
-fn seed_tag(tx: &rusqlite::Transaction, media_id: &str, tags: Vec<&str>, tag_name: &str) -> rusqlite::Result<()> {
+fn seed_tag(
+  tx: &rusqlite::Transaction,
+  media_id: &str,
+  tags: Vec<&str>,
+  tag_name: &str,
+) -> rusqlite::Result<()> {
   for tag in tags {
     tx.execute("INSERT OR IGNORE INTO tag (name) VALUES (?1)", [tag])?;
     tx.execute(
@@ -812,10 +821,10 @@ fn seed_media_data() -> Vec<SeedMedia<'static>> {
       favorite: 1,
       notes: "Un classique",
       has_poster: 0,
-      book_details: Some(SeedBook { 
-        artists: vec!["Frank Herbert"], 
-        genre: vec!["Science Fiction", "Adventure"], 
-        pages: 704, 
+      book_details: Some(SeedBook {
+        artists: vec!["Frank Herbert"],
+        genre: vec!["Science Fiction", "Adventure"],
+        pages: 704,
         category: "Book"
       }),
       ..Default::default()
@@ -1309,14 +1318,14 @@ fn seed_media_data() -> Vec<SeedMedia<'static>> {
       title: "Hollow Knight",
       description: "A 2D metroidvania with an emphasis on close combat and exploration in which the player enters the once-prosperous now-bleak insect kingdom of Hallownest, travels through its various districts, meets friendly inhabitants, fights hostile ones and uncovers the kingdom's history while improving their combat abilities and movement arsenal by fighting bosses and accessing out-of-the-way areas.",
       has_backdrop: 1,
-      video_game_details: Some(SeedVideoGame { 
-        developers: vec!["Team Cherry"], 
-        publishers: vec!["Team Cherry"], 
-        game_mechanics: vec!["Platform", "Adventure", "Indie"], 
-        themes: vec!["Action", "Fantasy"], 
-        series: vec!["Hollow Knight"], 
-        synopsis: "Beneath the fading town of Dirtmouth sleeps a vast, ancient kingdom. Many are drawn beneath the surface, searching for riches, or glory, or answers to old secrets. As the enigmatic Knight, you’ll traverse the depths, unravel its mysteries and conquer its evils.", 
-        normal_time: 2220*60, 
+      video_game_details: Some(SeedVideoGame {
+        developers: vec!["Team Cherry"],
+        publishers: vec!["Team Cherry"],
+        game_mechanics: vec!["Platform", "Adventure", "Indie"],
+        themes: vec!["Action", "Fantasy"],
+        series: vec!["Hollow Knight"],
+        synopsis: "Beneath the fading town of Dirtmouth sleeps a vast, ancient kingdom. Many are drawn beneath the surface, searching for riches, or glory, or answers to old secrets. As the enigmatic Knight, you’ll traverse the depths, unravel its mysteries and conquer its evils.",
+        normal_time: 2220*60,
         complete_time: 4200*60
       }),
       ..Default::default()
@@ -1330,14 +1339,14 @@ fn seed_media_data() -> Vec<SeedMedia<'static>> {
       title: "Rain World",
       description: "Rain World is a survival platformer set in an abandoned industrial environment ravaged by a shattered ecosystem. Bone-crushingly intense rains pound the surface, making life as we know it almost impossible. The creatures in this world hibernate most of the time, but in the few brief dry periods they go out in search of food",
       has_backdrop: 1,
-      video_game_details: Some(SeedVideoGame { 
-        developers: vec!["Videocult"], 
-        publishers: vec!["Adult Swim Games"], 
-        game_mechanics: vec!["Platform", "Adventure", "Indie"], 
-        themes: vec!["Action", "Fantasy", "Science Fiction", "Horror", "Survival", "Mystery"], 
-        series: vec!["Rain World"], 
-        synopsis: "\"You are a nomadic slugcat, both predator and prey in a broken ecosystem. Intense, bone-crushing rains pound the surface and make life almost impossible for most of the year, but the dry season has just arrived. Grab your spear and brave the industrial wastes, hunting enough food to survive another hibernation cycle, but be wary— other, bigger creatures have the same plan... and slugcats look delicious.\"", 
-        normal_time: 900*60, 
+      video_game_details: Some(SeedVideoGame {
+        developers: vec!["Videocult"],
+        publishers: vec!["Adult Swim Games"],
+        game_mechanics: vec!["Platform", "Adventure", "Indie"],
+        themes: vec!["Action", "Fantasy", "Science Fiction", "Horror", "Survival", "Mystery"],
+        series: vec!["Rain World"],
+        synopsis: "\"You are a nomadic slugcat, both predator and prey in a broken ecosystem. Intense, bone-crushing rains pound the surface and make life almost impossible for most of the year, but the dry season has just arrived. Grab your spear and brave the industrial wastes, hunting enough food to survive another hibernation cycle, but be wary— other, bigger creatures have the same plan... and slugcats look delicious.\"",
+        normal_time: 900*60,
         complete_time: 3480*60
       }),
       ..Default::default()
@@ -1351,15 +1360,15 @@ fn seed_media_data() -> Vec<SeedMedia<'static>> {
       title: "Animal Well",
       description: "What lurks beneath the surface of this deceptively minimalistic adventure? In Animal Well there is more than what you see. Explore a dense interconnected labyrinth, and unravel its many secrets. Collect items to manipulate your environment in surprising and meaningful ways. Encounter creatures both beautiful and unsettling, and try to survive what lurks in the dark",
       has_backdrop: 1,
-      video_game_details: Some(SeedVideoGame { 
-        developers: vec!["Shared Memory"], 
-        publishers: vec!["Bigmode"], 
-        game_mechanics: vec!["Platform", "Adventure", "Indie", "Puzzle"], 
-        themes: vec!["Action", "Horror", "Survival", "Mystery"], 
-        series: vec![], 
-        synopsis: "It is dark. It is lonely. You don't belong in this world. It's not that it’s a hostile world... it's just... not yours. As you uncover its secrets, the world grows on you. It takes on a feel of familiarity, yet you know that you've only probed the surface. The more you discover, the more you realize how much more there is to discover. Secrets leading to more secrets. You recall the feeling of zooming closer and closer in on a very high-resolution photo. As you hone your focus, the world betrays its secrets.", 
-        normal_time: 540*60, 
-        complete_time: 1200*60 
+      video_game_details: Some(SeedVideoGame {
+        developers: vec!["Shared Memory"],
+        publishers: vec!["Bigmode"],
+        game_mechanics: vec!["Platform", "Adventure", "Indie", "Puzzle"],
+        themes: vec!["Action", "Horror", "Survival", "Mystery"],
+        series: vec![],
+        synopsis: "It is dark. It is lonely. You don't belong in this world. It's not that it’s a hostile world... it's just... not yours. As you uncover its secrets, the world grows on you. It takes on a feel of familiarity, yet you know that you've only probed the surface. The more you discover, the more you realize how much more there is to discover. Secrets leading to more secrets. You recall the feeling of zooming closer and closer in on a very high-resolution photo. As you hone your focus, the world betrays its secrets.",
+        normal_time: 540*60,
+        complete_time: 1200*60
       }),
       ..Default::default()
     },
@@ -1381,8 +1390,10 @@ fn seed_media_data() -> Vec<SeedMedia<'static>> {
           artists: vec!["Miguel Coimbra"],
           publishers: vec!["Repos Production"],
           game_mechanics: vec!["Draft", "Gestion de ressources", "Développement"],
-          player_count: "2",
-          playing_time: "30 min",
+          min_players: Some(2),
+          max_players: Some(2),
+          min_playing_time: Some(30),
+          max_playing_time: None,
       }),
       ..Default::default()
     },
@@ -1399,15 +1410,20 @@ fn seed_media_data() -> Vec<SeedMedia<'static>> {
           artists: vec!["Anne Pätzke", "Chris Quilliams"],
           publishers: vec!["Hans im Glück"],
           game_mechanics: vec!["Pose de tuiles", "Majorité"],
-          player_count: "2-5",
-          playing_time: "35 min",
+          min_players: Some(2),
+          max_players: Some(5),
+          min_playing_time: Some(35),
+          max_playing_time: None,
       }),
       ..Default::default()
     },
     // 3. Dune Impérium
     SeedMedia {
       id: "203",
+      external_id: Some(316554),
       media_type: MediaType::TabletopGame,
+      source: MediaSource::Bgg,
+      has_poster: 0,
       image_width: 600,
       image_height: 600,
       title: "Dune Impérium",
@@ -1417,8 +1433,10 @@ fn seed_media_data() -> Vec<SeedMedia<'static>> {
           artists: vec!["Clay Brooks", "Nate Storm"],
           publishers: vec!["Dire Wolf"],
           game_mechanics: vec!["Deck-building", "Placement d'ouvriers", "Combat"],
-          player_count: "1-4",
-          playing_time: "60-120 min",
+          min_players: Some(2),
+          max_players: Some(4),
+          min_playing_time: Some(90),
+          max_playing_time: None,
       }),
       ..Default::default()
     },
@@ -1435,8 +1453,10 @@ fn seed_media_data() -> Vec<SeedMedia<'static>> {
           artists: vec!["Lindsay Rapp"],
           publishers: vec!["Casasola Games"],
           game_mechanics: vec!["Draft de cartes", "Placement", "Combinaison"],
-          player_count: "1-6",
-          playing_time: "15-20 min",
+          min_players: Some(1),
+          max_players: Some(6),
+          min_playing_time: Some(15),
+          max_playing_time: Some(20),
       }),
       ..Default::default()
     },
@@ -1453,8 +1473,10 @@ fn seed_media_data() -> Vec<SeedMedia<'static>> {
           artists: vec!["Lindsay Rapp"],
           publishers: vec!["Casasola Games"],
           game_mechanics: vec!["Draft de cartes", "Placement", "Combinaison"],
-          player_count: "1-6",
-          playing_time: "15-20 min",
+          min_players: Some(1),
+          max_players: Some(6),
+          min_playing_time: Some(15),
+          max_playing_time: Some(20),
       }),
       ..Default::default()
     },
@@ -1472,8 +1494,10 @@ fn seed_media_data() -> Vec<SeedMedia<'static>> {
           artists: vec!["Maëva Da Silva"],
           publishers: vec!["Libellud"],
           game_mechanics: vec!["Draft", "Placement de jetons", "Objectifs"],
-          player_count: "1-4",
-          playing_time: "30-45 min",
+          min_players: Some(1),
+          max_players: Some(4),
+          min_playing_time: Some(30),
+          max_playing_time: Some(45),
       }),
       ..Default::default()
     },
@@ -1491,8 +1515,10 @@ fn seed_media_data() -> Vec<SeedMedia<'static>> {
           artists: vec!["Sébastien Caiveau"],
           publishers: vec!["Geek Attitude Games"],
           game_mechanics: vec!["Gestion de main", "Deduction", "Bluff"],
-          player_count: "2-7",
-          playing_time: "30-45 min",
+          min_players: Some(2),
+          max_players: Some(7),
+          min_playing_time: Some(30),
+          max_playing_time: Some(45),
       }),
       ..Default::default()
     },
@@ -1509,8 +1535,10 @@ fn seed_media_data() -> Vec<SeedMedia<'static>> {
           artists: vec!["Jimin May"],
           publishers: vec!["HeidelBÄR Games"],
           game_mechanics: vec!["Bluff", "Défausse"],
-          player_count: "2-6",
-          playing_time: "15-20 min",
+          min_players: Some(2),
+          max_players: Some(6),
+          min_playing_time: Some(15),
+          max_playing_time: Some(20),
       }),
       ..Default::default()
     },
@@ -1526,8 +1554,10 @@ fn seed_media_data() -> Vec<SeedMedia<'static>> {
           artists: vec!["Kyle Ferrin"],
           publishers: vec!["Leder Games"],
           game_mechanics: vec!["Strategy", "Wargames"],
-          player_count: "2-4",
-          playing_time: "60-90 min",
+          min_players: Some(2),
+          max_players: Some(4),
+          min_playing_time: Some(60),
+          max_playing_time: Some(90),
       }),
       ..Default::default()
     },
@@ -1543,8 +1573,10 @@ fn seed_media_data() -> Vec<SeedMedia<'static>> {
           artists: vec!["Ondřej Hrdina", "Oto Kandera", "Jiří Kůs", "Jakub Lang"],
           publishers: vec!["Czech Games Edition"],
           game_mechanics: vec!["Strategy"],
-          player_count: "1-4",
-          playing_time: "40-160 min",
+          min_players: Some(1),
+          max_players: Some(4),
+          min_playing_time: Some(40),
+          max_playing_time: Some(160),
       }),
       ..Default::default()
     }

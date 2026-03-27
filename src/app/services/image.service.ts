@@ -78,7 +78,7 @@ export class ImageService {
     if (!this.configs || !path) return '';
 
     // TMP 
-    if (source === MediaSource.HARCOVER) {
+    if (source === MediaSource.HARCOVER || source === MediaSource.BGG) {
       return path;
     }
 
