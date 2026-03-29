@@ -20,9 +20,9 @@ export enum MediaType {
 }
 
 export enum MediaStatus {
-  TO_DISCOVER = "TO_DISCOVER", 
-  IN_PROGRESS = "IN_PROGRESS", 
   FINISHED = "FINISHED", 
+  IN_PROGRESS = "IN_PROGRESS", 
+  TO_DISCOVER = "TO_DISCOVER", 
   DROPPED = "DROPPED"
 }
 

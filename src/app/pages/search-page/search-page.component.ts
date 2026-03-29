@@ -10,21 +10,20 @@ import { debounceTime, Subject } from 'rxjs';
 import { ApiService } from '@app/services/api.service';
 import { ApiSearchListComponent } from "@app/components/api-search-list/api-search-list.component";
 import { ApiSearchResult, MediaType } from '@app/models/media.model';
-import { HumanizePipe } from "../../pipe/humanize";
+import { NavService } from '@app/services/nav.service';
+import { CollectionMediaType } from '@app/models/collection.model';
 
 @Component({
   selector: 'app-search-page',
   standalone: true,
-  imports: [CommonModule, RouterModule, ActionBarComponent, SearchListComponent, ApiSearchListComponent, HumanizePipe],
+  imports: [CommonModule, RouterModule, ActionBarComponent, SearchListComponent, ApiSearchListComponent],
   templateUrl: './search-page.component.html',
   styleUrl: './search-page.component.scss'
 })
 export class SearchPageComponent {
 
-  mediaTypeOptions = Object.values(MediaType);
-
-  mode = signal<'library' | 'internet'>('library');
-  mediaType = signal<MediaType>(MediaType.MOVIE);
+  mode = this.navService.searchMode;
+  mediaType = signal<CollectionMediaType>({type: 'ALL'});
   searchQuery = signal<string>('');
 
   private refreshLibraryData$ = new Subject<void>();
@@ -38,7 +37,8 @@ export class SearchPageComponent {
 
   constructor(
     private entityService: EntityService,
-    private apiService: ApiService
+    private apiService: ApiService,
+    private navService: NavService
   ) {
     this.refreshInternetData$.pipe(
       debounceTime(300)
@@ -55,9 +55,15 @@ export class SearchPageComponent {
     effect(() => {
       const query = this.searchQuery();
       this.entityService.lastUpdate();
-      this.mediaType();
+      const ctx = this.navService.context();
 
-      if (!query) {
+      if (this.mediaType() !== ctx) {
+        this.mediaType.set(ctx);
+        this.layoutData.set([]);
+        this.apiResults.set([]);
+      }
+
+      if (!query || query.trim().length === 0) {
         this.layoutData.set([]);
         this.apiResults.set([]);
         return;
@@ -71,12 +77,19 @@ export class SearchPageComponent {
 
   async loadLibraryData() {
     this.layoutData.set(
-      await this.entityService.getLayoutData(this.searchQuery())
+      await this.entityService.getLayoutData(this.searchQuery(), this.mediaType())
     );
   }
 
   private async loadApiData(isNextPage = false) {
     this.isLoading.set(true);
+
+    // add loading item
+    if (this.apiResults().length === 0) {
+      this.apiResults.update(current => {
+        return [...current, undefined as any];
+      });
+    }
 
     if (!isNextPage) {
       this.currentPage.set(1);
@@ -84,9 +97,10 @@ export class SearchPageComponent {
     }
 
     try {
+      let type = this.mediaType();
       let newResults = await this.apiService.search(
         this.searchQuery(), 
-        this.mediaType(), 
+        type.type === 'SPECIFIC' ? type.value : MediaType.MOVIE,
         this.currentPage()
       );
 
@@ -116,18 +130,14 @@ export class SearchPageComponent {
   }
 
   onScroll() {
-    if (!this.isLoading() && this.mode() === 'internet' && this.canLoadMore()) {
+    if (!this.isLoading() && this.mode() === 'api' && this.canLoadMore()) {
       this.currentPage.update(p => p + 1);
       this.loadApiData(true);
     }
   }
 
-  onModeChange(mode : 'library' | 'internet') {
+  onModeChange(mode : 'library' | 'api') {
     this.mode.set(mode);
-  }
-
-  onMediaTypeChange(newType: MediaType) {
-    this.mediaType.set(newType);
   }
 
 }

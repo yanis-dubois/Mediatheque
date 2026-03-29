@@ -12,7 +12,7 @@ import { MediaStatusActionComponent } from "../media-status-action/media-status-
 import { MediaFavoriteActionComponent } from "../media-favorite-action/media-favorite-action.component";
 import { MediaService } from '@app/services/media.service';
 import { Router } from '@angular/router';
-import { NavService } from '@app/services/nav.service';
+import { NavService, PageType } from '@app/services/nav.service';
 
 @Component({
   selector: 'app-media-action',
@@ -87,7 +87,7 @@ export class MediaActionComponent {
 
     const id = this.mediaId();
     const name = media.title;
-    const isInSearchPage = this.navService.isSearch();
+    const isInSearchPage = this.navService.page() === PageType.SEARCH;
     const isCurrentPage = this.router.url.includes(`/media/${id}`);
 
     const confirmed = await ask(

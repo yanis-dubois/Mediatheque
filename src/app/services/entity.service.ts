@@ -6,7 +6,7 @@ import { Company, DetailedEntity, EntityType, Person, Tag } from "@app/models/en
 import { MediaService } from "./media.service";
 import { CollectionService } from "./collection.service";
 import { invoke } from "@tauri-apps/api/core";
-import { Collection } from "@app/models/collection.model";
+import { Collection, CollectionMediaType } from "@app/models/collection.model";
 import { LibraryMedia } from "@app/models/media.model";
 import { MetadataService } from "./metadata.service";
 import { Subject } from "rxjs";
@@ -209,8 +209,11 @@ export class EntityService {
 
   /* get */
 
-  getLayoutData(search: string) {
-    return invoke<[string, EntityType][]>('search_in_library', { searchQuery: search });
+  getLayoutData(search: string, context: CollectionMediaType) {
+    return invoke<[string, EntityType][]>('search_in_library', { 
+      searchQuery: search, 
+      context: context.type === "ALL" ? null : context.value 
+    });
   }
 
 }

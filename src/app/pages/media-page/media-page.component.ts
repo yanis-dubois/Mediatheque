@@ -11,6 +11,7 @@ import { ApiSearchActionComponent } from "@app/components/api-search-action/api-
 import { EntityService } from '@app/services/entity.service';
 import { Subscription } from 'rxjs';
 import { ApiService } from '@app/services/api.service';
+import { EntityType } from '@app/models/entity.model';
 
 @Component({
   selector: 'app-media-page',
@@ -51,7 +52,7 @@ export class MediaPageComponent {
     this.apiMedia.set(null);
 
     try {
-      this.entityService.getMedia(id, true);
+      await this.entityService.loadById(EntityType.MEDIA, id);
       await this.router.navigate(['/search/media', id], { 
         replaceUrl: true 
       });
@@ -89,7 +90,7 @@ export class MediaPageComponent {
       this.id.set(id);
       const res = this.entityService.getMedia(id, true);
       if (!res) {
-        // this.router.navigate(['/']); // it breaks a lot of things
+        this.router.navigate(['/']); // it breaks a lot of things
       }
     }
 

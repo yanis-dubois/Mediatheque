@@ -13,8 +13,8 @@
     </button>
     <button 
       class="search-toggle-button" 
-      [class.is-active]="mode() === 'internet'"
-      (click)="onModeChange('internet')"
+      [class.is-active]="mode() === 'api'"
+      (click)="onModeChange('api')"
     >
       Internet
     </button>
@@ -26,24 +26,12 @@
         #searchInput
         class="input-search"
         type="text"
-        [placeholder]="'Search '+(mode === 'library' ? 'in' : 'on')+' the '+mode+'...'"
+        [placeholder]="'Search '+(mode === 'library' ? 'in' : 'on')+' the '+(mode === 'library' ? 'library' : 'internet')+'...'"
         [value]="searchQuery()"
         (input)="searchQuery.set($any($event.target).value)"
         (keydown.enter)="searchInput.blur()"
         (keydown.escape)="searchQuery.set(''); searchInput.blur()"
       />
-
-      <select class="select-media"
-        [value]="mediaType() || ''" 
-        (change)="onMediaTypeChange($any($event.target).value)"
-      >
-        <!-- <option value="">All</option> -->
-        @for (type of mediaTypeOptions; track type) {
-          <option [value]="type" [selected]="type === mediaType()">
-            {{ type | humanize }}
-          </option>
-        }
-      </select>
     </div>
 
     @if (mode === 'library') {

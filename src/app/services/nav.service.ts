@@ -5,14 +5,22 @@ import { MediaType } from '@app/models/media.model';
 
 import { filter, map } from 'rxjs';
 
+export enum PageType {
+  HOME = "HOME",
+  SEARCH = "SEARCH",
+}
+
 @Injectable({ providedIn: 'root' })
 export class NavService {
 
   private _context = signal<CollectionMediaType>({ type: 'ALL' });
   readonly context = this._context.asReadonly();
 
-  private _isSearch = signal<boolean>(false);
-  readonly isSearch = this._isSearch.asReadonly();
+  private _page = signal<PageType>(PageType.HOME);
+  readonly page = this._page.asReadonly();
+
+  // for search page 
+  searchMode = signal<'library' | 'api'>('api');
 
   constructor(private router: Router) {
     this.router.events.pipe(
@@ -26,18 +34,28 @@ export class NavService {
       const url = this.router.url;
       const ctxParam = params.get('context');
 
-      // if we are in SEARCH
-      this._isSearch.set(url === '/search' || url.startsWith('/search/'));
+      // update page value
+      if (url.startsWith('/search')) {
+        this._page.set(PageType.SEARCH);
+      }
+      else if (url === '/' || url.startsWith('/home')) {
+        this._page.set(PageType.HOME);
+      }
 
+      // update context
       // if a context is specified in the path, update it
       if (ctxParam && ctxParam !== 'ALL') {
         this._context.set({ type: 'SPECIFIC', value: ctxParam as MediaType });
       } 
       // if we are in ALL
-      else if (!ctxParam || ctxParam === 'ALL') {
+      else if (ctxParam === 'ALL') {
         this._context.set({ type: 'ALL' });
       }
     });
+  }
+
+  switchContext(newContext: CollectionMediaType) {
+    this._context.set(newContext);
   }
 
 }
