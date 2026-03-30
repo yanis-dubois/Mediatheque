@@ -1,5 +1,8 @@
 - Some important commands -
 
+Update rust:
+rustup update
+
 Run dev mod:
 desktop 
 > pnpm tauri dev
@@ -16,7 +19,7 @@ data > data > com.mediatheque.nom_app
 
 Get twitch API token :
 curl -X POST 'https://id.twitch.tv/oauth2/token' \
--d 'client_id=TON_CLIENT_ID' \
--d 'client_secret=TON_CLIENT_SECRET' \
+-d 'client_id=CLIENT_ID' \
+-d 'client_secret=CLIENT_SECRET' \
 -d 'grant_type=client_credentials'
 (62 days from 18/03/26)

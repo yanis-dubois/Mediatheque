@@ -1,5 +1,5 @@
 <nav class="nav">
-  <div class="nav-navigate menu-background">
+  <div class="nav-navigate menu-background" [class.active]="isTypeActive(PageType.HOME)" >
     <a 
     [routerLink]="['/home']"
       [class.active]="isTypeActive(PageType.HOME)" 
@@ -8,6 +8,7 @@
       🏠
     </a>
   </div>
+
   <div class="nav-group menu-background">
     <a 
       (click)="onContextChange()"
@@ -16,7 +17,7 @@
     >
       🪎
     </a>
-    <div class="divider"></div>
+    <hr class="divider">
     @for (type of mediaType; track type) {
       <a 
         (click)="onContextChange(type)"
@@ -27,7 +28,8 @@
       </a>
     }
   </div>
-  <div class="nav-navigate menu-background">
+
+  <div class="nav-navigate menu-background" [class.active]="isTypeActive(PageType.SEARCH)" >
     <a 
       [routerLink]="['/search']"
       [class.active]="isTypeActive(PageType.SEARCH)" 

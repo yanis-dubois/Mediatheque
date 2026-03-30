@@ -31,7 +31,13 @@ pub struct BggProvider {
 
 impl BggProvider {
   pub fn new() -> Self {
-    let token = std::env::var("BGG_API_TOKEN").unwrap_or("BGG_API_TOKEN not found".to_string());
+    let token = option_env!("BGG_API_TOKEN")
+      .unwrap_or("NOT_FOUND")
+      .to_string();
+
+    if token == "NOT_FOUND" {
+      eprintln!("CRITICAL: BGG_API_TOKEN not found");
+    }
 
     Self {
       source: MediaSource::Bgg,

@@ -63,7 +63,13 @@ pub struct TmdbProvider {
 
 impl TmdbProvider {
   pub fn new(media_type: MediaType) -> Self {
-    let token = std::env::var("TMDB_API_TOKEN").unwrap_or("TMDB_API_TOKEN not found".to_string());
+    let token = option_env!("TMDB_API_TOKEN")
+      .unwrap_or("NOT_FOUND")
+      .to_string();
+
+    if token == "NOT_FOUND" {
+      eprintln!("CRITICAL: TMDB_API_TOKEN not found");
+    }
 
     Self {
       source: MediaSource::Tmdb,
@@ -146,16 +152,30 @@ impl MediaProvider for TmdbProvider {
 
     // get row data
     let client = reqwest::Client::new();
-    let full_data: ApiResponse = client
+
+    let response = client
       .get(url)
       .header("Authorization", format!("Bearer {}", self.token))
       .header("accept", "application/json")
       .send()
       .await
-      .map_err(|e| e.to_string())?
-      .json()
-      .await
-      .map_err(|e| e.to_string())?;
+      .map_err(|e| format!("Network Error: {}", e))?;
+
+    // 1. Vérifier le status code (Indispensable !)
+    let status = response.status();
+    if !status.is_success() {
+      let err_text = response.text().await.unwrap_or_default();
+      let err_msg = format!("API Error {}: {}", status, err_text);
+      eprintln!("{}", err_msg);
+      return Err(err_msg);
+    }
+
+    // 2. Si c'est un succès, lire le JSON
+    let full_data: ApiResponse = response.json().await.map_err(|e| {
+      let err_msg = format!("JSON DESERIALIZATION ERROR: {:?}", e);
+      eprintln!("{}", err_msg);
+      err_msg
+    })?;
 
     // keep only wanted fields
     let results: Vec<ApiSearchResult> = full_data

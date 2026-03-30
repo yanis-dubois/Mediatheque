@@ -61,8 +61,13 @@ pub struct HardcoverProvider {
 
 impl HardcoverProvider {
   pub fn new() -> Self {
-    let token =
-      std::env::var("HARDCOVER_API_TOKEN").unwrap_or("HARDCOVER_API_TOKEN not found".to_string());
+    let token = option_env!("HARDCOVER_API_TOKEN")
+      .unwrap_or("NOT_FOUND")
+      .to_string();
+
+    if token == "NOT_FOUND" {
+      eprintln!("CRITICAL: HARDCOVER_API_TOKEN not found");
+    }
 
     Self {
       source: MediaSource::Hardcover,

@@ -11,7 +11,7 @@ import { CollectionMediaType, compareCollectionMediaType } from '@app/models/col
   standalone: true,
   imports: [RouterModule, EmojizePipe],
   templateUrl: './navigation.component.html',
-  styleUrl: './navigation.component.css'
+  styleUrl: './navigation.component.scss'
 })
 export class NavigationComponent {
 

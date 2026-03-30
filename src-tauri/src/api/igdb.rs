@@ -133,9 +133,16 @@ pub struct IgdbProvider {
 
 impl IgdbProvider {
   pub fn new() -> Self {
-    let client_id =
-      std::env::var("IGDB_CLIENT_ID").unwrap_or("IGDB_CLIENT_ID not found".to_string());
-    let token = std::env::var("IGDB_API_TOKEN").unwrap_or("IGDB_API_TOKEN not found".to_string());
+    let token = option_env!("IGDB_API_TOKEN")
+      .unwrap_or("NOT_FOUND")
+      .to_string();
+    let client_id = option_env!("IGDB_CLIENT_ID")
+      .unwrap_or("NOT_FOUND")
+      .to_string();
+
+    if token == "NOT_FOUND" || client_id == "NOT_FOUND" {
+      eprintln!("CRITICAL: IGDB_API_TOKEN and IGDB_CLIENT_ID not found");
+    }
 
     Self {
       source: MediaSource::Igdb,

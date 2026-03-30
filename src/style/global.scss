@@ -177,8 +177,8 @@ h1 {
   color: var(--color-light);
   border-radius: 100%;
   border-width: 1px;
-  width: 42px;
-  height: 42px;
+  width: 48px;
+  height: 48px;
   cursor: pointer;
   z-index: 100;
 
@@ -188,7 +188,7 @@ h1 {
   align-items: center;
 }
 .action-button:hover {
-  background: rgba(255, 255, 255, 0.1);
+  background: rgba(52, 52, 52, 0.66);
 }
 .layout-selector {
   position: relative;
