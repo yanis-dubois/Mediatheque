@@ -176,9 +176,9 @@ h1 {
 .action-button {
   color: var(--color-light);
   border-radius: 100%;
-  border-width: 1px;
-  width: 48px;
-  height: 48px;
+  width: 24px;
+  height: 24px;
+  padding: 20px;
   cursor: pointer;
   z-index: 100;
 
@@ -196,13 +196,9 @@ h1 {
   align-items: center;
   justify-content: center;
 
-  &:hover {
-    background: var(--color-dark-light);
-  }
-
   .layout-icon {
-    width: 20px;
-    height: 20px;
+    width: 24px;
+    height: 24px;
     pointer-events: none;
   }
 
@@ -221,6 +217,40 @@ h1 {
     &::-ms-expand {
       display: none;
     }
+  }
+}
+/* tool item */
+.tool-bar {
+  padding: 4px;
+  border-radius: 32px;
+  display: flex;
+  align-items: center;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+}
+.tool-item {
+  background-color: rgba(0,0,0, 0);
+  border: none;
+  color: var(--color-light);
+
+  padding: 4px 8px;
+  border-radius: 32px;
+  cursor: pointer;
+  z-index: 100;
+
+  display: flex;
+  justify-content: center;
+  align-items: center;
+
+  transition: background-color 0.2s ease;
+  will-change: background-color;
+
+  img {
+    width: 24px;
+    height: 24px;
+  }
+
+  &:hover {
+    background-color: var(--color-dark-light);
   }
 }
 

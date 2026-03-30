@@ -7,7 +7,7 @@ import { Router } from '@angular/router';
   standalone: true,
   imports: [],
   templateUrl: './action-bar.component.html',
-  styleUrl: './action-bar.component.css'
+  styleUrl: './action-bar.component.scss'
 })
 export class ActionBarComponent {
   leftButtonType = input<string>('back');

@@ -26,35 +26,36 @@
     }
     @case (CollectionDisplayMode.DETAILS) {
       <app-action-bar>
-
-        <app-layout-manager 
-          [preferredLayout]="preferredLayout()"
-          (preferredLayoutChange)="onLayoutChange($event)"
-        />
-
-        @if (collection.canBeSorted) {
-          <app-sort-manager 
-            [sortOrder]="sortOrder()" 
-            (sortOrderChange)="onSortChanged($event)"
+        <div class="tool-bar menu-background">
+          <app-layout-manager 
+            [preferredLayout]="preferredLayout()"
+            (preferredLayoutChange)="onLayoutChange($event)"
           />
-        }
 
-        @if (collection.collectionType === CollectionType.DYNAMIC) {
-          <app-filter-manager 
-            [version]="filterVersion()"
-            [filter]="filter()" 
-            (filterChange)="onFilterChanged($event)"
-          />
-        }
-        @else if (collection.collectionType === CollectionType.MANUAL) {
-          <button class="action-button action-button-right menu-background" (click)="showPicker.set(true)">
-            <img src="assets/icons/plus.svg" alt="Plus"/>
-          </button>
-        }
+          @if (collection.canBeSorted) {
+            <app-sort-manager 
+              [sortOrder]="sortOrder()" 
+              (sortOrderChange)="onSortChanged($event)"
+            />
+          }
 
-        <app-dropdown [customClass]="'action-button action-button-right menu-background'" [isOpenExternal]="true">
-          <app-collection-action [collectionId]="id()"/>
-        </app-dropdown>
+          @if (collection.collectionType === CollectionType.DYNAMIC) {
+            <app-filter-manager 
+              [version]="filterVersion()"
+              [filter]="filter()" 
+              (filterChange)="onFilterChanged($event)"
+            />
+          }
+          @else if (collection.collectionType === CollectionType.MANUAL) {
+            <button class="tool-item" (click)="showPicker.set(true)">
+              <img src="assets/icons/plus.svg" alt="Plus"/>
+            </button>
+          }
+
+          <app-dropdown [customClass]="'tool-item'" [isOpenExternal]="true">
+            <app-collection-action [collectionId]="id()"/>
+          </app-dropdown>
+        </div>
 
       </app-action-bar>
 
