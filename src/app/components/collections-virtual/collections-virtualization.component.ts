@@ -34,7 +34,7 @@ export class CollectionsVirtualizationComponent {
   loading = signal(true);
   activeMenuId = signal<string | null>(null);
 
-  containerHeight = signal(228);
+  containerHeight = signal(202);
 
   virtualizer = injectVirtualizer(() => ({
     count: this.collectionIds().length,
@@ -113,7 +113,7 @@ export class CollectionsVirtualizationComponent {
     const cssWidth = style.getPropertyValue('--card-width-line').trim();
   
     if (cssWidth) {
-      this.containerHeight.set(parseInt(cssWidth, 10) * 1.5 + 56);
+      this.containerHeight.set(parseInt(cssWidth, 10) * 1.5 + 58);
     }
   }
 

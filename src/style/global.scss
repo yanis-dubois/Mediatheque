@@ -21,7 +21,7 @@
   --action-step: 4px;
   /* card size */
   --card-width-poster: 96px;
-  --card-width-grid: 80px;
+  --card-width-grid: 72px;
   --card-width-line: 80px;
   --card-width-list: 32px;
   /* margin & gap */
@@ -142,6 +142,8 @@ h1 {
 }
 
 .title-chevron {
+  margin: 0;
+  padding: 8px 0;
   display: flex;
   align-items: center;
 
@@ -225,9 +227,10 @@ h1 {
   border-radius: 32px;
   display: flex;
   align-items: center;
-  box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+  gap: 4px;
 }
 .tool-item {
+  font-size: var(--text-base);
   background-color: rgba(0,0,0, 0);
   border: none;
   color: var(--color-light);
@@ -249,9 +252,16 @@ h1 {
     height: 24px;
   }
 
-  &:hover {
+  &.is-active {
     background-color: var(--color-dark-light);
   }
+  &:hover {
+    background-color: var(--color-dark-lighter);
+  }
+  
+}
+button.tool-item {
+  height: 32px;
 }
 
 /* dropdown menu */
@@ -322,13 +332,13 @@ h1 {
 .search-box {
   display: flex;
   justify-content: center;
-  padding: 0 10vw;
+  margin: 0;
   margin-bottom: 8px;
 }
 .input-search {
   width: 100%;
   padding: 8px 16px;
-  border-radius: 10px;
+  border-radius: 16px;
   border: none;
   background: rgba(255, 255, 255, 0.1);
   color: var(--color-light);
@@ -361,11 +371,33 @@ select {
 .page-container {
   display: flex;
   flex-direction: column;
-  height: 100vh;
-  overflow: hidden;
+
+  &.virtual {
+    height: 100vh;
+    overflow: hidden;
+  }
 }
 .page-header {
+  margin: 0 var(--side-margin);
   flex-shrink: 0;
+  margin-top: 56px;
+
+  h1 {
+    margin: 16px 0;
+    text-align: start;
+  }
+
+  /* tablet */
+  @media (min-width: 600px) {
+    margin-top: 0;
+
+    h1 {
+      text-align: center;
+    }
+  }
+}
+.page-content {
+  margin: 0 var(--side-margin);
 }
 .virtual-host {
   flex-grow: 1;

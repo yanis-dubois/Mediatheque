@@ -1,19 +1,22 @@
 <app-action-bar></app-action-bar>
 
-<section class="page-container">
-  <h1>{{ type() | humanize}}</h1>
+<section class="page-container virtual">
 
-  <div class="search-box">
-    <input 
-      #searchInput
-      class="input-search"
-      type="text"
-      placeholder="Search in the library..."
-      [value]="searchQuery()"
-      (input)="searchQuery.set($any($event.target).value)"
-      (keydown.enter)="searchInput.blur()"
-      (keydown.escape)="searchQuery.set(''); searchInput.blur()"
-    />
+  <div class="page-header">
+    <h1>{{ type() | humanize}}</h1>
+
+    <div class="search-box">
+      <input 
+        #searchInput
+        class="input-search"
+        type="text"
+        placeholder="Search in the library..."
+        [value]="searchQuery()"
+        (input)="searchQuery.set($any($event.target).value)"
+        (keydown.enter)="searchInput.blur()"
+        (keydown.escape)="searchQuery.set(''); searchInput.blur()"
+      />
+    </div>
   </div>
 
   <app-search-list 

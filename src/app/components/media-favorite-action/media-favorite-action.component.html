@@ -1,6 +1,5 @@
 @if (media(); as media) {
   <button class="favorite-button" (click)="toggleFavorite()">
-    <img src="assets/icons/filled_heart.svg" class="icon" [class.active]="media.favorite"/>
-    <img src="assets/icons/empty_heart.svg" class="icon" [class.active]="!media.favorite"/>
+    <app-favorite-action [isFavorite]="media.favorite"></app-favorite-action>
   </button>
 }

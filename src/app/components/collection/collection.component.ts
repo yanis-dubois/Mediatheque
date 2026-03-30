@@ -22,7 +22,6 @@ import { ActionBarComponent } from "@components/action-bar/action-bar.component"
 import { CollectionDisplayMode, CollectionLayout, CollectionType } from '@models/collection.model';
 import { MediaFilter, MediaOrder } from '@models/media-query.model';
 
-import { HumanizePipe } from "@pipe/humanize";
 import { CollectionService } from '@services/collection.service';
 import { CollectionActionComponent } from "../collection-action/collection-action.component";
 import { PinService } from '@app/services/pin.service';
@@ -33,7 +32,7 @@ import { LayoutManagerComponent } from "@app/components/layout-manager/layout-ma
 @Component({
   selector: 'app-collection',
   standalone: true,
-  imports: [CommonModule, RouterModule, HumanizePipe, SortManagerComponent, FilterManagerComponent, CollectionLineComponent, CollectionGridComponent, CollectionColumnComponent, CollectionRowComponent, CollectionListComponent, MediaCardComponent, MediaRowComponent, MediaPickerComponent, DropdownComponent, MediaActionComponent, ActionBarComponent, CollectionActionComponent, EmojizePipe, LayoutManagerComponent],
+  imports: [CommonModule, RouterModule, SortManagerComponent, FilterManagerComponent, CollectionLineComponent, CollectionGridComponent, CollectionColumnComponent, CollectionRowComponent, CollectionListComponent, MediaCardComponent, MediaRowComponent, MediaPickerComponent, DropdownComponent, MediaActionComponent, ActionBarComponent, CollectionActionComponent, EmojizePipe, LayoutManagerComponent],
   templateUrl: './collection.component.html',
   styleUrl: './collection.component.scss'
 })

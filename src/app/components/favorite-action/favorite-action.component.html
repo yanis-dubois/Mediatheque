@@ -1,0 +1,3 @@
+@let isFav = isFavorite();
+<img src="assets/icons/filled_heart.svg" class="icon" [class.active]="isFav"/>
+<img src="assets/icons/empty_heart.svg" class="icon" [class.active]="!isFav"/>

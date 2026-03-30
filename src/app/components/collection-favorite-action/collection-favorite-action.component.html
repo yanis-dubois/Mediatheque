@@ -1,5 +1,5 @@
 @if (collection(); as collection) {
   <button class="favorite-button" (click)="toggleFavorite()">
-    {{ collection.favorite ? '❤️' : '🩶' }}
+    <app-favorite-action [isFavorite]="collection.favorite"></app-favorite-action>
   </button>
 }

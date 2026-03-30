@@ -1,37 +1,43 @@
-<app-action-bar [leftButtonType]="'home'"></app-action-bar>
+@if (mode(); as mode) {
+  <app-action-bar [leftButtonType]="'home'">
 
-<section class="page-container">
-  <h1>Search</h1>
+      <div class="tool-bar menu-background">
+        <button 
+          class="tool-item" 
+          [class.is-active]="mode === 'library'"
+          (click)="onModeChange('library')"
+        >
+          Library
+        </button>
+        <button 
+          class="tool-item" 
+          [class.is-active]="mode === 'api'"
+          (click)="onModeChange('api')"
+        >
+          Internet
+        </button>
+      </div>
+    
+  </app-action-bar>
 
-  <div class="search-toggle">
-    <button 
-      class="search-toggle-button" 
-      [class.is-active]="mode() === 'library'"
-      (click)="onModeChange('library')"
-    >
-      Library
-    </button>
-    <button 
-      class="search-toggle-button" 
-      [class.is-active]="mode() === 'api'"
-      (click)="onModeChange('api')"
-    >
-      Internet
-    </button>
-  </div>
+  <section class="page-container virtual">
+    
+    <div class="page-header">
+      @let ctx = context();
+      <h1>Search {{ctx.type === 'SPECIFIC' ? (ctx.value | humanize) : 'Anything'}}</h1>
 
-  @if (mode(); as mode) {
-    <div class="search-box">
-      <input 
-        #searchInput
-        class="input-search"
-        type="text"
-        [placeholder]="'Search '+(mode === 'library' ? 'in' : 'on')+' the '+(mode === 'library' ? 'library' : 'internet')+'...'"
-        [value]="searchQuery()"
-        (input)="searchQuery.set($any($event.target).value)"
-        (keydown.enter)="searchInput.blur()"
-        (keydown.escape)="searchQuery.set(''); searchInput.blur()"
-      />
+      <div class="search-box">
+        <input 
+          #searchInput
+          class="input-search"
+          type="text"
+          [placeholder]="'Search '+(mode === 'library' ? 'in' : 'on')+' the '+(mode === 'library' ? 'library' : 'internet')+'...'"
+          [value]="searchQuery()"
+          (input)="searchQuery.set($any($event.target).value)"
+          (keydown.enter)="searchInput.blur()"
+          (keydown.escape)="searchQuery.set(''); searchInput.blur()"
+        />
+      </div>
     </div>
 
     @if (mode === 'library') {
@@ -48,6 +54,6 @@
       >
       </app-api-search-list>
     }
-  }
 
-</section>
+  </section>
+}

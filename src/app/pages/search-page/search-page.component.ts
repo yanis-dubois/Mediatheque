@@ -1,4 +1,4 @@
-import { Component, effect, signal } from '@angular/core';
+import { Component, computed, effect, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 
@@ -12,11 +12,12 @@ import { ApiSearchListComponent } from "@app/components/api-search-list/api-sear
 import { ApiSearchResult, MediaType } from '@app/models/media.model';
 import { NavService } from '@app/services/nav.service';
 import { CollectionMediaType } from '@app/models/collection.model';
+import { HumanizePipe } from "../../pipe/humanize";
 
 @Component({
   selector: 'app-search-page',
   standalone: true,
-  imports: [CommonModule, RouterModule, ActionBarComponent, SearchListComponent, ApiSearchListComponent],
+  imports: [CommonModule, RouterModule, ActionBarComponent, SearchListComponent, ApiSearchListComponent, HumanizePipe],
   templateUrl: './search-page.component.html',
   styleUrl: './search-page.component.scss'
 })
@@ -34,6 +35,10 @@ export class SearchPageComponent {
   isLoading = signal<boolean>(false);
   currentPage = signal<number>(1);
   canLoadMore = signal<boolean>(true);
+
+  context = computed(() => {
+    return this.navService.context()
+  });
 
   constructor(
     private entityService: EntityService,

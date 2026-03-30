@@ -1,29 +1,28 @@
 <app-action-bar>
 
-  <app-layout-manager 
-    [preferredLayout]="preferredLayout()"
-    (preferredLayoutChange)="preferredLayout.set($event)"
-  />
+  <div class="tool-bar menu-background">
+    <app-layout-manager 
+      [preferredLayout]="preferredLayout()"
+      (preferredLayoutChange)="preferredLayout.set($event)"
+    />
 
-  <app-sort-manager 
-    [sortOrder]="sortOrder()" 
-    (sortOrderChange)="onSortChanged($event)"
-  />
+    <app-sort-manager 
+      [sortOrder]="sortOrder()" 
+      (sortOrderChange)="onSortChanged($event)"
+    />
 
-  <app-filter-manager 
-    [filter]="filter()" 
-    (filterChange)="onFilterChanged($event)"
-  />
+    <app-filter-manager 
+      [filter]="filter()" 
+      (filterChange)="onFilterChanged($event)"
+    />
+  </div>
 
 </app-action-bar>
 
-<section class="page-container">
+<section class="page-container virtual">
 
   <div class="page-header">
-
-    <div style="display: flex; justify-content: center;">
-      <h1>{{ name() }}</h1>
-    </div>
+    <h1>{{ name() }}</h1>
 
     <div class="search-box">
       <input 

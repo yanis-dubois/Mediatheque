@@ -1,5 +1,5 @@
 @if (collection(); as collection) {
-  <button class="dropdown-button" (click)="favoriteAction.toggleFavorite()" style="text-align: center;">
+  <button class="dropdown-button" (click)="favoriteAction.toggleFavorite()" style="display: flex; justify-content: center;">
     <app-collection-favorite-action #favoriteAction [collectionId]="collection.id"></app-collection-favorite-action>
   </button>
 

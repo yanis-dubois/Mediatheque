@@ -63,6 +63,7 @@ export class CollectionGridComponent {
     },
     lanes: this.columns() || 1,
     enabled: !!this.scrollElement?.nativeElement,
+    overscan: 5,
     onChange: (instance) => {
       this.syncVisibleMedia(instance.getVirtualItems());
     }

@@ -2,11 +2,12 @@ import { Component, computed, inject, input } from '@angular/core';
 
 import { EntityService } from '@app/services/entity.service';
 import { CollectionService } from '@app/services/collection.service';
+import { FavoriteActionComponent } from "../favorite-action/favorite-action.component";
 
 @Component({
   selector: 'app-collection-favorite-action',
   standalone: true,
-  imports: [],
+  imports: [FavoriteActionComponent],
   templateUrl: './collection-favorite-action.component.html',
   styleUrl: './collection-favorite-action.component.scss'
 })

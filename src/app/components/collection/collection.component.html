@@ -59,7 +59,7 @@
 
       </app-action-bar>
 
-      <section class="page-container">
+      <section class="page-container virtual">
 
         <div class="page-header">
 
@@ -93,45 +93,6 @@
               (keydown.enter)="searchInput.blur()"
               (keydown.escape)="searchQuery.set(''); searchInput.blur()"
             />
-          </div>
-
-          <div style="display: flex; justify-content:space-around;">
-            <p> {{collection.collectionType}} </p>
-
-            <p> 
-              @if (collection.mediaType.type === 'ALL') {
-                <span>All</span>
-              }
-              @else {
-                <span>{{ collection.mediaType.value | humanize }}</span>
-              }
-            </p>
-
-            <p> {{collection.addedDate}} </p>
-
-            <div>
-              <button (click)="onToggleFavorite()" [class.is-favorite]="favorite()">
-                @if (favorite()) {
-                  ❤️
-                } @else {
-                  🩶
-                }
-              </button>
-            </div>
-
-            <p> {{collection.hasImage}} </p>
-
-            <div class="fieldset-container">
-              <label class="fieldset-label">Description</label>
-              <textarea 
-                #descriptionArea
-                [value]="description()"
-                (blur)="onDescriptionBlur(descriptionArea.value)"
-                (keydown.escape)="descriptionArea.value = description(); descriptionArea.blur()"
-                placeholder="Description..."
-              ></textarea>
-            </div>
-
           </div>
         </div>
 

@@ -1,49 +1,53 @@
 <app-action-bar [leftButtonType]="'home'"></app-action-bar>
 
-<section class="settings-group">
-  <h1>Settings</h1>
-
-  <h2>Localisation</h2>
-  <div class="setting-item">
-    <label>Language</label>
-    <select [value]="settings.language()" (change)="onModeChange(SettingsKeys.LANGUAGE, $event)">
-      @for (language of languages; track language) {
-        <option [value]="language" [selected]="language === settings.language()">
-          {{ language }}
-        </option>
-      }
-    </select>
+<section class="page-container">
+  <div class="page-header">
+    <h1>Settings</h1>
   </div>
 
-  <h2>Display Preferences</h2>
-  <div class="setting-item">
-    <label>Theme</label>
-    <select [value]="settings.theme()" (change)="onModeChange(SettingsKeys.THEME, $event)">
-      @for (theme of themes; track theme) {
-        <option [value]="theme" [selected]="theme === settings.theme()">
-          {{ theme | humanize }}
-        </option>
-      }
-    </select>
-  </div>
-  <div class="setting-item">
-    <label>Score</label>
-    <select [value]="settings.scoreDisplayMode()" (change)="onModeChange(SettingsKeys.SCORE_DISPLAY_MODE, $event)">
-      @for (mode of scoreDisplayModes; track mode) {
-        <option [value]="mode" [selected]="mode === settings.scoreDisplayMode()">
-          {{ mode | humanize }}
-        </option>
-      }
-    </select>
-  </div>
+  <div class="page-content">
+    <h2>Localisation</h2>
+    <div class="setting-item">
+      <label>Language</label>
+      <select [value]="settings.language()" (change)="onModeChange(SettingsKeys.LANGUAGE, $event)">
+        @for (language of languages; track language) {
+          <option [value]="language" [selected]="language === settings.language()">
+            {{ language }}
+          </option>
+        }
+      </select>
+    </div>
 
-  <h1>Credits</h1>
-  <p>This application uses external data that came from different API but is not endorsed, certified, or otherwise approved by those.</p>
-  <div class="logos">
-    <img src="assets/logo/Hardcover_Darkmode.png" alt="Hardcover logo" class="api-logo">
-    <img src="assets/logo/TMDB.svg" alt="TMDB logo" class="api-logo">
-    <img src="assets/logo/IGDB_White.png" alt="IGDB logo" class="api-logo">
-    <img src="assets/logo/BGG.png" alt="BGG logo" class="api-logo">
+    <h2>Display Preferences</h2>
+    <div class="setting-item">
+      <label>Theme</label>
+      <select [value]="settings.theme()" (change)="onModeChange(SettingsKeys.THEME, $event)">
+        @for (theme of themes; track theme) {
+          <option [value]="theme" [selected]="theme === settings.theme()">
+            {{ theme | humanize }}
+          </option>
+        }
+      </select>
+    </div>
+    <div class="setting-item">
+      <label>Score</label>
+      <select [value]="settings.scoreDisplayMode()" (change)="onModeChange(SettingsKeys.SCORE_DISPLAY_MODE, $event)">
+        @for (mode of scoreDisplayModes; track mode) {
+          <option [value]="mode" [selected]="mode === settings.scoreDisplayMode()">
+            {{ mode | humanize }}
+          </option>
+        }
+      </select>
+    </div>
+
+    <h1>Credits</h1>
+    <p>This application uses external data that came from different API but is not endorsed, certified, or otherwise approved by those.</p>
+    <div class="logos">
+      <img src="assets/logo/Hardcover_Darkmode.png" alt="Hardcover logo" class="api-logo">
+      <img src="assets/logo/TMDB.svg" alt="TMDB logo" class="api-logo">
+      <img src="assets/logo/IGDB_White.png" alt="IGDB logo" class="api-logo">
+      <img src="assets/logo/BGG.png" alt="BGG logo" class="api-logo">
+    </div>
   </div>
 
 </section>

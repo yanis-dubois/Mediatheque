@@ -1,6 +1,10 @@
 .favorite-button {
+  position: relative;
   background: none;
   border: none;
-  text-align: center;
+  display: flex;
+  width: var(--fav-size, 24px);
+  height: var(--fav-size, 24px);
   cursor: pointer;
+  padding: 0;
 }

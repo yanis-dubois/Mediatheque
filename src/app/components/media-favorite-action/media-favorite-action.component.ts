@@ -2,11 +2,12 @@ import { Component, computed, inject, input, signal } from '@angular/core';
 
 import { MediaService } from '@app/services/media.service';
 import { EntityService } from '@app/services/entity.service';
+import { FavoriteActionComponent } from "../favorite-action/favorite-action.component";
 
 @Component({
   selector: 'app-media-favorite-action',
   standalone: true,
-  imports: [],
+  imports: [FavoriteActionComponent],
   templateUrl: './media-favorite-action.component.html',
   styleUrl: './media-favorite-action.component.scss'
 })
