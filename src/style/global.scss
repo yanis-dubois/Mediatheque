@@ -1,5 +1,12 @@
 @import "@angular/cdk/overlay-prebuilt.css";
 
+::ng-deep .route-container > * {
+  will-change: transform, opacity;
+  backface-visibility: hidden;
+  perspective: 1000px;
+  transform: translate3d(0, 0, 0);
+}
+
 /* phone */
 :root {
   font-family: Inter, Avenir, Helvetica, Arial, sans-serif;
@@ -371,6 +378,8 @@ select {
 .page-container {
   display: flex;
   flex-direction: column;
+  background-color: var(--color-dark);
+  min-height: 100vh;
 
   &.virtual {
     height: 100vh;

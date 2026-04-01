@@ -1,6 +1,7 @@
 import { Component, input } from '@angular/core';
 import { Location } from '@angular/common';
 import { Router } from '@angular/router';
+import { NavService } from '@app/services/nav.service';
 
 @Component({
   selector: 'app-action-bar',
@@ -14,15 +15,18 @@ export class ActionBarComponent {
 
   constructor(
     private location: Location,
-    private router: Router
+    private router: Router,
+    private navService: NavService
   ) {}
 
   goToSettings() {
     this.router.navigateByUrl('/settings');
+    this.navService.isLeft.set(true);
   }
 
   goToHome() {
     this.router.navigateByUrl('/home');
+    this.navService.isBackward.set(true);
   }
 
   goToPreviousPage() {
@@ -31,6 +35,7 @@ export class ActionBarComponent {
     } else {
       this.router.navigateByUrl('/');
     }
+    this.navService.isBackward.set(true);
   }
 
 }

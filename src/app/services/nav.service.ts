@@ -13,6 +13,11 @@ export enum PageType {
 @Injectable({ providedIn: 'root' })
 export class NavService {
 
+  isBackward = signal<boolean>(false);
+  direction = signal<'forward' | 'backward'>('forward');
+  isLeft = signal<boolean>(false);
+  orientation = signal<'right' | 'left'>('right');
+
   private _context = signal<CollectionMediaType>({ type: 'ALL' });
   readonly context = this._context.asReadonly();
 
@@ -34,11 +39,36 @@ export class NavService {
       const url = this.router.url;
       const ctxParam = params.get('context');
 
+      // determine the slide animation
+      if (this.isBackward()) {
+        this.direction.set("backward");
+        this.isBackward.set(false);
+      } else {
+        this.direction.set("forward");
+      }
+      if (this.isLeft()) {
+        this.orientation.set("left");
+        this.isLeft.set(false);
+      } else {
+        this.orientation.set("right");
+      }
+      console.log('direction ', this.direction(), " orientation", this.orientation());
+
       // update page value
       if (url.startsWith('/search')) {
+        // transition between HOME to SEARCH if needed
+        if (this._page() === PageType.HOME) {
+          this.direction.set("forward");
+        }
+
         this._page.set(PageType.SEARCH);
       }
       else if (url === '/' || url.startsWith('/home')) {
+        // transition between SEARCH to HOME if needed
+        if (this._page() === PageType.SEARCH) {
+          this.direction.set("backward");
+        }
+
         this._page.set(PageType.HOME);
       }
 

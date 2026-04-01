@@ -47,7 +47,7 @@ export class CollectionComponent {
   listPadding = signal<number>(8);
 
   // media data needed for virtualizing (id, width, height)
-  mediaLayoutData = signal<[string, number, number][]>([]);
+  mediaLayoutData = signal<[string, number, number][]>([['', 2, 3]]);
 
   // enums
   protected readonly CollectionDisplayMode = CollectionDisplayMode;
@@ -83,6 +83,8 @@ export class CollectionComponent {
 
   private refreshLayout$ = new Subject<void>();
 
+  isPageReady = signal(false);
+
   constructor(
     private entityService: EntityService,
     private collectionService: CollectionService,
@@ -94,17 +96,19 @@ export class CollectionComponent {
       this.loadLayoutData();
     });
 
+    setTimeout(() => this.isPageReady.set(true), 200);
+
     effect(() => {
       this.id();
-      this.entityService.lastUpdate();
-      untracked(() => {
-        this.refreshLayout$.next();
-      });
-    });
-
-    effect(async () => {
       this.searchQuery();
-      this.refreshLayout$.next();
+      this.entityService.lastUpdate();
+      const ready = this.isPageReady();
+
+      untracked(() => {
+        if (ready) {
+          this.refreshLayout$.next();
+        }
+      });
     });
 
     // effect to select name editing when creating a new collection
@@ -130,6 +134,12 @@ export class CollectionComponent {
     });
   }
 
+  async loadLayoutData() {
+    this.mediaLayoutData.set(
+      await this.collectionService.getLayoutData(this.id(), this.searchQuery())
+    );
+  }
+
   private focusAndSelectText(el: HTMLElement) {
     el.focus();
     const range = document.createRange();
@@ -147,12 +157,6 @@ export class CollectionComponent {
     if (selection) {
       selection.removeAllRanges();
     }
-  }
-
-  async loadLayoutData() {
-    this.mediaLayoutData.set(
-      await this.collectionService.getLayoutData(this.id(), this.searchQuery())
-    );
   }
 
   async onToggleFavorite() {

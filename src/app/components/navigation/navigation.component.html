@@ -1,7 +1,7 @@
 <nav class="nav">
   <div class="nav-navigate menu-background" [class.active]="isTypeActive(PageType.HOME)" >
     <a 
-    [routerLink]="['/home']"
+      (click)="onPageChange('home')"
       [class.active]="isTypeActive(PageType.HOME)" 
       class="nav-item"
     >
@@ -31,7 +31,7 @@
 
   <div class="nav-navigate menu-background" [class.active]="isTypeActive(PageType.SEARCH)" >
     <a 
-      [routerLink]="['/search']"
+      (click)="onPageChange('search')"
       [class.active]="isTypeActive(PageType.SEARCH)" 
       class="nav-item"
     >
