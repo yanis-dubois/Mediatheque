@@ -28,6 +28,7 @@ import { PinService } from '@app/services/pin.service';
 import { EmojizePipe } from "../../pipe/emojize";
 import { EntityService } from '@app/services/entity.service';
 import { LayoutManagerComponent } from "@app/components/layout-manager/layout-manager.component";
+import { AnimationService } from '@app/services/animation.service';
 
 @Component({
   selector: 'app-collection',
@@ -46,7 +47,9 @@ export class CollectionComponent {
   private hasFocused = false;
   listPadding = signal<number>(8);
 
-  // media data needed for virtualizing (id, width, height)
+  private readonly LIMIT = 16;
+
+  // media data needed for virtualizing (id, width, height) ['', 2, 3]
   mediaLayoutData = signal<[string, number, number][]>([['', 2, 3]]);
 
   // enums
@@ -85,6 +88,23 @@ export class CollectionComponent {
 
   isPageReady = signal(false);
 
+  animationService = inject(AnimationService);
+  isMobile = this.animationService.isMobile;
+
+  isLoading = signal<boolean>(false);
+  currentPage = signal<number>(1);
+  canLoadMore = signal<boolean>(true);
+
+  ngOnInit() {
+    // too much lags for mobile
+    // if (!this.isMobile()) {
+    //   const cachedLayoutData = this.collectionService.getLayoutDataSignal(this.id(), false)();
+    //   if (cachedLayoutData) {
+    //     this.mediaLayoutData.set(cachedLayoutData);
+    //   }
+    // }
+  }
+
   constructor(
     private entityService: EntityService,
     private collectionService: CollectionService,
@@ -96,7 +116,11 @@ export class CollectionComponent {
       this.loadLayoutData();
     });
 
-    setTimeout(() => this.isPageReady.set(true), 200);
+    // wait the end of animation before loading data
+    setTimeout(() => 
+      this.isPageReady.set(true), 
+      this.animationService.isMobile() ? 200 : 0
+    );
 
     effect(() => {
       this.id();
@@ -129,15 +153,55 @@ export class CollectionComponent {
             queryParamsHandling: 'merge',
             replaceUrl: true 
           });
-        }, 100);
+        }, this.animationService.isMobile() ? 200 : 50);
       }
     });
   }
 
-  async loadLayoutData() {
-    this.mediaLayoutData.set(
-      await this.collectionService.getLayoutData(this.id(), this.searchQuery())
-    );
+  async loadLayoutData(isNextPage = false) {
+    if (this.isLoading()) return;
+    this.isLoading.set(true);
+
+    // reinit pagination if query has changed
+    if (!isNextPage) {
+      this.currentPage.set(1);
+      this.canLoadMore.set(true);
+    }
+
+    const pagination = {limit: this.LIMIT, offset: (this.currentPage() - 1) * this.LIMIT};
+    let data = await this.collectionService.getLayoutData(this.id(), this.searchQuery(), pagination);
+
+    if (data.length < this.LIMIT) {
+      this.canLoadMore.set(false);
+    }
+
+    this.mediaLayoutData.update(current => {
+      // delete loading item
+      const base = current.filter(item => item !== undefined);
+
+      // fill results
+      if (isNextPage) {
+        return [...base, ...data];
+      }
+      // change result
+      return data;
+    });
+
+    // too much lags for mobile
+    // if (!this.isMobile() && this.searchQuery() === '') {
+    //   const structuralData: [string, number, number][] = data.map(item => 
+    //     ['', item[1], item[2]]
+    //   );
+    //   this.collectionService.setLayoutData(this.id(), data);
+    // }
+    this.isLoading.set(false);
+  }
+
+  onScroll() {
+    if (!this.isLoading() && this.canLoadMore()) {
+      this.currentPage.update(p => p + 1);
+      this.loadLayoutData(true);
+    }
   }
 
   private focusAndSelectText(el: HTMLElement) {

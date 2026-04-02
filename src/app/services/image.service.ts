@@ -23,7 +23,6 @@ export class ImageService {
   async loadConfigs() {
     try {
       this.configs = await invoke<Record<string, ImageConfiguration>>('get_image_configurations');
-      console.log('Image Configs loaded:', this.configs);
     } catch (err) {
       console.error('Failed to load image configs', err);
     }

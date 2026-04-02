@@ -3,15 +3,18 @@
   [itemHeight]="containerHeight()"
   (visibleItemsChanged)="onVisibleItemsChanged($event)" 
   (windowResize)="updateDimensions()" 
+  (endReached)="endReached.emit()"
 >
   <ng-template #rowRef let-item let-index="index">
-    <ng-container 
-      [ngTemplateOutlet]="rowTemplate" 
-      [ngTemplateOutletContext]="{ 
-        mediaId: item[0], 
-        width: containerWidth(), 
-        height: containerHeight(),
-      }">
-    </ng-container>
+    @if (item; as result) {
+      <ng-container 
+        [ngTemplateOutlet]="rowTemplate" 
+        [ngTemplateOutletContext]="{ 
+          mediaId: item[0], 
+          width: containerWidth(), 
+          height: containerHeight(),
+        }">
+      </ng-container>
+    }
   </ng-template>
 </app-generic-list>

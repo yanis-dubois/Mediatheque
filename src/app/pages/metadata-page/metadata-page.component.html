@@ -99,6 +99,7 @@
         <app-collection-list 
           class="virtual-host virtual-host-list"
           [mediaLayoutData]="mediaLayoutData()" 
+          (endReached)="onScroll()"
         >
           <ng-template #rowRef let-mediaId="mediaId" let-width="width" let-height="height">
             <a [routerLink]="['/media', mediaId]" style="text-decoration: none; color: inherit;">

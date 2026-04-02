@@ -51,8 +51,8 @@
       } 
     } @else {
       <div class="skeleton-text title"></div>
-      <div class="skeleton-text info"></div>
-      <div class="skeleton-text sub-info"></div>
+        <div class="skeleton-text info"></div>
+      <div class="skeleton-text sub-info" [class.hide-mobile-default]="display() === 'default'"></div>
     }
   </div>
 

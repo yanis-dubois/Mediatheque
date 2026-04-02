@@ -14,7 +14,7 @@ use crate::models::media::{
   LibraryState, MediaBase, MediaData, MediaExtension,
 };
 use crate::models::metadata::Tag;
-use crate::models::query::{MediaFilter, MediaOrder, Payload};
+use crate::models::query::{MediaFilter, MediaOrder, Pagination, Payload};
 use crate::utils::image::{delete_media_files, download_assets};
 
 // convert SQL -> Media
@@ -345,10 +345,18 @@ fn build_media_query_parts(
   collection_media_type: &CollectionMediaType,
   filter: &MediaFilter,
   order: &Vec<MediaOrder>,
-) -> (String, String, String, Vec<Box<dyn rusqlite::ToSql>>) {
+  pagination: &Pagination,
+) -> (
+  String,
+  String,
+  String,
+  String,
+  Vec<Box<dyn rusqlite::ToSql>>,
+) {
   let mut conditions = Vec::new();
   let mut params: Vec<Box<dyn rusqlite::ToSql>> = Vec::new();
   let mut join_clauses = Vec::new();
+  let pagination = format!("LIMIT {} OFFSET {}", pagination.limit, pagination.offset);
 
   // --- JOIN ---
   if let CollectionMediaType::Specific(media_type) = &collection_media_type {
@@ -630,7 +638,7 @@ fn build_media_query_parts(
     format!("ORDER BY {}", parts.join(", "))
   };
 
-  (joins, where_clause, order_clause, params)
+  (joins, where_clause, order_clause, pagination, params)
 }
 
 #[tauri::command]
@@ -640,23 +648,27 @@ pub fn get_media_layout_list(
   collection_media_type: CollectionMediaType,
   filter: MediaFilter,
   order: Vec<MediaOrder>,
+  pagination: Pagination,
 ) -> Result<Vec<(String, u16, u16)>, String> {
   let connection = state.connection.lock().map_err(|_| "Lock error")?;
 
-  let (joins, where_clause, order_clause, params) =
-    build_media_query_parts(&collection_type, &collection_media_type, &filter, &order);
-
-  let sql = if collection_type == CollectionType::Manual {
-    format!(
-      "SELECT m.id, m.poster_width, m.poster_height FROM media m {} {} {}",
-      joins, where_clause, order_clause
-    )
+  let (joins, where_clause, order_clause, pagination_clause, params) = build_media_query_parts(
+    &collection_type,
+    &collection_media_type,
+    &filter,
+    &order,
+    &pagination,
+  );
+  let is_distinct = if collection_type == CollectionType::Manual {
+    ""
   } else {
-    format!(
-      "SELECT DISTINCT m.id, m.poster_width, m.poster_height FROM media m {} {} {}",
-      joins, where_clause, order_clause
-    )
+    "DISTINCT"
   };
+
+  let sql = format!(
+    "SELECT {} m.id, m.poster_width, m.poster_height FROM media m {} {} {} {}",
+    is_distinct, joins, where_clause, order_clause, pagination_clause
+  );
 
   let mut stmt = connection.prepare(&sql).map_err(|e| e.to_string())?;
   let params_ref: Vec<&dyn rusqlite::ToSql> = params.iter().map(|p| p.as_ref()).collect();

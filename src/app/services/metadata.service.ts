@@ -4,7 +4,7 @@ import { invoke } from '@tauri-apps/api/core';
 
 import { Company, EntityType, MetadataType, Person, Tag } from '@app/models/entity.model';
 import { CollectionMediaType } from '@app/models/collection.model';
-import { MediaFilter, MediaOrder } from '@app/models/media-query.model';
+import { MediaFilter, MediaOrder, Pagination } from '@app/models/media-query.model';
 
 @Injectable({ providedIn: 'root' })
 export class MetadataService {
@@ -17,10 +17,11 @@ export class MetadataService {
     query: string, 
     order: MediaOrder[],
     filter: MediaFilter,
-    context: CollectionMediaType
+    context: CollectionMediaType, 
+    pagination: Pagination,
   ) {
     return await invoke<[string, number, number][]>('search_in_meta_data', { 
-      metadataType: type, metadataId: id, query, order, filter, mediaType: context 
+      metadataType: type, metadataId: id, query, order, filter, mediaType: context, pagination
     });
   }
 

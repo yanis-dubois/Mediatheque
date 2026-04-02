@@ -28,429 +28,391 @@
       <div class="backdrop-overlay"></div>
     </div>
 
-    <div class="main-content">
-      <!-- poster -->
-      <div class="poster-container">
-        <div class="poster-content">
-          <app-media-image
-            [source]="posterUrl()"
-            [title]="media.title" 
-            [type]="'poster'" 
-            [hasImage]="hasPoster()"
-            [customStyle]="'width: 100%; overflow: hidden; border-radius: 8px; box-shadow: 0 20px 40px rgba(0, 0, 0, 0.6);'"
-            (click)="isLightboxOpen.set(true)"
-          >
-          </app-media-image>
+    <div class="scroll-container">
+      <div class="main-content">
+        <!-- poster -->
+        <div class="poster-container">
+          <div class="poster-content">
+            <app-media-image
+              [source]="posterUrl()"
+              [title]="media.title" 
+              [type]="'poster'" 
+              [hasImage]="hasPoster()"
+              [customStyle]="'width: 100%; overflow: hidden; border-radius: 8px; box-shadow: 0 20px 40px rgba(0, 0, 0, 0.6);'"
+              (click)="isLightboxOpen.set(true)"
+            >
+            </app-media-image>
+          </div>
         </div>
-      </div>
-
-      <!-- main info -->
-      <div class="primary-info">
-        <h1 class="title">{{ media.title }}</h1>
-
-        <div class="meta-line">
-          <span class="badge">{{ media.mediaType.replace('_', ' ') }}</span>
-          <span class="date">{{ media.releaseDate | date:'mediumDate' }}</span>
-          <span class="separator">–</span>
-          <span class="specific-info">
-            @switch (media.mediaType) {
-              @case (MediaType.MOVIE) { 
-                <span>{{asMovie(media).duration | duration}}</span> 
-              }
-              @case (MediaType.SERIES) { 
-                <span>{{asSerie(media).seasons}} Seasons, {{asSerie(media).episodes}} Episodes</span> 
-              }
-              @case (MediaType.VIDEO_GAME) {
-                <div class="meta-block">
-                  @if (isLibraryMedia(media)) {
-                    <span>@for (status of media.tags.RELEASE_STATUS; track status) { {{status.name}} }</span>
-                  }
-                  @else {
-                    <span>{{media.tags.RELEASE_STATUS}}</span>
-                  }
-                </div>
-              }
-              @case (MediaType.TABLETOP_GAME) {
-                @let tabletopGame = asTabletopGame(media);
-                @let minPlayers = tabletopGame.minPlayers;
-                @let maxPlayers = tabletopGame.maxPlayers;
-                @if (minPlayers || maxPlayers) {
+  
+        <!-- main info -->
+        <div class="primary-info">
+          <h1 class="title">{{ media.title }}</h1>
+  
+          <div class="meta-line">
+            <span class="badge">{{ media.mediaType.replace('_', ' ') }}</span>
+            <span class="date">{{ media.releaseDate | date:'mediumDate' }}</span>
+            <span class="separator">–</span>
+            <span class="specific-info">
+              @switch (media.mediaType) {
+                @case (MediaType.MOVIE) { 
+                  <span>{{asMovie(media).duration | duration}}</span> 
+                }
+                @case (MediaType.SERIES) { 
+                  <span>{{asSerie(media).seasons}} Seasons, {{asSerie(media).episodes}} Episodes</span> 
+                }
+                @case (MediaType.VIDEO_GAME) {
                   <div class="meta-block">
-                    <img class="icon" src="assets/icons/person.svg"/>
-                    @if (minPlayers !== maxPlayers) {
-                      <span>&nbsp;{{ minPlayers }}@if (minPlayers && maxPlayers) {-}{{ maxPlayers }}</span>
+                    @if (isLibraryMedia(media)) {
+                      <span>@for (status of media.tags.RELEASE_STATUS; track status) { {{status.name}} }</span>
                     }
                     @else {
-                      <span>&nbsp;{{ minPlayers }}</span>
+                      <span>{{media.tags.RELEASE_STATUS}}</span>
                     }
                   </div>
                 }
-                @let minPlayingTime = tabletopGame.minPlayingTime;
-                @let maxPlayingTime = tabletopGame.maxPlayingTime;
-                @if (minPlayingTime || maxPlayingTime) {
+                @case (MediaType.TABLETOP_GAME) {
+                  @let tabletopGame = asTabletopGame(media);
+                  @let minPlayers = tabletopGame.minPlayers;
+                  @let maxPlayers = tabletopGame.maxPlayers;
+                  @if (minPlayers || maxPlayers) {
+                    <div class="meta-block">
+                      <img class="icon" src="assets/icons/person.svg"/>
+                      @if (minPlayers !== maxPlayers) {
+                        <span>&nbsp;{{ minPlayers }}@if (minPlayers && maxPlayers) {-}{{ maxPlayers }}</span>
+                      }
+                      @else {
+                        <span>&nbsp;{{ minPlayers }}</span>
+                      }
+                    </div>
+                  }
+                  @let minPlayingTime = tabletopGame.minPlayingTime;
+                  @let maxPlayingTime = tabletopGame.maxPlayingTime;
+                  @if (minPlayingTime || maxPlayingTime) {
+                    <div class="meta-block">
+                      <img class="icon" src="assets/icons/time.svg"/>
+                      @if (minPlayingTime && maxPlayingTime && minPlayingTime !== maxPlayingTime) {
+                        <span>&nbsp;{{ minPlayingTime }}-{{ maxPlayingTime }}min</span>
+                      }
+                      @else if (minPlayingTime) {
+                        <span>&nbsp;{{ minPlayingTime | duration:'m' }}</span>
+                      }
+                      @else if (maxPlayingTime) {
+                        <span>&nbsp;{{ maxPlayingTime | duration:'m' }}</span>
+                      }
+                    </div>
+                  }
+                }
+                @case (MediaType.BOOK) {
+                  @let book = asBook(media);
+                  @if (book.category !== "Book") {
+                    {{book.category}}
+                  }
+                  <span>{{book.pages}} pages</span>
+                }
+              }
+            </span>
+            <!-- time to beat for video game -->
+            @if (media.mediaType === MediaType.VIDEO_GAME) {
+              @let videoGame = asVideoGame(media);
+              @if (videoGame.normalPlayingTime || videoGame.completePlayingTime) {
+                <span class="separator">–</span>
+                <span class="specific-info">
                   <div class="meta-block">
                     <img class="icon" src="assets/icons/time.svg"/>
-                    @if (minPlayingTime && maxPlayingTime && minPlayingTime !== maxPlayingTime) {
-                      <span>&nbsp;{{ minPlayingTime }}-{{ maxPlayingTime }}min</span>
+                    @if (videoGame.normalPlayingTime && videoGame.completePlayingTime) {
+                      <span>&nbsp;{{ videoGame.normalPlayingTime | duration:'s' : true : false }}-{{ videoGame.completePlayingTime | duration:'s' : true }}</span>
                     }
-                    @else if (minPlayingTime) {
-                      <span>&nbsp;{{ minPlayingTime | duration:'m' }}</span>
+                    @else if (videoGame.normalPlayingTime) {
+                      <span>&nbsp;{{ videoGame.normalPlayingTime | duration:'s' : true }}</span>
                     }
-                    @else if (maxPlayingTime) {
-                      <span>&nbsp;{{ maxPlayingTime | duration:'m' }}</span>
+                    @else if (videoGame.completePlayingTime) {
+                      <span>&nbsp;{{ videoGame.completePlayingTime | duration:'s' : true }}</span>
                     }
                   </div>
-                }
-              }
-              @case (MediaType.BOOK) {
-                @let book = asBook(media);
-                @if (book.category !== "Book") {
-                  {{book.category}}
-                }
-                <span>{{book.pages}} pages</span>
+                </span>
               }
             }
-          </span>
-          <!-- time to beat for video game -->
-          @if (media.mediaType === MediaType.VIDEO_GAME) {
-            @let videoGame = asVideoGame(media);
-            @if (videoGame.normalPlayingTime || videoGame.completePlayingTime) {
-              <span class="separator">–</span>
-              <span class="specific-info">
-                <div class="meta-block">
-                  <img class="icon" src="assets/icons/time.svg"/>
-                  @if (videoGame.normalPlayingTime && videoGame.completePlayingTime) {
-                    <span>&nbsp;{{ videoGame.normalPlayingTime | duration:'s' : true : false }}-{{ videoGame.completePlayingTime | duration:'s' : true }}</span>
-                  }
-                  @else if (videoGame.normalPlayingTime) {
-                    <span>&nbsp;{{ videoGame.normalPlayingTime | duration:'s' : true }}</span>
-                  }
-                  @else if (videoGame.completePlayingTime) {
-                    <span>&nbsp;{{ videoGame.completePlayingTime | duration:'s' : true }}</span>
-                  }
-                </div>
-              </span>
-            }
-          }
-        </div>
-
-        <!-- tags -->
-        <div class="meta-line">
-          @let tagFilter = isGame
-            ? [TagType.SAGA, TagType.GAME_MECHANIC] 
-            : [TagType.SAGA, TagType.GENRE];
-          @if (isLibraryMedia(media)) {
-            @for (category of media.tags | filterTags:tagFilter; track category.key; let lastCategory = $last) {
-              <div class="tag-group">
-                @for (tag of category.value.slice(0, 5); track tag.id; let lastTag = $last) {
-                  <a [routerLink]="['/metadata', category.key, tag.id]" [class.saga]="category.key === 'SAGA'">{{ tag.name }}</a>@if (!lastTag) {<span>, </span>}
-                }
-                @if (category.value.length > 5) {<span>, ...</span>}
-              </div>
-              @if (!lastCategory) {
-                <span class="separator">–</span>
-              }
-            }
-          } 
-          @else {
-            @for (category of media.tags | filterTags:tagFilter; track category.key; let lastCategory = $last) {
-              <div class="tag-group">
-                @for (tag of category.value.slice(0, 5); track tag; let lastTag = $last) {
-                  <span [class.saga]="category.key === 'SAGA'">{{ tag }}@if (!lastTag) {<span>, </span>}</span>
-                }
-                @if (category.value.length > 5) {<span>, ...</span>}
-              </div>
-              @if (!lastCategory) {
-                <span class="separator">–</span>
-              }
-            }
-          }
-        </div>
-
-        <!-- action -->
-        @if (isLibraryMedia(media)) {
-          <div class="meta-line action">
-            @if (displayMode() !== ScoreDisplayModes.HIDDEN) {
-              <app-score-display 
-                [score]="score()" 
-                (scoreChange)="onScoreChange($event)"
-              />
-            }
-
-            <app-media-favorite-action [mediaId]="media.id"></app-media-favorite-action>
-
-            <app-media-status-action [mediaId]="media.id"></app-media-status-action>
           </div>
-        }
-
-        @if (media.mediaType === MediaType.BOOK || media.mediaType === MediaType.TABLETOP_GAME) {
-          <div class="crew-grid">
+  
+          <!-- tags -->
+          <div class="meta-line">
+            @let tagFilter = isGame
+              ? [TagType.SAGA, TagType.GAME_MECHANIC] 
+              : [TagType.SAGA, TagType.GENRE];
             @if (isLibraryMedia(media)) {
-              @for (person of media.persons | keyvalue: sortEntityByOrder; track person.key) {
-                @if (person.value.values.includes("DESIGNER")) {
-                  <div class="crew-item">
-                    <a [routerLink]="['/metadata', MetadataType.PERSON, person.value.id]">
-                      <span class="name">{{ person.key }}</span>
-                    </a>
-                    <span class="role">{{ person.value.values.join(', ') }}</span>
-                  </div>
+              @for (category of media.tags | filterTags:tagFilter; track category.key; let lastCategory = $last) {
+                <div class="tag-group">
+                  @for (tag of category.value.slice(0, 5); track tag.id; let lastTag = $last) {
+                    <a [routerLink]="['/metadata', category.key, tag.id]" [class.saga]="category.key === 'SAGA'">{{ tag.name }}</a>@if (!lastTag) {<span>, </span>}
+                  }
+                  @if (category.value.length > 5) {<span>, ...</span>}
+                </div>
+                @if (!lastCategory) {
+                  <span class="separator">–</span>
                 }
               }
-            } @else {
-              @for (person of media.persons | keyvalue: sortEntityByOrder; track person.key) {
-                @if (person.value.values.includes("DESIGNER")) {
-                  <div class="crew-item">
-                    <span class="name">{{ person.key }}</span>
-                    <span class="role"> {{ person.value.values.join(', ') }}</span>
-                  </div>
+            } 
+            @else {
+              @for (category of media.tags | filterTags:tagFilter; track category.key; let lastCategory = $last) {
+                <div class="tag-group">
+                  @for (tag of category.value.slice(0, 5); track tag; let lastTag = $last) {
+                    <span [class.saga]="category.key === 'SAGA'">{{ tag }}@if (!lastTag) {<span>, </span>}</span>
+                  }
+                  @if (category.value.length > 5) {<span>, ...</span>}
+                </div>
+                @if (!lastCategory) {
+                  <span class="separator">–</span>
+                }
+              }
+            }
+          </div>
+  
+          <!-- action -->
+          @if (isLibraryMedia(media)) {
+            <div class="meta-line action">
+              @if (displayMode() !== ScoreDisplayModes.HIDDEN) {
+                <app-score-display 
+                  [score]="score()" 
+                  (scoreChange)="onScoreChange($event)"
+                />
+              }
+  
+              <app-media-favorite-action [mediaId]="media.id"></app-media-favorite-action>
+  
+              <app-media-status-action [mediaId]="media.id"></app-media-status-action>
+            </div>
+          }
+  
+          @if (media.mediaType === MediaType.BOOK || media.mediaType === MediaType.TABLETOP_GAME) {
+            <div class="crew-grid">
+              @if (isLibraryMedia(media)) {
+                @for (person of media.persons | keyvalue: sortEntityByOrder; track person.key) {
+                  @if (person.value.values.includes("DESIGNER")) {
+                    <div class="crew-item">
+                      <a [routerLink]="['/metadata', MetadataType.PERSON, person.value.id]">
+                        <span class="name">{{ person.key }}</span>
+                      </a>
+                      <span class="role">{{ person.value.values.join(', ') }}</span>
+                    </div>
+                  }
+                }
+              } @else {
+                @for (person of media.persons | keyvalue: sortEntityByOrder; track person.key) {
+                  @if (person.value.values.includes("DESIGNER")) {
+                    <div class="crew-item">
+                      <span class="name">{{ person.key }}</span>
+                      <span class="role"> {{ person.value.values.join(', ') }}</span>
+                    </div>
+                  }
+                }
+              }
+            </div>
+          }
+        </div>
+  
+        @if (media.mediaType !== MediaType.BOOK && media.mediaType !== MediaType.TABLETOP_GAME) {
+          <!-- description -->
+          <div class="description">
+            <h2>@if (isGame) {Description} @else {Synopsis}</h2>
+            <p class="description-text">{{ media.description }}</p> 
+          </div>
+  
+          <!-- creators -->
+          <div class="crew-grid">
+            @switch (media.mediaType) {
+              @case (MediaType.VIDEO_GAME) {
+                @if (isLibraryMedia(media)) {
+                  @for (company of media.companies | keyvalue: sortEntityByOrder; track company.key) {
+                    <div class="crew-item">
+                      <a [routerLink]="['/metadata', MetadataType.COMPANY, company.value.id]">
+                        <span class="name">{{ company.key }}</span>
+                      </a>
+                      <span class="role">{{ company.value.values.join(', ') }}</span>
+                    </div>
+                  }
+                } @else {
+                  @for (company of media.companies | keyvalue: sortEntityByOrder; track company.key) {
+                    <div class="crew-item">
+                      <span class="name">{{ company.key }}</span>
+                      <span class="role">{{ company.value.values.join(', ') }}</span>
+                    </div>
+                  }
+                }
+              }
+              @default {
+                @if (isLibraryMedia(media)) {
+                  @for (person of media.persons | keyvalue: sortEntityByOrder; track person.key) {
+                    <div class="crew-item">
+                      <a [routerLink]="['/metadata', MetadataType.PERSON, person.value.id]">
+                        <span class="name">{{ person.key }}</span>
+                      </a>
+                      <span class="role">{{ person.value.values.join(', ') }}</span>
+                    </div>
+                  }
+                } @else {
+                  @for (person of media.persons | keyvalue: sortEntityByOrder; track person.key) {
+                    <div class="crew-item">
+                      <span class="name">{{ person.key }}</span>
+                      <span class="role">{{ person.value.values.join(', ') }}</span>
+                    </div>
+                  }
                 }
               }
             }
           </div>
         }
       </div>
-
-      @if (media.mediaType !== MediaType.BOOK && media.mediaType !== MediaType.TABLETOP_GAME) {
-        <!-- description -->
-        <div class="description">
-          <h2>@if (isGame) {Description} @else {Synopsis}</h2>
-          <p class="description-text">{{ media.description }}</p> 
-        </div>
-
-        <!-- creators -->
-        <div class="crew-grid">
-          @switch (media.mediaType) {
-            @case (MediaType.VIDEO_GAME) {
-              @if (isLibraryMedia(media)) {
-                @for (company of media.companies | keyvalue: sortEntityByOrder; track company.key) {
-                  <div class="crew-item">
-                    <a [routerLink]="['/metadata', MetadataType.COMPANY, company.value.id]">
-                      <span class="name">{{ company.key }}</span>
-                    </a>
-                    <span class="role">{{ company.value.values.join(', ') }}</span>
+  
+      <!-- secondary info -->
+      <div class="secondary-container">
+        @switch (media.mediaType) {
+          <!-- tags for video games -->
+          @case (MediaType.VIDEO_GAME) {
+            <div class="secondary-content">
+              <ng-template #tagSection let-type="type" let-label="label">
+                @let categoryTags = media.tags[asTagType(type)];
+  
+                @if (categoryTags && categoryTags.length > 0) {
+                  <div class="secondary-section video-game">
+                    <h3>{{ label }}</h3>
+                    <div class="cast-list">
+                      @if (isLibraryMedia(media)) {
+                        @for (tag of media.tags[asTagType(type)]; track tag.id; let last = $last) {
+                          <a [routerLink]="['/metadata', type, tag.id]">{{ tag.name }}</a>@if (!last) {<span>, </span>}
+                        }
+                      } @else {
+                        @for (tag of media.tags[asTagType(type)]; track tag; let last = $last) {
+                          <span>{{ tag }}</span>@if (!last) {<span>, </span>}
+                        }
+                      }
+                    </div>
                   </div>
                 }
-              } @else {
-                @for (company of media.companies | keyvalue: sortEntityByOrder; track company.key) {
-                  <div class="crew-item">
-                    <span class="name">{{ company.key }}</span>
-                    <span class="role">{{ company.value.values.join(', ') }}</span>
-                  </div>
-                }
-              }
-            }
-            @default {
-              @if (isLibraryMedia(media)) {
-                @for (person of media.persons | keyvalue: sortEntityByOrder; track person.key) {
-                  <div class="crew-item">
-                    <a [routerLink]="['/metadata', MetadataType.PERSON, person.value.id]">
-                      <span class="name">{{ person.key }}</span>
-                    </a>
-                    <span class="role">{{ person.value.values.join(', ') }}</span>
-                  </div>
-                }
-              } @else {
-                @for (person of media.persons | keyvalue: sortEntityByOrder; track person.key) {
-                  <div class="crew-item">
-                    <span class="name">{{ person.key }}</span>
-                    <span class="role">{{ person.value.values.join(', ') }}</span>
-                  </div>
-                }
-              }
+              </ng-template>
+              
+              <ng-container 
+                *ngTemplateOutlet="tagSection; 
+                context: { 
+                  type: TagType.GENRE, 
+                  label: 'Theme' 
+                }"
+              ></ng-container>
+              <ng-container 
+                *ngTemplateOutlet="tagSection; 
+                context: { 
+                  type: TagType.FRANCHISE, 
+                  label: 'Franchise' 
+                }"
+              ></ng-container>
+              <ng-container 
+                *ngTemplateOutlet="tagSection; 
+                context: { 
+                  type: TagType.GAME_MODE, 
+                  label: 'Game Mode' 
+                }"
+              ></ng-container>
+              <ng-container 
+                *ngTemplateOutlet="tagSection; 
+                context: { 
+                  type: TagType.CAMERA_PERSPECTIVE, 
+                  label: 'Camera Perspective' 
+                }"
+              ></ng-container>
+            </div>
+  
+            @let videoGame = asVideoGame(media);
+            @if (videoGame.synopsis && videoGame.synopsis !== "") {
+              <div class="secondary-separator-container">
+                <hr class="secondary-separator">
+              </div>
+              <div class="secondary-content">
+                <div class="secondary-section synopsis">
+                  <h2>Synopsis</h2>
+                  <p>{{ videoGame.synopsis }}</p>
+                </div>
+              </div>
             }
           }
-        </div>
-      }
-    </div>
-
-    <!-- secondary info -->
-    <div class="secondary-container">
-      @switch (media.mediaType) {
-        <!-- tags for video games -->
-        @case (MediaType.VIDEO_GAME) {
-          <div class="secondary-content">
-            <ng-template #tagSection let-type="type" let-label="label">
-              @let categoryTags = media.tags[asTagType(type)];
-
-              @if (categoryTags && categoryTags.length > 0) {
-                <div class="secondary-section video-game">
-                  <h3>{{ label }}</h3>
-                  <div class="cast-list">
-                    @if (isLibraryMedia(media)) {
-                      @for (tag of media.tags[asTagType(type)]; track tag.id; let last = $last) {
-                        <a [routerLink]="['/metadata', type, tag.id]">{{ tag.name }}</a>@if (!last) {<span>, </span>}
-                      }
-                    } @else {
-                      @for (tag of media.tags[asTagType(type)]; track tag; let last = $last) {
-                        <span>{{ tag }}</span>@if (!last) {<span>, </span>}
-                      }
-                    }
-                  </div>
-                </div>
-              }
-            </ng-template>
-            
-            <ng-container 
-              *ngTemplateOutlet="tagSection; 
-              context: { 
-                type: TagType.GENRE, 
-                label: 'Theme' 
-              }"
-            ></ng-container>
-            <ng-container 
-              *ngTemplateOutlet="tagSection; 
-              context: { 
-                type: TagType.FRANCHISE, 
-                label: 'Franchise' 
-              }"
-            ></ng-container>
-            <ng-container 
-              *ngTemplateOutlet="tagSection; 
-              context: { 
-                type: TagType.GAME_MODE, 
-                label: 'Game Mode' 
-              }"
-            ></ng-container>
-            <ng-container 
-              *ngTemplateOutlet="tagSection; 
-              context: { 
-                type: TagType.CAMERA_PERSPECTIVE, 
-                label: 'Camera Perspective' 
-              }"
-            ></ng-container>
-          </div>
-
-          @let videoGame = asVideoGame(media);
-          @if (videoGame.synopsis && videoGame.synopsis !== "") {
-            <div class="secondary-separator-container">
-              <hr class="secondary-separator">
-            </div>
+          @case (MediaType.BOOK) {
             <div class="secondary-content">
               <div class="secondary-section synopsis">
                 <h2>Synopsis</h2>
-                <p>{{ videoGame.synopsis }}</p>
+                <p>{{ media.description }}</p>
               </div>
             </div>
           }
-        }
-        @case (MediaType.BOOK) {
-          <div class="secondary-content">
-            <div class="secondary-section synopsis">
-              <h2>Synopsis</h2>
-              <p>{{ media.description }}</p>
-            </div>
-          </div>
-        }
-        @case (MediaType.TABLETOP_GAME) {
-          <div class="secondary-content">
-            <div class="secondary-section synopsis">
-              <h2>Description</h2>
-              <p>{{ media.description }}</p>
-            </div>
-          </div>
-
-          @let hasArtists = media.persons && (media.persons | keyvalue).length > 0 && hasArtist(media);
-          @let hasCompanies = media.companies && (media.companies | keyvalue).length > 0;
-
-          @if (hasArtists || hasCompanies) {
-            <div class="secondary-separator-container">
-              <hr class="secondary-separator">
+          @case (MediaType.TABLETOP_GAME) {
+            <div class="secondary-content">
+              <div class="secondary-section synopsis">
+                <h2>Description</h2>
+                <p>{{ media.description }}</p>
+              </div>
             </div>
   
-            <div class="secondary-content">
-              @if (hasArtists) {
-                <div class="secondary-section">
-                  <h3>Artists</h3>
-                  <div class="cast-list">
-                    @if (isLibraryMedia(media)) {
-                      @for (person of media.persons | keyvalue: sortEntityByOrder; track person.key) {
-                        @if (person.value.values.includes("ARTIST")) {
-                          <div class="crew-item">
-                            <a [routerLink]="['/metadata', MetadataType.PERSON, person.value.id]">
-                              <span class="name">{{ person.key }}</span>
-                            </a>
-                            @if (person.value.values.length > 0 && person.value.values[0].length > 0) {
-                              <span class="role"> ({{ person.value.values.join(', ') }})</span>
-                            }
-                          </div>
-                        }
-                      }
-                    } @else {
-                      @for (person of media.persons | keyvalue: sortEntityByOrder; track person.key) {
-                        @if (person.value.values.includes("ARTIST")) {
-                          <div class="crew-item">
-                            <span class="name">{{ person.key }}</span>
-                            @if (person.value.values.length > 0 && person.value.values[0].length > 0) {
-                              <span class="role"> ({{ person.value.values.join(', ') }})</span>
-                            }
-                          </div>
-                        }
-                      }
-                    }
-                  </div>
-                </div>
-              }
-
-              @if (hasCompanies) {
-                <div class="secondary-section">
-                  <h3>Companies</h3>
-                  <div class="cast-list">
-                    @if (isLibraryMedia(media)) {
-                      @for (company of media.companies | keyvalue: sortEntityByOrder; track company.key) {
-                        <div class="crew-item">
-                          <a [routerLink]="['/metadata', MetadataType.COMPANY, company.value.id]">
-                            <span class="name">{{ company.key }}</span>
-                          </a>
-                          @if (company.value.values.length > 0 && company.value.values[0].length > 0) {
-                            <span class="role"> ({{ company.value.values.join(', ') }})</span>
-                          }
-                        </div>
-                      }
-                    } @else {
-                      @for (company of media.companies | keyvalue: sortEntityByOrder; track company.key) {
-                        <div class="crew-item">
-                          <span class="name">{{ company.key }}</span>
-                          @if (company.value.values.length > 0 && company.value.values[0].length > 0) {
-                            <span class="role"> ({{ company.value.values.join(', ') }})</span>
-                          }
-                        </div>
-                      }
-                    }
-                  </div>
-                </div>
-              }
-            </div>
-          }
-        }
-        @default {
-          @let hasCast = media.cast && (media.cast | keyvalue).length > 0;
-          @let hasCompanies = media.companies && (media.companies | keyvalue).length > 0;
-          @if (hasCast || hasCompanies) {
-            <div class="secondary-content">
-
-              <!-- cast (Movie & Series) -->
-              @if (media.mediaType === MediaType.MOVIE || media.mediaType === MediaType.SERIES) {
-                @if (hasCast) {
+            @let hasArtists = media.persons && (media.persons | keyvalue).length > 0 && hasArtist(media);
+            @let hasCompanies = media.companies && (media.companies | keyvalue).length > 0;
+  
+            @if (hasArtists || hasCompanies) {
+              <div class="secondary-separator-container">
+                <hr class="secondary-separator">
+              </div>
+    
+              <div class="secondary-content">
+                @if (hasArtists) {
                   <div class="secondary-section">
-                    <h3>Casting</h3>
+                    <h3>Artists</h3>
                     <div class="cast-list">
                       @if (isLibraryMedia(media)) {
-                        @for (person of media.cast | keyvalue: sortEntityByOrder; track person.key) {
-                          <div class="crew-item">
-                            <a [routerLink]="['/metadata', MetadataType.PERSON, person.value.id]">
+                        @for (person of media.persons | keyvalue: sortEntityByOrder; track person.key) {
+                          @if (person.value.values.includes("ARTIST")) {
+                            <div class="crew-item">
+                              <a [routerLink]="['/metadata', MetadataType.PERSON, person.value.id]">
+                                <span class="name">{{ person.key }}</span>
+                              </a>
+                              @if (person.value.values.length > 0 && person.value.values[0].length > 0) {
+                                <span class="role"> ({{ person.value.values.join(', ') }})</span>
+                              }
+                            </div>
+                          }
+                        }
+                      } @else {
+                        @for (person of media.persons | keyvalue: sortEntityByOrder; track person.key) {
+                          @if (person.value.values.includes("ARTIST")) {
+                            <div class="crew-item">
                               <span class="name">{{ person.key }}</span>
+                              @if (person.value.values.length > 0 && person.value.values[0].length > 0) {
+                                <span class="role"> ({{ person.value.values.join(', ') }})</span>
+                              }
+                            </div>
+                          }
+                        }
+                      }
+                    </div>
+                  </div>
+                }
+  
+                @if (hasCompanies) {
+                  <div class="secondary-section">
+                    <h3>Companies</h3>
+                    <div class="cast-list">
+                      @if (isLibraryMedia(media)) {
+                        @for (company of media.companies | keyvalue: sortEntityByOrder; track company.key) {
+                          <div class="crew-item">
+                            <a [routerLink]="['/metadata', MetadataType.COMPANY, company.value.id]">
+                              <span class="name">{{ company.key }}</span>
                             </a>
-                            @if (person.value.values.length > 0 && person.value.values[0].length > 0) {
-                              <span class="role"> ({{ person.value.values.join(', ') }})</span>
+                            @if (company.value.values.length > 0 && company.value.values[0].length > 0) {
+                              <span class="role"> ({{ company.value.values.join(', ') }})</span>
                             }
                           </div>
                         }
                       } @else {
-                        @for (person of media.cast | keyvalue: sortEntityByOrder; track person.key) {
+                        @for (company of media.companies | keyvalue: sortEntityByOrder; track company.key) {
                           <div class="crew-item">
-                            <span class="name">{{ person.key }}</span>
-                            @if (person.value.values.length > 0 && person.value.values[0].length > 0) {
-                              <span class="role"> ({{ person.value.values.join(', ') }})</span>
+                            <span class="name">{{ company.key }}</span>
+                            @if (company.value.values.length > 0 && company.value.values[0].length > 0) {
+                              <span class="role"> ({{ company.value.values.join(', ') }})</span>
                             }
                           </div>
                         }
@@ -458,100 +420,142 @@
                     </div>
                   </div>
                 }
-              }
-
-              <!-- companies -->
-              @if (hasCompanies) {
-                <div class="secondary-section">
-                  <h3>Companies</h3>
-                  <div class="cast-list">
-                    @if (isLibraryMedia(media)) {
-                      @for (company of media.companies | keyvalue: sortEntityByOrder; track company.key) {
-                        <div class="crew-item">
-                          <a [routerLink]="['/metadata', MetadataType.COMPANY, company.value.id]">
+              </div>
+            }
+          }
+          @default {
+            @let hasCast = media.cast && (media.cast | keyvalue).length > 0;
+            @let hasCompanies = media.companies && (media.companies | keyvalue).length > 0;
+            @if (hasCast || hasCompanies) {
+              <div class="secondary-content">
+  
+                <!-- cast (Movie & Series) -->
+                @if (media.mediaType === MediaType.MOVIE || media.mediaType === MediaType.SERIES) {
+                  @if (hasCast) {
+                    <div class="secondary-section">
+                      <h3>Casting</h3>
+                      <div class="cast-list">
+                        @if (isLibraryMedia(media)) {
+                          @for (person of media.cast | keyvalue: sortEntityByOrder; track person.key) {
+                            <div class="crew-item">
+                              <a [routerLink]="['/metadata', MetadataType.PERSON, person.value.id]">
+                                <span class="name">{{ person.key }}</span>
+                              </a>
+                              @if (person.value.values.length > 0 && person.value.values[0].length > 0) {
+                                <span class="role"> ({{ person.value.values.join(', ') }})</span>
+                              }
+                            </div>
+                          }
+                        } @else {
+                          @for (person of media.cast | keyvalue: sortEntityByOrder; track person.key) {
+                            <div class="crew-item">
+                              <span class="name">{{ person.key }}</span>
+                              @if (person.value.values.length > 0 && person.value.values[0].length > 0) {
+                                <span class="role"> ({{ person.value.values.join(', ') }})</span>
+                              }
+                            </div>
+                          }
+                        }
+                      </div>
+                    </div>
+                  }
+                }
+  
+                <!-- companies -->
+                @if (hasCompanies) {
+                  <div class="secondary-section">
+                    <h3>Companies</h3>
+                    <div class="cast-list">
+                      @if (isLibraryMedia(media)) {
+                        @for (company of media.companies | keyvalue: sortEntityByOrder; track company.key) {
+                          <div class="crew-item">
+                            <a [routerLink]="['/metadata', MetadataType.COMPANY, company.value.id]">
+                              <span class="name">{{ company.key }}</span>
+                            </a>
+                            @if (company.value.values.length > 0 && company.value.values[0].length > 0) {
+                              <span class="role"> ({{ company.value.values.join(', ') }})</span>
+                            }
+                          </div>
+                        }
+                      } @else {
+                        @for (company of media.companies | keyvalue: sortEntityByOrder; track company.key) {
+                          <div class="crew-item">
                             <span class="name">{{ company.key }}</span>
-                          </a>
-                          @if (company.value.values.length > 0 && company.value.values[0].length > 0) {
-                            <span class="role"> ({{ company.value.values.join(', ') }})</span>
-                          }
-                        </div>
+                            @if (company.value.values.length > 0 && company.value.values[0].length > 0) {
+                              <span class="role"> ({{ company.value.values.join(', ') }})</span>
+                            }
+                          </div>
+                        }
                       }
-                    } @else {
-                      @for (company of media.companies | keyvalue: sortEntityByOrder; track company.key) {
-                        <div class="crew-item">
-                          <span class="name">{{ company.key }}</span>
-                          @if (company.value.values.length > 0 && company.value.values[0].length > 0) {
-                            <span class="role"> ({{ company.value.values.join(', ') }})</span>
-                          }
-                        </div>
-                      }
-                    }
+                    </div>
                   </div>
-                </div>
-              }
-            </div>
+                }
+              </div>
+            }
           }
         }
-      }
-      @if (!isLibraryMedia(media)) {
-        <div class="secondary-separator-container">
-          <hr class="secondary-separator">
+        @if (!isLibraryMedia(media)) {
+          <div class="secondary-separator-container">
+            <hr class="secondary-separator">
+          </div>
+          <div class="secondary-content footer">
+            <ng-container *ngTemplateOutlet="footer;"></ng-container>
+          </div>
+        }
+      </div>
+  
+      <!-- notes -->
+      @if (isLibraryMedia(media)) {
+        <div class="notes-section">
+          <div class="notes-container" [class.is-editing]="isEditingNotes()">
+            <label class="fieldset-label">Notes</label>
+            <textarea 
+              #notesArea
+              [attr.maxlength]="maxLengthNotes"
+              [value]="notes()"
+              (input)="0"
+              (focus)="isEditingNotes.set(true)"
+              (blur)="onNotesBlur(notesArea.value); isEditingNotes.set(false)"
+              (keydown.escape)="notesArea.value = notes(); notesArea.blur()"
+              placeholder="Take some notes here..."
+              [class.editing]="isEditingNotes()"
+            ></textarea>
+            <div class="char-counter" [class.near-limit]="notesArea.value.length > (maxLengthNotes - 200)">
+              {{ notesArea.value.length }} / {{ maxLengthNotes }}
+            </div>
+          </div>
         </div>
-        <div class="secondary-content footer">
+      }
+  
+      <!-- tertiary info -->
+      <ng-template #footer>
+        @if (isLibraryMedia(media)) {
+          <p class="text">Added to library on the {{ media.addedDate | date:'mediumDate' }}</p>
+        }
+        @if (media.source === 'MANUAL') {
+          <p class="text">Data added manually</p>
+        }
+        @else {
+          <p class="text">Data provided by {{ media.source }}</p>
+        }
+      </ng-template>
+      @if (isLibraryMedia(media)) { 
+        <div class="tertiary-content" [class.library]="isLibraryMedia(media)">
           <ng-container *ngTemplateOutlet="footer;"></ng-container>
         </div>
       }
+  
+      @if (hasPoster() && isLightboxOpen()) {
+        <app-poster-lightbox 
+          [source]="originalPosterUrl()"
+          [title]="media.title"
+          (close)="isLightboxOpen.set(false)"
+        />
+      }
+
+      <div class="nav-space"></div>
+
     </div>
-
-    <!-- notes -->
-    @if (isLibraryMedia(media)) {
-      <div class="notes-section">
-        <div class="notes-container" [class.is-editing]="isEditingNotes()">
-          <label class="fieldset-label">Notes</label>
-          <textarea 
-            #notesArea
-            [attr.maxlength]="maxLengthNotes"
-            [value]="notes()"
-            (input)="0"
-            (focus)="isEditingNotes.set(true)"
-            (blur)="onNotesBlur(notesArea.value); isEditingNotes.set(false)"
-            (keydown.escape)="notesArea.value = notes(); notesArea.blur()"
-            placeholder="Take some notes here..."
-            [class.editing]="isEditingNotes()"
-          ></textarea>
-          <div class="char-counter" [class.near-limit]="notesArea.value.length > (maxLengthNotes - 200)">
-            {{ notesArea.value.length }} / {{ maxLengthNotes }}
-          </div>
-        </div>
-      </div>
-    }
-
-    <!-- tertiary info -->
-    <ng-template #footer>
-      @if (isLibraryMedia(media)) {
-        <p class="text">Added to library on the {{ media.addedDate | date:'mediumDate' }}</p>
-      }
-      @if (media.source === 'MANUAL') {
-        <p class="text">Data added manually</p>
-      }
-      @else {
-        <p class="text">Data provided by {{ media.source }}</p>
-      }
-    </ng-template>
-    @if (isLibraryMedia(media)) { 
-      <div class="tertiary-content" [class.library]="isLibraryMedia(media)">
-        <ng-container *ngTemplateOutlet="footer;"></ng-container>
-      </div>
-    }
-
-    @if (hasPoster() && isLightboxOpen()) {
-      <app-poster-lightbox 
-        [source]="originalPosterUrl()"
-        [title]="media.title"
-        (close)="isLightboxOpen.set(false)"
-      />
-    }
-
   }
 
   <!-- Skeleton -->

@@ -1,4 +1,4 @@
-import { Component, effect, input } from '@angular/core';
+import { Component, ElementRef, input, output, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { DefaultImageComponent } from "@components/default-image/default-image.component";
 
@@ -14,4 +14,6 @@ export class MediaImageComponent {
   type = input.required<'poster' | 'backdrop' | 'background'>();
   hasImage = input.required<boolean>();
   customStyle = input<string>('width: 100%; height: 100%; object-fit: contain;');
+
+  onLoad = output<HTMLImageElement>();
 }

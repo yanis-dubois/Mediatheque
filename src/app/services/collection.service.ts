@@ -3,13 +3,51 @@ import { inject, Injectable, signal, WritableSignal } from '@angular/core';
 import { invoke } from '@tauri-apps/api/core';
 
 import { Collection, CollectionLayout, CollectionMediaType, ExternalCollection } from '@models/collection.model';
-import { MediaFilter, MediaOrder } from '@models/media-query.model';
+import { MediaFilter, MediaOrder, Pagination } from '@models/media-query.model';
 import { PinService } from './pin.service';
 import { EntityType } from '@app/models/entity.model';
 import { EntityService } from './entity.service';
 
 @Injectable({ providedIn: 'root' })
 export class CollectionService {
+
+  /* layout data cache */
+
+  private readonly MAX_CACHE_SIZE = 100;
+  // {id: Signal<layoutData>}
+  private layoutDataCache = new Map<string, WritableSignal<[string, number, number][] | null>>();
+  private cacheOrder: string[] = [];
+
+  getLayoutDataSignal(id: string, forceLoad = false): WritableSignal<[string, number, number][] | null> {
+    if (!this.layoutDataCache.has(id)) {
+      this.layoutDataCache.set(id, signal<[string, number, number][] | null>(null));
+    }
+
+    return this.layoutDataCache.get(id)!;
+  }
+
+  setLayoutData(id: string, layoutData: [string, number, number][]) {
+    this.getLayoutDataSignal(id).set(layoutData);
+    this.updateCacheOrder(id);
+  }
+
+  private updateCacheOrder(id: string) {
+    // delete id if exist to make it more recent
+    this.cacheOrder = this.cacheOrder.filter(itemId => itemId !== id);
+    this.cacheOrder.push(id);
+
+    // cleaning if max size reached
+    if (this.cacheOrder.length > this.MAX_CACHE_SIZE) {
+      const oldestId = this.cacheOrder.shift();
+      if (oldestId) {
+        const s = this.layoutDataCache.get(oldestId);
+        if (s) s.set(null); 
+        this.layoutDataCache.delete(oldestId);
+      }
+    }
+  }
+
+  /* collection cache */
 
   private entityService = inject(EntityService);
   private pinService = inject(PinService);
@@ -30,8 +68,8 @@ export class CollectionService {
     return invoke<Collection>('get_collection_by_id', { collectionId: id });
   }
 
-  getLayoutData(id: string, search: string) {
-    return invoke<[string, number, number][]>('search_in_collection', { collectionId: id, searchQuery: search });
+  getLayoutData(id: string, search: string, pagination: Pagination) {
+    return invoke<[string, number, number][]>('search_in_collection', { collectionId: id, searchQuery: search, pagination });
   }
 
   searchCollection(search: string, context: CollectionMediaType, isCollectionPicker: boolean = false) {
@@ -43,8 +81,8 @@ export class CollectionService {
     return await invoke<Collection[]>('get_collection_batch', { ids });
   }
 
-  searchMedia(query: string, mediaType: CollectionMediaType) {
-    return invoke<[string, number, number][]>('search_layout_data', { query: query, mediaType: mediaType });
+  searchMedia(query: string, mediaType: CollectionMediaType, pagination: Pagination) {
+    return invoke<[string, number, number][]>('search_layout_data', { query: query, mediaType: mediaType, pagination });
   }
 
   // generic 

@@ -1,5 +1,5 @@
 <main>
-  <div [@routeAnimations]="prepareRoute(outlet)" [@.disabled]="!isMobile()">
+  <div [@routeAnimations]="prepareRoute(outlet)">
     <router-outlet #outlet="outlet"></router-outlet>
   </div>
   <app-navigation/>

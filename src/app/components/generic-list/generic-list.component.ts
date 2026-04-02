@@ -18,7 +18,6 @@ export class GenericListComponent<T> {
   itemHeight = input.required<number>();
   listPadding = signal<number>(8);
 
-  isCooldown = signal(false);
   private COOLDOWN_TIME = 500;
 
   visibleItemsChanged = output<T[]>();
@@ -34,7 +33,7 @@ export class GenericListComponent<T> {
     scrollElement: undefined, 
     getScrollElement: () => this.scrollElement?.nativeElement || null,
     estimateSize: () => this.itemHeight() + (this.listPadding()*2),
-    overscan: 5,
+    overscan: 10,
     paddingEnd: 2 * (this.itemHeight() + (this.listPadding()*2)),
     onChange: (instance) => {
       if (this.isDestroyed) return;
@@ -53,11 +52,8 @@ export class GenericListComponent<T> {
   }));
 
   private triggerCooldown() {
-    this.isCooldown.set(true);
-
     setTimeout(() => {
       this.endReached.emit();
-      this.isCooldown.set(false);
     }, this.COOLDOWN_TIME);
   }
 

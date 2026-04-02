@@ -16,7 +16,6 @@ function isAnimationType(
   direction: 'forward' | 'backward', 
   orientation: 'left' | 'right'
 ): boolean {
-  console.log('val ', value);
   const parts = value.split(':');
   return parts[1] === direction && parts[2] === orientation;
 }

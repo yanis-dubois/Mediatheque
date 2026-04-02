@@ -71,3 +71,10 @@ pub struct MediaOrder {
   pub field: MediaOrderField,
   pub direction: MediaOrderDirection,
 }
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+#[serde(rename_all = "camelCase")]
+pub struct Pagination {
+  pub offset: u32,
+  pub limit: u32,
+}

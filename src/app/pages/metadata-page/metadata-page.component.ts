@@ -34,6 +34,8 @@ export class MetadataPageComponent {
   private entityService = inject(EntityService);
   private navService = inject(NavService);
 
+  private readonly LIMIT = 16;
+
   protected readonly CollectionLayout = CollectionLayout;
   collectionLayoutOption = Object.values(CollectionLayout);
 
@@ -110,17 +112,55 @@ export class MetadataPageComponent {
     }
   }
 
-  async loadLayoutData() {
-    this.mediaLayoutData.set(
-      await this.metadataService.searchInMetadata(
-        this.type(),
-        parseInt(this.id(), 10),
-        this.searchQuery(),
-        this.sortOrder(),
-        this.filter(),
-        this.context()
-      )
+  isLoading = signal<boolean>(false);
+  currentPage = signal<number>(1);
+  canLoadMore = signal<boolean>(true);
+
+  onScroll() {
+    if (!this.isLoading() && this.canLoadMore()) {
+      this.currentPage.update(p => p + 1);
+      this.loadLayoutData(true);
+    }
+  }
+
+  async loadLayoutData(isNextPage = false) {
+    if (this.isLoading()) return;
+    this.isLoading.set(true);
+
+    // reinit pagination if query has changed
+    if (!isNextPage) {
+      this.currentPage.set(1);
+      this.canLoadMore.set(true);
+    }
+
+    const pagination = {limit: this.LIMIT, offset: (this.currentPage() - 1) * this.LIMIT};
+    let data = await this.metadataService.searchInMetadata(
+      this.type(),
+      parseInt(this.id(), 10),
+      this.searchQuery(),
+      this.sortOrder(),
+      this.filter(),
+      this.context(),
+      pagination
     );
+
+    if (data.length < this.LIMIT) {
+      this.canLoadMore.set(false);
+    }
+
+    this.mediaLayoutData.update(current => {
+      // delete loading item
+      const base = current.filter(item => item !== undefined);
+
+      // fill results
+      if (isNextPage) {
+        return [...base, ...data];
+      }
+      // change result
+      return data;
+    });
+
+    this.isLoading.set(false);
   }
 
   getRolesForMedia(mediaId: string): string[] {

@@ -1,9 +1,17 @@
+:host {
+  display: block;
+  position: relative; // Important : devient le référentiel
+  height: 100vh;
+  width: 100vw;
+  overflow: hidden; // On empêche le scroll sur le host lui-même
+}
+
 .media-detail {
   position: relative;
   display: flex;
   flex-direction: column;
-  min-height: 100vh;
-  padding-bottom: var(--nav-height);
+  height: 100vh;
+  width: 100vw;
   color: white;
 
   .icon {
@@ -24,21 +32,17 @@
 
   // --- BACKDROP ---
   .backdrop-wrapper {
-    position: absolute;
+    position: absolute; // Reste absolute pour l'animation de route
     top: 0;
     left: 0;
     width: 100%;
     height: 100%;
-    z-index: 0;
-    overflow: hidden;
-
-    backface-visibility: hidden;
-    transform: translateZ(0);
+    z-index: 0; // Derrière tout le reste
+    pointer-events: none;
 
     .backdrop-overlay {
       position: absolute;
       inset: 0;
-
       background: linear-gradient(
         to bottom,
         rgba(15, 15, 15, 0.7) 0%,
@@ -53,6 +57,16 @@
       opacity: 0.7; 
       will-change: filter;
     }
+  }
+
+  .scroll-container {
+    position: absolute;
+    z-index: 1;
+    height: 100%;
+    width: 100%;
+    overflow-y: auto;
+    overflow-x: hidden;
+    -webkit-overflow-scrolling: touch;
   }
 
   // --- MAIN CONTENT (POSTER + INFO) ---
@@ -424,6 +438,10 @@
 
   .skeleton-text {
     padding: 4px 0;
+  }
+
+  .nav-space{
+    padding-bottom: var(--nav-height);
   }
 
 }

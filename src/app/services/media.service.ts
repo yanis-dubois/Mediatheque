@@ -5,7 +5,6 @@ import { invoke } from '@tauri-apps/api/core';
 import { LibraryMedia, ApiMedia, MediaStatus, MediaType, MediaSource } from '@models/media.model';
 import { EntityService } from './entity.service';
 import { EntityType } from '@app/models/entity.model';
-import { Language } from '@app/models/settings.model';
 import { ImageService } from './image.service';
 import { SettingsService } from './settings.service';
 

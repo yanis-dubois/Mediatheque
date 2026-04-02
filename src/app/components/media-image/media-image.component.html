@@ -4,15 +4,12 @@
 @if (hasImg) {
   @if (src) {
     <img 
+      #imgElement
       [src]="src" 
       [alt]="title()"
       [style]="customStyle()"
+      (load)="onLoad.emit(imgElement)"
     >
-  } @else {
-    <div 
-      class="skeleton-card"
-      [style]="customStyle()"
-    ></div>
   }
 } @else {
   <app-default-image 

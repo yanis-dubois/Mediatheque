@@ -1,4 +1,4 @@
-import { Component, ContentChild, ElementRef, inject, input, signal, TemplateRef } from '@angular/core';
+import { Component, ContentChild, ElementRef, inject, input, output, signal, TemplateRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { debounceTime, Subject, switchMap } from 'rxjs';
@@ -24,6 +24,7 @@ export class CollectionListComponent {
 
   private scrollSubject = new Subject<string[]>();
   private el = inject(ElementRef);
+  endReached = output<void>();
 
   containerHeight = signal(120);
   containerWidth = signal(100);

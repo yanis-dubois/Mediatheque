@@ -52,7 +52,6 @@ export class NavService {
       } else {
         this.orientation.set("right");
       }
-      console.log('direction ', this.direction(), " orientation", this.orientation());
 
       // update page value
       if (url.startsWith('/search')) {

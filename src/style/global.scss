@@ -360,7 +360,7 @@ select {
 /* skeleton display */
 .skeleton-card, .skeleton-text {
   flex: none;
-  background-color: #333;
+  background-color: var(--color-dark-light);
   animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
 }
 .skeleton-card {

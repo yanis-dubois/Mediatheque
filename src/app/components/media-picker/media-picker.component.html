@@ -9,6 +9,7 @@
   <app-collection-list 
     class="virtual-host virtual-host-list picker-content"
     [mediaLayoutData]="mediaResults()" 
+    (endReached)="onScroll()"
   >
     <ng-template #rowRef let-mediaId="mediaId" let-width="width" let-height="height">
       <div (click)="picker.toggleSelection(mediaId)">

@@ -31,3 +31,8 @@ export interface MediaFilter {
   genres?: string[];
   serie?: string;
 }
+
+export interface Pagination {
+  limit: number;
+  offset: number;
+}

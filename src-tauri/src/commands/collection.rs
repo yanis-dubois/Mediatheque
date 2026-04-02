@@ -7,7 +7,7 @@ use crate::models::enums::{
   match_collection_media_type, match_collection_type, match_collection_view, CollectionLayout,
   CollectionMediaType, CollectionType, MediaType, MetadataType,
 };
-use crate::models::query::{MediaFilter, MediaOrder};
+use crate::models::query::{MediaFilter, MediaOrder, Pagination};
 
 // convert SQL -> Collection
 fn map_row_to_collection(row: &rusqlite::Row) -> rusqlite::Result<Collection> {
@@ -152,6 +152,7 @@ pub fn search_layout_data(
   state: tauri::State<'_, DbState>,
   query: String,
   media_type: CollectionMediaType,
+  pagination: Pagination,
 ) -> Result<Vec<(String, u16, u16)>, String> {
   println!("search_layout_data : {}", query);
 
@@ -170,6 +171,7 @@ pub fn search_layout_data(
     CollectionMediaType::All,
     filter,
     vec![],
+    pagination,
   )?;
 
   Ok(data)
@@ -184,6 +186,7 @@ pub fn search_in_meta_data(
   order: Vec<MediaOrder>,
   mut filter: MediaFilter,
   media_type: CollectionMediaType,
+  pagination: Pagination,
 ) -> Result<Vec<(String, u16, u16)>, String> {
   println!("search_in_meta_data : {}", query);
 
@@ -206,6 +209,7 @@ pub fn search_in_meta_data(
     CollectionMediaType::All,
     filter,
     order,
+    pagination,
   )?;
 
   Ok(data)
@@ -216,6 +220,7 @@ pub fn search_in_collection(
   state: tauri::State<'_, DbState>,
   collection_id: String,
   search_query: String,
+  pagination: Pagination,
 ) -> Result<Vec<(String, u16, u16)>, String> {
   println!("search_in_collection : {}", search_query);
 
@@ -234,6 +239,7 @@ pub fn search_in_collection(
     collection.media_type.clone(),
     collection.filter,
     collection.sort_order,
+    pagination,
   )?;
 
   Ok(data)
