@@ -1,12 +1,13 @@
-import { Component, computed, ContentChild, ElementRef, HostListener, inject, input, signal, TemplateRef, ViewChild } from '@angular/core';
+import { Component, computed, ContentChild, effect, ElementRef, HostListener, inject, input, output, signal, TemplateRef, untracked, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
-import { debounceTime, Subject, switchMap } from 'rxjs';
+import { debounceTime, delay, Subject, switchMap } from 'rxjs';
 
 import { injectVirtualizer, VirtualItem } from '@tanstack/angular-virtual';
 
 import { EntityService } from '@app/services/entity.service';
 import { EntityType } from '@app/models/entity.model';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 @Component({
   selector: 'app-collection-grid',
@@ -54,7 +55,7 @@ export class CollectionGridComponent {
     count: this.mediaLayoutData().length,
     scrollElement: undefined, 
     getScrollElement: () => this.scrollElement?.nativeElement || null,
-    estimateSize: () => {
+    estimateSize: (index: number) => {
       const width = this.columnWidth();
       const imageRatio = 1.5;
       const extraSpace = 8; // for padding & other infos if added (title, ...)
@@ -69,8 +70,20 @@ export class CollectionGridComponent {
     }
   }));
 
+  endReached = output<void>();
+  private readonly COOLDOWN_TIME = 500;
+  private triggerCooldown() {
+    this.endReachedSubject.next();
+  }
+
   private syncVisibleMedia(virtualItems: VirtualItem[]) {
     const visibleIds = virtualItems.map(vItem => this.getMediaLayout(vItem.index).id);
+
+    if (virtualItems.length === 0) return;
+    const lastItemIndex = virtualItems[virtualItems.length - 1].index;
+    if (lastItemIndex >= this.mediaLayoutData().length - 1) {
+      this.triggerCooldown();
+    }
 
     const missingIds = visibleIds.filter(id => {
       return this.entityService.getMedia(id) === null;
@@ -81,7 +94,29 @@ export class CollectionGridComponent {
     }
   }
 
+  private endReachedSubject = new Subject<void>();
+
   constructor() {
+    this.endReachedSubject.pipe(
+      delay(this.COOLDOWN_TIME),
+      takeUntilDestroyed()
+    ).subscribe(() => {
+      this.endReached.emit();
+    });
+
+    effect(() => {
+      this.mediaLayoutData().length;
+      this.containerWidth();
+
+      untracked(() => {
+        if (this.virtualizer && this.scrollElement?.nativeElement) {
+          requestAnimationFrame(() => {
+            this.virtualizer.measure();
+          });
+        }
+      });
+    });
+
     this.scrollSubject.pipe(
       debounceTime(100),
       switchMap(async (ids) => {

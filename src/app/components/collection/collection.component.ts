@@ -20,7 +20,7 @@ import { MediaActionComponent } from "@components/media-action/media-action.comp
 import { ActionBarComponent } from "@components/action-bar/action-bar.component";
 
 import { CollectionDisplayMode, CollectionLayout, CollectionType } from '@models/collection.model';
-import { MediaFilter, MediaOrder } from '@models/media-query.model';
+import { getPaginationLimit, MediaFilter, MediaOrder } from '@models/media-query.model';
 
 import { CollectionService } from '@services/collection.service';
 import { CollectionActionComponent } from "../collection-action/collection-action.component";
@@ -46,8 +46,6 @@ export class CollectionComponent {
   private router = inject(Router);
   private hasFocused = false;
   listPadding = signal<number>(8);
-
-  private readonly LIMIT = 16;
 
   // media data needed for virtualizing (id, width, height) ['', 2, 3]
   mediaLayoutData = signal<[string, number, number][]>([['', 2, 3]]);
@@ -162,16 +160,18 @@ export class CollectionComponent {
     if (this.isLoading()) return;
     this.isLoading.set(true);
 
+    const limit = getPaginationLimit(this.preferredLayout(), this.view);
+
     // reinit pagination if query has changed
     if (!isNextPage) {
       this.currentPage.set(1);
       this.canLoadMore.set(true);
     }
 
-    const pagination = {limit: this.LIMIT, offset: (this.currentPage() - 1) * this.LIMIT};
+    const pagination = {limit: limit, offset: (this.currentPage() - 1) * limit};
     let data = await this.collectionService.getLayoutData(this.id(), this.searchQuery(), pagination);
 
-    if (data.length < this.LIMIT) {
+    if (data.length < limit) {
       this.canLoadMore.set(false);
     }
 
@@ -199,6 +199,7 @@ export class CollectionComponent {
 
   onScroll() {
     if (!this.isLoading() && this.canLoadMore()) {
+      console.log("onScroll ", this.collection()?.collectionType);
       this.currentPage.update(p => p + 1);
       this.loadLayoutData(true);
     }

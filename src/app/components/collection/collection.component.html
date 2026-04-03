@@ -5,6 +5,7 @@
       <app-collection-line
         [collection]="collection"
         [mediaLayoutData]="mediaLayoutData()"
+        (endReached)="onScroll()"
       >
         <ng-content collectionMenu select="[collectionMenu]"></ng-content>
         <ng-template #itemRef let-mediaId="mediaId" let-width="width" let-height="height">
@@ -109,6 +110,7 @@
               <app-collection-grid
                 class="virtual-host"
                 [mediaLayoutData]="mediaLayoutData()"
+                (endReached)="onScroll()"
               >
                 <ng-template #itemRef let-mediaId="mediaId" let-width="width" let-height="height">
                   <app-media-card 
@@ -131,6 +133,7 @@
               <app-collection-row
                 class="virtual-host"
                 [mediaLayoutData]="mediaLayoutData()"
+                (endReached)="onScroll()"
               >
                 <ng-template #itemRef let-mediaId="mediaId" let-width="width" let-height="height">
                   <app-media-card 
@@ -153,6 +156,7 @@
               <app-collection-column
                 class="virtual-host"
                 [mediaLayoutData]="mediaLayoutData()"
+                (endReached)="onScroll()"
               >
                 <ng-template #itemRef let-mediaId="mediaId" let-width="width" let-height="height">
                   <app-media-card 

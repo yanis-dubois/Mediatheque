@@ -10,7 +10,7 @@ import { ActionBarComponent } from "@app/components/action-bar/action-bar.compon
 import { CollectionLayout } from '@app/models/collection.model';
 import { SortManagerComponent } from "@app/components/sort-manager/sort-manager.component";
 import { FilterManagerComponent } from "@app/components/filter-manager/filter-manager.component";
-import { MediaFilter, MediaOrder } from '@app/models/media-query.model';
+import { getPaginationLimit, MediaFilter, MediaOrder } from '@app/models/media-query.model';
 import { CollectionGridComponent } from "@app/components/collection-grid/collection-grid.component";
 import { CollectionRowComponent } from "@app/components/collection-row/collection-row.component";
 import { MediaCardComponent } from "@app/components/media-card/media-card.component";
@@ -33,8 +33,6 @@ export class MetadataPageComponent {
   private metadataService = inject(MetadataService);
   private entityService = inject(EntityService);
   private navService = inject(NavService);
-
-  private readonly LIMIT = 16;
 
   protected readonly CollectionLayout = CollectionLayout;
   collectionLayoutOption = Object.values(CollectionLayout);
@@ -133,7 +131,9 @@ export class MetadataPageComponent {
       this.canLoadMore.set(true);
     }
 
-    const pagination = {limit: this.LIMIT, offset: (this.currentPage() - 1) * this.LIMIT};
+    const limit = getPaginationLimit(this.preferredLayout());
+
+    const pagination = {limit: limit, offset: (this.currentPage() - 1) * limit};
     let data = await this.metadataService.searchInMetadata(
       this.type(),
       parseInt(this.id(), 10),
@@ -144,7 +144,7 @@ export class MetadataPageComponent {
       pagination
     );
 
-    if (data.length < this.LIMIT) {
+    if (data.length < limit) {
       this.canLoadMore.set(false);
     }
 

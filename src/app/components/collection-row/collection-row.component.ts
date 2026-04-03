@@ -1,12 +1,13 @@
-import { Component, computed, ContentChild, effect, ElementRef, HostListener, inject, input, signal, TemplateRef, untracked, ViewChild } from '@angular/core';
+import { Component, computed, ContentChild, effect, ElementRef, HostListener, inject, input, output, signal, TemplateRef, untracked, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 
 import { injectVirtualizer, VirtualItem } from '@tanstack/angular-virtual';
 
-import { debounceTime, Subject, switchMap } from 'rxjs';
+import { debounceTime, delay, Subject, switchMap } from 'rxjs';
 import { EntityService } from '@app/services/entity.service';
 import { EntityType } from '@app/models/entity.model';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 interface PositionedMedia {
   uniqueKey: string,
@@ -98,24 +99,47 @@ export class CollectionRowComponent {
     estimateSize: (index: number) => {
       let height = this.rowHeight();
       const item = this.rows()[index][0];
-      if (item) 
-        height = item.height;
+      if (item) height = item.height;
       return height + this.gap;
     },
+    overscan: 2,
     onChange: (instance) => {
       this.syncVisibleMedia(instance.getVirtualItems());
     }
   }));
 
+  private endReachedSubject = new Subject<void>();
+  endReached = output<void>();
+  private readonly COOLDOWN_TIME = 500;
+  private triggerCooldown() {
+    this.endReachedSubject.next();
+  }
+
   private syncVisibleMedia(virtualRows: VirtualItem[]) {
+    if (virtualRows.length === 0) return;
+
+    const lastRowIndex = virtualRows[virtualRows.length - 1].index;
+    if (lastRowIndex >= this.rows().length - 1) {
+      this.triggerCooldown();
+    }
+
     const visibleIds = virtualRows.flatMap(vRow => 
       this.rows()[vRow.index].map(item => item.id)
     );
-  
-    this.scrollSubject.next(visibleIds);
+
+    if (visibleIds.length > 0) {
+      this.scrollSubject.next(visibleIds);
+    }
   }
 
   constructor() {
+    this.endReachedSubject.pipe(
+      delay(this.COOLDOWN_TIME),
+      takeUntilDestroyed()
+    ).subscribe(() => {
+      this.endReached.emit();
+    });
+
     effect(() => {
       this.rows().length;
       this.containerWidth();

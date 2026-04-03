@@ -18,11 +18,8 @@ export class GenericListComponent<T> {
   itemHeight = input.required<number>();
   listPadding = signal<number>(8);
 
-  private COOLDOWN_TIME = 500;
-
   visibleItemsChanged = output<T[]>();
   windowResize = output();
-  endReached = output<void>();
 
   private el = inject(ElementRef);
   private destroyRef = inject(DestroyRef);
@@ -51,6 +48,8 @@ export class GenericListComponent<T> {
     }
   }));
 
+  endReached = output<void>();
+  private readonly COOLDOWN_TIME = 500;
   private triggerCooldown() {
     setTimeout(() => {
       this.endReached.emit();

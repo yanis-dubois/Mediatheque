@@ -1,3 +1,4 @@
+import { CollectionDisplayMode, CollectionLayout } from "./collection.model";
 import { MediaStatus, MediaType } from "./media.model";
 
 export enum MediaOrderField {
@@ -36,3 +37,13 @@ export interface Pagination {
   limit: number;
   offset: number;
 }
+
+export const getPaginationLimit = (
+  layout: CollectionLayout, 
+  mode = CollectionDisplayMode.DETAILS
+) => {
+  if (mode === CollectionDisplayMode.PREVIEW || layout === CollectionLayout.LIST) {
+    return 16;
+  }
+  return 64;
+};
