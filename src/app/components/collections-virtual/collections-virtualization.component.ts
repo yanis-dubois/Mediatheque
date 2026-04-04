@@ -46,7 +46,7 @@ export class CollectionsVirtualizationComponent {
     overscan: 5,
     onChange: (instance) => {
       this.syncVisibleCollection(instance.getVirtualItems());
-    }
+    },
   }));
 
   private syncVisibleCollection(virtualItems: VirtualItem[]) {

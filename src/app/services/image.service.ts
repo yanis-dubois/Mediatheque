@@ -14,6 +14,38 @@ import { MediaSource, MediaType } from "@app/models/media.model";
 @Injectable({ providedIn: 'root' })
 export class ImageService {
 
+  /* image cache */
+
+  private decodeCache = new Map<string, Promise<void>>();
+  private readonly MAX_IMAGE_CACHE_SIZE = 200;
+
+  async decode(url: string): Promise<void> {
+    if (!url) return;
+    if (this.decodeCache.has(url)) return this.decodeCache.get(url);
+
+    const decodePromise = (async () => {
+      const img = new Image();
+      img.src = url;
+      try {
+        await img.decode();
+      } catch (e) {
+        console.warn('Decoding failed for', url);
+      }
+    })();
+
+    this.decodeCache.set(url, decodePromise);
+
+    // LRU
+    if (this.decodeCache.size > this.MAX_IMAGE_CACHE_SIZE) {
+      const firstKey = this.decodeCache.keys().next().value;
+      this.decodeCache.delete(firstKey);
+    }
+
+    return decodePromise;
+  }
+
+  /*  */
+
   private breakpointObserver = inject(BreakpointObserver);
   private fileService = inject(FileService);
 
@@ -33,7 +65,7 @@ export class ImageService {
   }
 
   // cache that memorize image path
-  private readonly MAX_CACHE_SIZE = 500;
+  private readonly MAX_PATH_CACHE_SIZE = 500;
   private pathCache = new Map<string, string | null>();
 
   // size priorities for fallback image search
@@ -124,7 +156,7 @@ export class ImageService {
     }
 
     // LRU - delete the oldest entry if needed
-    if (this.pathCache.size >= this.MAX_CACHE_SIZE) {
+    if (this.pathCache.size >= this.MAX_PATH_CACHE_SIZE) {
       const oldestKey = this.pathCache.keys().next().value;
       if (oldestKey !== undefined) {
         this.pathCache.delete(oldestKey);

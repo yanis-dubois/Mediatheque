@@ -93,16 +93,6 @@ export class CollectionComponent {
   currentPage = signal<number>(1);
   canLoadMore = signal<boolean>(true);
 
-  ngOnInit() {
-    // too much lags for mobile
-    // if (!this.isMobile()) {
-    //   const cachedLayoutData = this.collectionService.getLayoutDataSignal(this.id(), false)();
-    //   if (cachedLayoutData) {
-    //     this.mediaLayoutData.set(cachedLayoutData);
-    //   }
-    // }
-  }
-
   constructor(
     private entityService: EntityService,
     private collectionService: CollectionService,
@@ -183,23 +173,16 @@ export class CollectionComponent {
       if (isNextPage) {
         return [...base, ...data];
       }
+
       // change result
       return data;
     });
 
-    // too much lags for mobile
-    // if (!this.isMobile() && this.searchQuery() === '') {
-    //   const structuralData: [string, number, number][] = data.map(item => 
-    //     ['', item[1], item[2]]
-    //   );
-    //   this.collectionService.setLayoutData(this.id(), data);
-    // }
     this.isLoading.set(false);
   }
 
   onScroll() {
     if (!this.isLoading() && this.canLoadMore()) {
-      console.log("onScroll ", this.collection()?.collectionType);
       this.currentPage.update(p => p + 1);
       this.loadLayoutData(true);
     }

@@ -45,20 +45,12 @@ export class MediaCardComponent {
   isImageLoaded = signal(false);
   hasLoaded = signal(false);
 
-  async onImageReady(imgElement: HTMLImageElement) {
-    try {
-      // waiting for GPU to decode image
-      await imgElement.decode();
-
-      // wait for next frame before starting the opacity transition 
-      requestAnimationFrame(() => {
-        requestAnimationFrame(() => {
-          this.hasLoaded.set(true);
-        });
-      });
-    } catch (e) {
-      this.hasLoaded.set(true);
+  async onImageReady() {
+    const url = this.resolvedSrc();
+    if (url) {
+      await this.imageService.decode(url);
     }
+    this.hasLoaded.set(true);
   }
 
   constructor() {

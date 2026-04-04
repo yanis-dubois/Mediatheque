@@ -60,7 +60,7 @@ export class CollectionLineComponent {
       return this.getElementWidth(index) + gap;
     },
     horizontal: true,
-    overscan: 10,
+    overscan: 2,
     scrollMargin: this.sideMargin(),
     paddingEnd: 2*this.sideMargin(),
     onChange: (instance) => {
