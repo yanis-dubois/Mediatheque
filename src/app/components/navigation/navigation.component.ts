@@ -30,9 +30,9 @@ export class NavigationComponent {
       : { type: 'ALL' };
 
     const isSameContext = compareCollectionMediaType(newContext, currentContext);
+    const currentPage = this.currentPage();
 
     if (isSameContext) {
-      const currentPage = this.currentPage();
       this.navService.isBackward.set(true);
 
       if (currentPage === PageType.SEARCH) {
@@ -42,15 +42,30 @@ export class NavigationComponent {
       }
     } else {
       this.navService.switchContext(newContext);
+
+      if (!this.navService.canSwitchContext()) {
+        if (currentPage === PageType.SEARCH) {
+          this.router.navigate(['/search'], { replaceUrl: true });
+        } else {
+          this.router.navigate(['/home'], { replaceUrl: true });
+        }
+      }
     }
   }
 
   onPageChange(page: 'home' | 'search') {
+    const currentPage = this.currentPage();
     this.navService.isBackward.set(true);
 
     if (page === 'home') {
+      if (currentPage === PageType.HOME) {
+        this.navService.switchContext({type: 'ALL'});
+      }
       this.router.navigate(['/home'], { replaceUrl: true });
     } else {
+      if (currentPage === PageType.SEARCH) {
+        this.navService.switchContext({type: 'ALL'});
+      }
       this.router.navigate(['/search'], { replaceUrl: true });
     }
   }

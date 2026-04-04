@@ -75,6 +75,7 @@ export class MetadataPageComponent {
     });
 
     effect(() => {
+      this.context();
       this.id();
       this.searchQuery();
       this.filter();

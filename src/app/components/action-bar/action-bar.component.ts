@@ -21,6 +21,7 @@ export class ActionBarComponent {
 
   goToSettings() {
     this.router.navigateByUrl('/settings');
+    this.navService.isBackward.set(false);
     this.navService.isLeft.set(true);
   }
 

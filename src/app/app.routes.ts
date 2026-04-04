@@ -62,6 +62,10 @@ export const routes: Routes = [
     component: MetadataPageComponent
   },
   {
+    path: 'metadata/:type/:id/:context',
+    component: MetadataPageComponent
+  },
+  {
     path: 'settings',
     component: SettingsPageComponent
   },

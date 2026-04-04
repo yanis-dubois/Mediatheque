@@ -24,6 +24,9 @@ export class NavService {
   private _page = signal<PageType>(PageType.HOME);
   readonly page = this._page.asReadonly();
 
+  private _canSwitchContext = signal<boolean>(true);
+  readonly canSwitchContext = this._canSwitchContext.asReadonly();
+
   // for search page 
   searchMode = signal<'library' | 'api'>('api');
 
@@ -53,6 +56,8 @@ export class NavService {
         this.orientation.set("right");
       }
 
+      console.log('dir ', this.direction(), ' orient ', this.orientation());
+
       // update page value
       if (url.startsWith('/search')) {
         // transition between HOME to SEARCH if needed
@@ -69,6 +74,12 @@ export class NavService {
         }
 
         this._page.set(PageType.HOME);
+      }
+
+      if (url.includes('media') || (url.includes('collection') && !url.includes('collections')) || url.includes('settings')) {
+        this._canSwitchContext.set(false);
+      } else {
+        this._canSwitchContext.set(true);
       }
 
       // update context

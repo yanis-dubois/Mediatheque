@@ -45,29 +45,6 @@ export const slideInAnimation = trigger('routeAnimations', [
     ])
   ]),
 
-  // go backward : last page goes to the left
-  transition((from, to) => !!(from && isAnimationType(from, 'forward', 'left')), [
-    style({ position: 'relative' }),
-    baseStyle,
-    // page that come : placed on the right
-    query(':enter', [
-      style({ 'z-index': 1, left: '50%' })
-    ]),
-    query(':leave', [
-      style({ 'z-index': 10 })
-    ]),
-    group([
-      // page that leave : goes to the left
-      query(':leave', [
-        animate('200ms ease-in', style({ left: '-100%' }))
-      ]),
-      // page that come : goes to the middle
-      query(':enter', [
-        animate('200ms ease-in', style({ left: '0%' }))
-      ])
-    ])
-  ]),
-
   // go forward : new page come from the right
   transition((from, to) => !!(to && isAnimationType(to, 'forward', 'right')), [
     style({ position: 'relative' }),
@@ -88,6 +65,29 @@ export const slideInAnimation = trigger('routeAnimations', [
       query(':enter', [
         animate('200ms ease-out', style({ left: '0%' }))
       ], { optional: true })
+    ])
+  ]),
+
+  // go backward : last page goes to the left
+  transition((from, to) => !!(from && isAnimationType(from, 'forward', 'left')), [
+    style({ position: 'relative' }),
+    baseStyle,
+    // page that come : placed on the right
+    query(':enter', [
+      style({ 'z-index': 1, left: '50%' })
+    ]),
+    query(':leave', [
+      style({ 'z-index': 10 })
+    ]),
+    group([
+      // page that leave : goes to the left
+      query(':leave', [
+        animate('200ms ease-in', style({ left: '-100%' }))
+      ]),
+      // page that come : goes to the middle
+      query(':enter', [
+        animate('200ms ease-in', style({ left: '0%' }))
+      ])
     ])
   ]),
 

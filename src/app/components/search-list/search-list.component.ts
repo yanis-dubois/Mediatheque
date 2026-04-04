@@ -1,4 +1,4 @@
-import { Component, ContentChild, ElementRef, inject, input, signal, TemplateRef } from '@angular/core';
+import { Component, computed, ContentChild, ElementRef, inject, input, signal, TemplateRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { debounceTime, EMPTY, mergeMap, Subject } from 'rxjs';
@@ -16,6 +16,7 @@ import { CompanyRowComponent } from "../company-row/company-row.component";
 import { GenreRowComponent } from "../tag-row/genre-row.component";
 import { GameMechanicRowComponent } from "../tag-row/game-mechanic-row.component";
 import { SagaRowComponent } from "../saga-row/saga-row.component";
+import { NavService } from '@app/services/nav.service';
 
 @Component({
   selector: 'app-search-list',
@@ -39,6 +40,13 @@ export class SearchListComponent {
   containerWidth = signal(100);
   gap = signal(8);
   activeMenuId = signal<string | null>(null);
+  context = computed(() => {
+    const ctx = this.navService.context();
+    if (ctx.type === 'SPECIFIC') {
+      return ctx.value;
+    }
+    return 'ALL';
+  });
 
   protected onVisibleItemsChanged(visibleData: [string, EntityType][]) {
     // create dictionnary { 'media': ['id1', 'id2'], 'collection': ['id3'] }
@@ -61,7 +69,8 @@ export class SearchListComponent {
   }
 
   constructor(
-    protected entityService: EntityService
+    protected entityService: EntityService,
+    private navService: NavService
   ) {
     this.loadSubject.pipe(
       debounceTime(50),
