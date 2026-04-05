@@ -1,4 +1,4 @@
-import { Component, computed, ContentChild, ElementRef, inject, input, signal, TemplateRef } from '@angular/core';
+import { Component, computed, ContentChild, ElementRef, inject, input, output, signal, TemplateRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { debounceTime, EMPTY, mergeMap, Subject } from 'rxjs';
@@ -17,11 +17,12 @@ import { GenreRowComponent } from "../tag-row/genre-row.component";
 import { GameMechanicRowComponent } from "../tag-row/game-mechanic-row.component";
 import { SagaRowComponent } from "../saga-row/saga-row.component";
 import { NavService } from '@app/services/nav.service';
+import { ApiSearchRowComponent } from "../api-search-row/api-search-row.component";
 
 @Component({
   selector: 'app-search-list',
   standalone: true,
-  imports: [CommonModule, RouterModule, GenericListComponent, MediaRowComponent, CollectionRowItemComponent, DropdownComponent, MediaActionComponent, CollectionActionComponent, PersonRowComponent, CompanyRowComponent, GenreRowComponent, GameMechanicRowComponent, SagaRowComponent],
+  imports: [CommonModule, RouterModule, GenericListComponent, MediaRowComponent, CollectionRowItemComponent, DropdownComponent, MediaActionComponent, CollectionActionComponent, PersonRowComponent, CompanyRowComponent, GenreRowComponent, GameMechanicRowComponent, SagaRowComponent, ApiSearchRowComponent],
   templateUrl: './search-list.component.html',
   styleUrls: ['./search-list.component.css']
 })
@@ -35,6 +36,8 @@ export class SearchListComponent {
   private el = inject(ElementRef);
 
   protected readonly EntityType = EntityType;
+
+  endReached = output<void>();
 
   containerHeight = signal(120);
   containerWidth = signal(100);
@@ -50,15 +53,17 @@ export class SearchListComponent {
 
   protected onVisibleItemsChanged(visibleData: [string, EntityType][]) {
     // create dictionnary { 'media': ['id1', 'id2'], 'collection': ['id3'] }
-    const missingByEntityType = visibleData.reduce((acc, [id, type]) => {
-      const currentSignal = this.entityService.getEntitySignal(type, id);
-      
-      if (currentSignal() === null) {
-        if (!acc[type]) acc[type] = [];
-        acc[type].push(id);
-      }
-      return acc;
-    }, {} as Record<EntityType, string[]>);
+    const missingByEntityType = visibleData
+      .filter(item => !!item)
+      .reduce((acc, [id, type]) => {
+        const currentSignal = this.entityService.getEntitySignal(type, id);
+        
+        if (currentSignal() === null) {
+          if (!acc[type]) acc[type] = [];
+          acc[type].push(id);
+        }
+        return acc;
+      }, {} as Record<EntityType, string[]>);
   
     // send each groups to loadSubject
     Object.entries(missingByEntityType).forEach(([type, ids]) => {

@@ -3,126 +3,138 @@
   [itemHeight]="containerHeight()"
   (visibleItemsChanged)="onVisibleItemsChanged($event)" 
   (windowResize)="updateDimensions()" 
+  (endReached)="endReached.emit()"
 >
   @if (layoutData().length > 0) {
     <ng-template #rowRef let-item let-index="index">
-      @let entityId = item[0];
-      @let entityType = item[1];
+      @if (item; as result) {
+        @let entityId = result[0];
+        @let entityType = result[1];
 
-      @switch (entityType) {
-        @case (EntityType.MEDIA) {
-          <a [routerLink]="['/media', entityId]">
-            <app-media-row 
-              [mediaId]="entityId" 
-              [width]="containerWidth()" 
-              [height]="containerHeight()"
-              [isMenuOpen]="false"
-              [display]="'search'"
-            >
-              <app-dropdown
-                menu
-                (click)="$event.preventDefault(); $event.stopPropagation()"
-                [isOpenExternal]="activeMenuId() === entityId"
-                (opened)="activeMenuId.set(entityId)"
-                (closed)="activeMenuId.set(null)"
+        @switch (entityType) {
+          @case (EntityType.MEDIA) {
+            <a [routerLink]="['/media', entityId]">
+              <app-media-row 
+                [mediaId]="entityId" 
+                [width]="containerWidth()" 
+                [height]="containerHeight()"
+                [isMenuOpen]="false"
+                [display]="'search'"
               >
-                <app-media-action 
-                  [mediaId]="entityId"
-                  [canDeleteFromCollection]="false"
-                  (deleteFromLibraryRequest)="activeMenuId.set(null);"
-                  (closeMenu)="activeMenuId.set(null);"
-                />
-              </app-dropdown>
-            </app-media-row>
-          </a>
-        }
-        @case (EntityType.COLLECTION) {
-          <a [routerLink]="['/collection', entityId]">
-            <app-collection-row-item
-              [collectionId]="entityId" 
-              [width]="containerWidth()" 
-              [height]="containerHeight()" 
-              [isMenuOpen]="false"
-              [display]="'search'"
-            >
-              <app-dropdown
-                menu
-                (click)="$event.preventDefault(); $event.stopPropagation()"
-                [isOpenExternal]="activeMenuId() === entityId"
-                (opened)="activeMenuId.set(entityId)"
-                (closed)="activeMenuId.set(null)"
+                <app-dropdown
+                  menu
+                  (click)="$event.preventDefault(); $event.stopPropagation()"
+                  [isOpenExternal]="activeMenuId() === entityId"
+                  (opened)="activeMenuId.set(entityId)"
+                  (closed)="activeMenuId.set(null)"
+                >
+                  <app-media-action 
+                    [mediaId]="entityId"
+                    [canDeleteFromCollection]="false"
+                    (deleteFromLibraryRequest)="activeMenuId.set(null);"
+                    (closeMenu)="activeMenuId.set(null);"
+                  />
+                </app-dropdown>
+              </app-media-row>
+            </a>
+          }
+          @case (EntityType.COLLECTION) {
+            <a [routerLink]="['/collection', entityId]">
+              <app-collection-row-item
+                [collectionId]="entityId" 
+                [width]="containerWidth()" 
+                [height]="containerHeight()" 
+                [isMenuOpen]="false"
+                [display]="'search'"
               >
-                <app-collection-action 
-                  [collectionId]="entityId"
-                  (deleteRequest)="activeMenuId.set(null);"
-                />
-              </app-dropdown>
-            </app-collection-row-item>
-          </a>
+                <app-dropdown
+                  menu
+                  (click)="$event.preventDefault(); $event.stopPropagation()"
+                  [isOpenExternal]="activeMenuId() === entityId"
+                  (opened)="activeMenuId.set(entityId)"
+                  (closed)="activeMenuId.set(null)"
+                >
+                  <app-collection-action 
+                    [collectionId]="entityId"
+                    (deleteRequest)="activeMenuId.set(null);"
+                  />
+                </app-dropdown>
+              </app-collection-row-item>
+            </a>
+          }
+          @case (EntityType.PERSON) {
+            <a [routerLink]="['/metadata', EntityType.PERSON, entityId, context()]">
+              <app-person-row
+                [id]="entityId" 
+                [width]="containerWidth()" 
+                [height]="containerHeight()" 
+                [isMenuOpen]="false"
+                [display]="'search'"
+              >
+              </app-person-row>
+            </a>
+          }
+          @case (EntityType.COMPANY) {
+            <a [routerLink]="['/metadata', EntityType.COMPANY, entityId, context()]">
+              <app-company-row
+                [id]="entityId" 
+                [width]="containerWidth()" 
+                [height]="containerHeight()" 
+                [isMenuOpen]="false"
+                [display]="'search'"
+              >
+              </app-company-row>
+            </a>
+          }
+          @case (EntityType.SAGA) {
+            <a [routerLink]="['/metadata', EntityType.SAGA, entityId, context()]">
+              <app-saga-row
+                [id]="entityId" 
+                [width]="containerWidth()" 
+                [height]="containerHeight()" 
+                [isMenuOpen]="false"
+                [display]="'search'"
+              >
+              </app-saga-row>
+            </a>
+          }
+          @case (EntityType.GENRE) {
+            <a [routerLink]="['/metadata', EntityType.GENRE, entityId, context()]">
+              <app-genre-row
+                [id]="entityId" 
+                [width]="containerWidth()" 
+                [height]="containerHeight()" 
+                [isMenuOpen]="false"
+                [display]="'search'"
+              >
+              </app-genre-row>
+            </a>
+          }
+          @case (EntityType.GAME_MECHANIC) {
+            <a [routerLink]="['/metadata', EntityType.GAME_MECHANIC, entityId, context()]">
+              <app-game-mechanic-row
+                [id]="entityId" 
+                [width]="containerWidth()" 
+                [height]="containerHeight()" 
+                [isMenuOpen]="false"
+                [display]="'search'"
+              >
+              </app-game-mechanic-row>
+            </a>
+          }
+          @default {
+            <div class="unknown-type">Unsupported entity type : {{ entityType }}</div>
+          }
         }
-        @case (EntityType.PERSON) {
-          <a [routerLink]="['/metadata', EntityType.PERSON, entityId, context()]">
-            <app-person-row
-              [id]="entityId" 
-              [width]="containerWidth()" 
-              [height]="containerHeight()" 
-              [isMenuOpen]="false"
-              [display]="'search'"
-            >
-            </app-person-row>
-          </a>
-        }
-        @case (EntityType.COMPANY) {
-          <a [routerLink]="['/metadata', EntityType.COMPANY, entityId, context()]">
-            <app-company-row
-              [id]="entityId" 
-              [width]="containerWidth()" 
-              [height]="containerHeight()" 
-              [isMenuOpen]="false"
-              [display]="'search'"
-            >
-            </app-company-row>
-          </a>
-        }
-        @case (EntityType.SAGA) {
-          <a [routerLink]="['/metadata', EntityType.SAGA, entityId, context()]">
-            <app-saga-row
-              [id]="entityId" 
-              [width]="containerWidth()" 
-              [height]="containerHeight()" 
-              [isMenuOpen]="false"
-              [display]="'search'"
-            >
-            </app-saga-row>
-          </a>
-        }
-        @case (EntityType.GENRE) {
-          <a [routerLink]="['/metadata', EntityType.GENRE, entityId, context()]">
-            <app-genre-row
-              [id]="entityId" 
-              [width]="containerWidth()" 
-              [height]="containerHeight()" 
-              [isMenuOpen]="false"
-              [display]="'search'"
-            >
-            </app-genre-row>
-          </a>
-        }
-        @case (EntityType.GAME_MECHANIC) {
-          <a [routerLink]="['/metadata', EntityType.GAME_MECHANIC, entityId, context()]">
-            <app-game-mechanic-row
-              [id]="entityId" 
-              [width]="containerWidth()" 
-              [height]="containerHeight()" 
-              [isMenuOpen]="false"
-              [display]="'search'"
-            >
-            </app-game-mechanic-row>
-          </a>
-        }
-        @default {
-          <div class="unknown-type">Unsupported entity type : {{ entityType }}</div>
-        }
+      }
+      @else {
+        <app-api-search-row 
+          [entity]="undefined" 
+          [width]="containerWidth()" 
+          [height]="containerHeight()"
+          [isMenuOpen]="false"
+        >
+        </app-api-search-row>
       }
     </ng-template>
   }

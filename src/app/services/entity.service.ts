@@ -10,6 +10,7 @@ import { Collection, CollectionMediaType } from "@app/models/collection.model";
 import { LibraryMedia } from "@app/models/media.model";
 import { MetadataService } from "./metadata.service";
 import { Subject } from "rxjs";
+import { Pagination } from "@app/models/media-query.model";
 
 @Injectable({ providedIn: 'root' })
 export class EntityService {
@@ -209,10 +210,11 @@ export class EntityService {
 
   /* get */
 
-  getLayoutData(search: string, context: CollectionMediaType) {
+  getLayoutData(search: string, context: CollectionMediaType, pagination: Pagination) {
     return invoke<[string, EntityType][]>('search_in_library', { 
       searchQuery: search, 
-      context: context.type === "ALL" ? null : context.value 
+      context: context.type === "ALL" ? null : context.value,
+      pagination
     });
   }
 

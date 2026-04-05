@@ -11,8 +11,9 @@ import { ApiService } from '@app/services/api.service';
 import { ApiSearchListComponent } from "@app/components/api-search-list/api-search-list.component";
 import { ApiSearchResult, MediaType } from '@app/models/media.model';
 import { NavService } from '@app/services/nav.service';
-import { CollectionMediaType } from '@app/models/collection.model';
+import { CollectionLayout, CollectionMediaType } from '@app/models/collection.model';
 import { HumanizePipe } from "../../pipe/humanize";
+import { getPaginationLimit } from '@app/models/media-query.model';
 
 @Component({
   selector: 'app-search-page',
@@ -31,7 +32,7 @@ export class SearchPageComponent {
   layoutData = signal<[string, EntityType][]>([]);
 
   private refreshInternetData$ = new Subject<void>();
-  apiResults = signal<(ApiSearchResult)[]>([]);
+  apiResults = signal<ApiSearchResult[]>([]);
   isLoading = signal<boolean>(false);
   currentPage = signal<number>(1);
   canLoadMore = signal<boolean>(true);
@@ -71,7 +72,8 @@ export class SearchPageComponent {
       if (!query || query.trim().length === 0) {
         this.layoutData.set([]);
         this.apiResults.set([]);
-        return;
+        if (this.mode() == 'api')
+          return;
       }
 
       if (this.mode() === 'library') 
@@ -80,10 +82,53 @@ export class SearchPageComponent {
     }, { allowSignalWrites: true });
   }
 
-  async loadLibraryData() {
-    this.layoutData.set(
-      await this.entityService.getLayoutData(this.searchQuery(), this.mediaType())
-    );
+  private async loadLibraryData(isNextPage = false) {
+    this.isLoading.set(true);
+
+    // add loading item
+    // if (this.layoutData().length === 0) {
+    //   this.layoutData.update(current => {
+    //     return [...current, undefined as any];
+    //   });
+    // }
+
+    if (!isNextPage) {
+      this.currentPage.set(1);
+      this.canLoadMore.set(true);
+    }
+
+    try {
+      const limit = getPaginationLimit(CollectionLayout.LIST);
+      const pagination = {limit: limit, offset: (this.currentPage() - 1) * limit};
+      let newResults = await this.entityService.getLayoutData(
+        this.searchQuery(), 
+        this.mediaType(), 
+        pagination
+      );
+
+      if (newResults.length < limit) {
+        this.canLoadMore.set(false);
+      }
+
+      // add loading item to the end of results
+      if (this.canLoadMore()) {
+        newResults.push(undefined as any);
+      }
+
+      this.layoutData.update(current => {
+        // delete loading item
+        const base = current.filter(item => item !== undefined);
+
+        // fill results
+        if (isNextPage) {
+          return [...base, ...newResults];
+        }
+        // change result
+        return newResults;
+      });
+    } finally {
+      this.isLoading.set(false);
+    }
   }
 
   private async loadApiData(isNextPage = false) {
@@ -135,9 +180,14 @@ export class SearchPageComponent {
   }
 
   onScroll() {
-    if (!this.isLoading() && this.mode() === 'api' && this.canLoadMore()) {
+    if (!this.isLoading() && this.canLoadMore()) {
       this.currentPage.update(p => p + 1);
-      this.loadApiData(true);
+      if (this.mode() === 'api') {
+        this.loadApiData(true);
+      }
+      else {
+        this.loadLibraryData(true);
+      }
     }
   }
 
