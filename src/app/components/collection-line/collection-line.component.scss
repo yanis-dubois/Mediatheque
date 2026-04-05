@@ -56,9 +56,6 @@
 
 .menu-slot {
   flex: none;
-  margin-right: 4px;
-  margin-bottom: 4px;
-  scale: 1.2;
 }
 
 @media (min-width: 600px) {
@@ -167,7 +164,7 @@
     }
 
     img {
-      height: 24px;
+      height: 32px;
       filter: brightness(0) invert(1);
       transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); 
       will-change: transform;

@@ -36,7 +36,7 @@
     </div>
 
     <div cdkDropList (cdkDropListDropped)="drop($event)">
-      @for (id of collectionIds(); track id) {
+      @for (id of collectionIds(); track $index) {
         <div cdkDrag class="collection-row">
           <app-collection [id]="id" [view]="CollectionDisplayMode.PREVIEW">
             <div 
@@ -44,6 +44,7 @@
               (click)="$event.preventDefault(); $event.stopPropagation()" 
               class="collection-action">
               <app-dropdown
+                [customClass]="'line-action'"
                 [isOpenExternal]="activeMenuId() === id"
                 (opened)="activeMenuId.set(id)"
                 (closed)="activeMenuId.set(null)"
@@ -53,7 +54,7 @@
                 />
               </app-dropdown>
 
-              <div class="drag-handle dots-button" cdkDragHandle>
+              <div class="line-action" cdkDragHandle>
                 ⋮⋮
               </div>
             </div>

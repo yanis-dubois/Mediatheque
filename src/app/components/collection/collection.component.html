@@ -53,9 +53,12 @@
             </button>
           }
 
-          <app-dropdown [customClass]="'tool-item'" [isOpenExternal]="true">
-            <app-collection-action [collectionId]="id()"/>
-          </app-dropdown>
+          <div class="tool-item">
+            <app-dropdown [customClass]="'special-dots'" [class.is-active]="false" [isOpenExternal]="false">
+              <app-collection-action [collectionId]="id()"/>
+            </app-dropdown>
+          </div>
+          
         </div>
 
       </app-action-bar>

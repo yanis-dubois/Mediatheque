@@ -1,8 +1,8 @@
 <div 
   #scrollElement class="viewport-container viewport-container-list" 
-  style="height: 100%; width: 100%; overflow: auto;"
+  style="height: 100%; overflow: auto;"
 >
-  <div [style.height.px]="virtualizer.getTotalSize()" style="width: 100%; position: relative;">
+  <div [style.height.px]="virtualizer.getTotalSize()" style="position: relative;">
     @for (vItem of virtualizer.getVirtualItems(); track vItem.key) {
       <div
         [style.height.px]="itemHeight() + listPadding()"

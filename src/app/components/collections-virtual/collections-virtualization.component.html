@@ -6,7 +6,6 @@
     #scrollElement
     class="viewport-container"
     [style.height]="'100%'"
-    [style.width]="'100%'"
     style="position: relative;"
   >
     @for (vItem of virtualizer.getVirtualItems(); track vItem.index + '-' + collectionIds()[vItem.index]) {
@@ -20,6 +19,7 @@
           <app-collection [id]="id" [view]="CollectionDisplayMode.PREVIEW">
             <div collectionMenu (click)="$event.preventDefault(); $event.stopPropagation()" class="collection-action">
               <app-dropdown
+                [customClass]="'line-action'"
                 [isOpenExternal]="activeMenuId() === id"
                 (opened)="activeMenuId.set(id)"
                 (closed)="activeMenuId.set(null)"

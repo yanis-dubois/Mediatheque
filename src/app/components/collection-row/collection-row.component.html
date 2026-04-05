@@ -6,11 +6,10 @@
   <div #scrollElement 
     class="viewport-container"
     [style.height]="'100%'"
-    [style.width]="'100%'"
   >
     <div
       [style.height.px]="virtualizer.getTotalSize()"
-      style="width: 100%; position: relative;"
+      style="position: relative;"
     >
       @for (vRow of virtualizer.getVirtualItems(); track vRow.key) {
         <div

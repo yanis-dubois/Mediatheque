@@ -114,6 +114,7 @@ export class CollectionsVirtualizationComponent {
   
     if (cssWidth) {
       this.containerHeight.set(parseInt(cssWidth, 10) * 1.5 + 58);
+      // this.containerHeight.set(parseInt(cssWidth, 10) * 1.5 - 100);
     }
   }
 
