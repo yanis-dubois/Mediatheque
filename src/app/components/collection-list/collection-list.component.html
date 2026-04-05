@@ -15,6 +15,14 @@
           height: containerHeight(),
         }">
       </ng-container>
+    } @else {
+      <app-api-search-row 
+        [entity]="undefined" 
+        [width]="containerWidth()" 
+        [height]="containerHeight()"
+        [isMenuOpen]="false"
+      >
+      </app-api-search-row>
     }
   </ng-template>
 </app-generic-list>

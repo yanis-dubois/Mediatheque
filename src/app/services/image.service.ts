@@ -1,6 +1,4 @@
-import { inject, Injectable } from "@angular/core";
-import { BreakpointObserver } from '@angular/cdk/layout';
-import { toSignal } from '@angular/core/rxjs-interop';
+import { computed, inject, Injectable } from "@angular/core";
 
 import { join } from "@tauri-apps/api/path";
 import { exists } from '@tauri-apps/plugin-fs';
@@ -8,8 +6,8 @@ import { exists } from '@tauri-apps/plugin-fs';
 import { FileService } from "./file.services";
 import { convertFileSrc, invoke } from "@tauri-apps/api/core";
 import { get_image_size_file_name, get_image_type_file_name, ImageConfiguration, ImageSize, ImageType } from "@app/models/image.model";
-import { map } from "rxjs";
 import { MediaSource, MediaType } from "@app/models/media.model";
+import { ScreenService, ScreenSize } from "./screen.service";
 
 @Injectable({ providedIn: 'root' })
 export class ImageService {
@@ -46,7 +44,7 @@ export class ImageService {
 
   /*  */
 
-  private breakpointObserver = inject(BreakpointObserver);
+  private screenService = inject(ScreenService);
   private fileService = inject(FileService);
 
   // all provider config necessary to build image url
@@ -75,26 +73,16 @@ export class ImageService {
     [ImageSize.SMALL]: [ImageSize.SMALL, ImageSize.MEDIUM, ImageSize.ORIGINAL],
   };
 
-  // define break points
-  private readonly MOBILE_QUERY = '(max-width: 599px)';
-  private readonly TABLET_QUERY = '(min-width: 600px) and (max-width: 1023px)';
-  private readonly DESKTOP_QUERY = '(min-width: 1024px)';
   // define an image size depending on screen width
-  readonly screenType = toSignal(
-    this.breakpointObserver
-      .observe([this.MOBILE_QUERY, this.TABLET_QUERY, this.DESKTOP_QUERY])
-      .pipe(
-        map(result => {
-          if (result.breakpoints[this.MOBILE_QUERY]) return ImageSize.SMALL;
-          if (result.breakpoints[this.TABLET_QUERY]) return ImageSize.MEDIUM;
-          return ImageSize.ORIGINAL;
-        })
-      ),
-    { initialValue: ImageSize.ORIGINAL }
-  );
+  readonly imageSize = computed(() => {
+    const size = this.screenService.size();
+    if (size === ScreenSize.MOBILE) return ImageSize.SMALL;
+    if (size === ScreenSize.TABLET) return ImageSize.MEDIUM;
+    return ImageSize.ORIGINAL;
+  });
 
   getRecommendedSize(context: 'detail' | 'card'): ImageSize {
-    const current = this.screenType();
+    const current = this.imageSize();
 
     // media-cards can't be at original size
     if (context === 'card') {

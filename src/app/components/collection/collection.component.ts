@@ -28,7 +28,7 @@ import { PinService } from '@app/services/pin.service';
 import { EmojizePipe } from "../../pipe/emojize";
 import { EntityService } from '@app/services/entity.service';
 import { LayoutManagerComponent } from "@app/components/layout-manager/layout-manager.component";
-import { AnimationService } from '@app/services/animation.service';
+import { ScreenService } from '@app/services/screen.service';
 
 @Component({
   selector: 'app-collection',
@@ -86,8 +86,7 @@ export class CollectionComponent {
 
   isPageReady = signal(false);
 
-  animationService = inject(AnimationService);
-  isMobile = this.animationService.isMobile;
+  screenService = inject(ScreenService);
 
   isLoading = signal<boolean>(false);
   currentPage = signal<number>(1);
@@ -107,7 +106,7 @@ export class CollectionComponent {
     // wait the end of animation before loading data
     setTimeout(() => 
       this.isPageReady.set(true), 
-      this.animationService.isMobile() ? 200 : 0
+      this.screenService.isMobile() ? 200 : 0
     );
 
     effect(() => {
@@ -141,7 +140,7 @@ export class CollectionComponent {
             queryParamsHandling: 'merge',
             replaceUrl: true 
           });
-        }, this.animationService.isMobile() ? 200 : 50);
+        }, this.screenService.isMobile() ? 200 : 50);
       }
     });
   }
@@ -150,7 +149,14 @@ export class CollectionComponent {
     if (this.isLoading()) return;
     this.isLoading.set(true);
 
-    const limit = getPaginationLimit(this.preferredLayout(), this.view);
+    const limit = getPaginationLimit(this.screenService.size(), this.preferredLayout(), this.view);
+
+    // add loading item
+    if (this.mediaLayoutData().length === 0) {
+      this.mediaLayoutData.update(current => {
+        return [...current, undefined as any];
+      });
+    }
 
     // reinit pagination if query has changed
     if (!isNextPage) {
@@ -163,6 +169,11 @@ export class CollectionComponent {
 
     if (data.length < limit) {
       this.canLoadMore.set(false);
+    }
+
+    // add loading item to the end of results
+    if (this.canLoadMore()) {
+      data.push(undefined as any);
     }
 
     this.mediaLayoutData.update(current => {

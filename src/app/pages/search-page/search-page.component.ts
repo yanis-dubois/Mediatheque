@@ -1,4 +1,4 @@
-import { Component, computed, effect, signal } from '@angular/core';
+import { Component, computed, effect, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 
@@ -14,6 +14,7 @@ import { NavService } from '@app/services/nav.service';
 import { CollectionLayout, CollectionMediaType } from '@app/models/collection.model';
 import { HumanizePipe } from "../../pipe/humanize";
 import { getPaginationLimit } from '@app/models/media-query.model';
+import { ScreenService } from '@app/services/screen.service';
 
 @Component({
   selector: 'app-search-page',
@@ -24,6 +25,7 @@ import { getPaginationLimit } from '@app/models/media-query.model';
 })
 export class SearchPageComponent {
 
+  screenService = inject(ScreenService);
   mode = this.navService.searchMode;
   mediaType = signal<CollectionMediaType>({type: 'ALL'});
   searchQuery = signal<string>('');
@@ -86,11 +88,11 @@ export class SearchPageComponent {
     this.isLoading.set(true);
 
     // add loading item
-    // if (this.layoutData().length === 0) {
-    //   this.layoutData.update(current => {
-    //     return [...current, undefined as any];
-    //   });
-    // }
+    if (this.layoutData().length === 0) {
+      this.layoutData.update(current => {
+        return [...current, undefined as any];
+      });
+    }
 
     if (!isNextPage) {
       this.currentPage.set(1);
@@ -98,7 +100,7 @@ export class SearchPageComponent {
     }
 
     try {
-      const limit = getPaginationLimit(CollectionLayout.LIST);
+      const limit = getPaginationLimit(this.screenService.size(), CollectionLayout.LIST);
       const pagination = {limit: limit, offset: (this.currentPage() - 1) * limit};
       let newResults = await this.entityService.getLayoutData(
         this.searchQuery(), 

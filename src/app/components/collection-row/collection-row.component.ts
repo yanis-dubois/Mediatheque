@@ -49,7 +49,9 @@ export class CollectionRowComponent {
     let globalIndex = 0;
 
     this.mediaLayoutData().forEach((data) => {
-      const ratio = data[1] / data[2]; // width / height
+      const isDefined = !!data;
+      const id = isDefined ? data[0] : '0';
+      const ratio = isDefined ? data[1] / data[2] : 2/3; 
       const width = this.rowHeight() * ratio;
 
       // if that image can't fit
@@ -74,8 +76,8 @@ export class CollectionRowComponent {
       }
 
       currentLine.push({
-        uniqueKey: `${data[0]}-${globalIndex++}`,
-        id: data[0],
+        uniqueKey: `${id}-${globalIndex++}`,
+        id: id,
         width: width,
         height: this.rowHeight(),
         x: currentLineWidth,

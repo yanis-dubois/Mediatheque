@@ -56,8 +56,6 @@ export class NavService {
         this.orientation.set("right");
       }
 
-      console.log('dir ', this.direction(), ' orient ', this.orientation());
-
       // update page value
       if (url.startsWith('/search')) {
         // transition between HOME to SEARCH if needed

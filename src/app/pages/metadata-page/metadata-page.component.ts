@@ -21,6 +21,7 @@ import { DropdownComponent } from "@app/components/dropdown/dropdown.component";
 import { MediaActionComponent } from "@app/components/media-action/media-action.component";
 import { debounceTime, Subject } from 'rxjs';
 import { LayoutManagerComponent } from "../../components/layout-manager/layout-manager.component";
+import { ScreenService } from '@app/services/screen.service';
 
 @Component({
   selector: 'app-metadata-page',
@@ -33,6 +34,7 @@ export class MetadataPageComponent {
   private metadataService = inject(MetadataService);
   private entityService = inject(EntityService);
   private navService = inject(NavService);
+  private screenService = inject(ScreenService);
 
   protected readonly CollectionLayout = CollectionLayout;
   collectionLayoutOption = Object.values(CollectionLayout);
@@ -132,7 +134,7 @@ export class MetadataPageComponent {
       this.canLoadMore.set(true);
     }
 
-    const limit = getPaginationLimit(this.preferredLayout());
+    const limit = getPaginationLimit(this.screenService.size(), this.preferredLayout());
 
     const pagination = {limit: limit, offset: (this.currentPage() - 1) * limit};
     let data = await this.metadataService.searchInMetadata(

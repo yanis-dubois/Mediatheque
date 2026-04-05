@@ -1,3 +1,4 @@
+import { ScreenSize } from "@app/services/screen.service";
 import { CollectionDisplayMode, CollectionLayout } from "./collection.model";
 import { MediaStatus, MediaType } from "./media.model";
 
@@ -39,11 +40,15 @@ export interface Pagination {
 }
 
 export const getPaginationLimit = (
+  screenSize: ScreenSize,
   layout: CollectionLayout, 
-  mode = CollectionDisplayMode.DETAILS
+  mode = CollectionDisplayMode.DETAILS,
 ) => {
-  if (mode === CollectionDisplayMode.PREVIEW || layout === CollectionLayout.LIST) {
-    return 16;
+  if (mode === CollectionDisplayMode.PREVIEW) {
+    return screenSize === ScreenSize.MOBILE ? 4 : 8; // 8 / 16
   }
-  return 64;
+  if (layout === CollectionLayout.LIST) {
+    return 4; // 16
+  }
+  return screenSize === ScreenSize.MOBILE ? 4 : 8; // 32 / 64
 };

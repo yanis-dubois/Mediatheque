@@ -5,7 +5,7 @@ import { Router, RouterOutlet } from '@angular/router';
 import { NavigationComponent } from "./components/navigation/navigation.component";
 import { slideInAnimation } from './animation/page.animation';
 import { NavService } from './services/nav.service';
-import { AnimationService } from './services/animation.service';
+import { ScreenService } from './services/screen.service';
 
 @Component({
   selector: 'app-root',
@@ -19,11 +19,10 @@ export class AppComponent {
 
   private router = inject(Router);
   private navService = inject(NavService);
-  private animationService = inject(AnimationService);
-  isMobile = this.animationService.isMobile;
+  private screenService = inject(ScreenService);
 
   prepareRoute(outlet: RouterOutlet) {
-    if (!this.isMobile()) return null;
+    if (!this.screenService.isMobile()) return null;
     return `${this.router.url}:${this.navService.direction()}:${this.navService.orientation()}`;
   }
 

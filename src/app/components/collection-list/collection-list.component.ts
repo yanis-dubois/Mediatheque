@@ -6,11 +6,12 @@ import { debounceTime, Subject, switchMap } from 'rxjs';
 import { GenericListComponent } from "../generic-list/generic-list.component";
 import { EntityService } from '@app/services/entity.service';
 import { EntityType } from '@app/models/entity.model';
+import { ApiSearchRowComponent } from "../api-search-row/api-search-row.component";
 
 @Component({
   selector: 'app-collection-list',
   standalone: true,
-  imports: [CommonModule, RouterModule, GenericListComponent],
+  imports: [CommonModule, RouterModule, GenericListComponent, ApiSearchRowComponent],
   templateUrl: './collection-list.component.html',
   styleUrls: ['./collection-list.component.css']
 })
@@ -30,7 +31,7 @@ export class CollectionListComponent {
   containerWidth = signal(100);
 
   protected onVisibleItemsChanged(visibleData: [string, number, number][]) {
-    const visibleIds = visibleData.map(data => data[0]);
+    const visibleIds = visibleData.filter(data => !!data).map(data => data[0]);
 
     const missingIds = visibleIds.filter(id => {
       return this.entityService.getMedia(id) === null;

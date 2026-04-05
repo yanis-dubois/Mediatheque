@@ -45,8 +45,8 @@ export class CollectionLineComponent {
     const { width, height } = this.getMediaLayout(index);
     const lineHeight = this.containerHeight();
 
-    // avoid dividing by 0
-    if (!height || height === 0) return 200; 
+    // avoid dividing by 0 (2/3 ratio by default)
+    if (!height || height === 0) return (2 * lineHeight) / 3; 
 
     return (width * lineHeight) / height;
   }
