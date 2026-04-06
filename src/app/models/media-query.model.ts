@@ -45,10 +45,14 @@ export const getPaginationLimit = (
   mode = CollectionDisplayMode.DETAILS,
 ) => {
   if (mode === CollectionDisplayMode.PREVIEW) {
-    return screenSize === ScreenSize.MOBILE ? 4 : 8; // 8 / 16
+    if (screenSize === ScreenSize.MOBILE) return 8;
+    if (screenSize === ScreenSize.TABLET) return 12;
+    return 16;
   }
   if (layout === CollectionLayout.LIST) {
-    return 4; // 16
+    return 16;
   }
-  return screenSize === ScreenSize.MOBILE ? 4 : 8; // 32 / 64
+  if (screenSize === ScreenSize.MOBILE) return 32;
+  if (screenSize === ScreenSize.TABLET) return 48;
+  return 64;
 };
