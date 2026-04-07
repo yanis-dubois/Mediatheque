@@ -1,5 +1,5 @@
 import { Component, inject } from '@angular/core';
-import { Router, RouterModule } from '@angular/router';
+import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 
 import { MediaType } from '@models/media.model';
 import { EmojizePipe } from "../../pipe/emojize";
@@ -16,6 +16,7 @@ import { CollectionMediaType, compareCollectionMediaType } from '@app/models/col
 export class NavigationComponent {
 
   private router = inject(Router);
+  private route = inject(ActivatedRoute);
   private navService = inject(NavService);
   currentContext = this.navService.context;
   currentPage = this.navService.page;
@@ -31,24 +32,17 @@ export class NavigationComponent {
 
     const isSameContext = compareCollectionMediaType(newContext, currentContext);
     const currentPage = this.currentPage();
+    const target = currentPage === PageType.SEARCH ? ['/search'] : ['/home'];
 
     if (isSameContext) {
       this.navService.isBackward.set(true);
-
-      if (currentPage === PageType.SEARCH) {
-        this.router.navigate(['/search'], { replaceUrl: true });
-      } else {
-        this.router.navigate(['/home'], { replaceUrl: true });
-      }
-    } else {
+      this.router.navigate(target, { replaceUrl: true });
+    } 
+    else {
       this.navService.switchContext(newContext);
 
       if (!this.navService.canSwitchContext()) {
-        if (currentPage === PageType.SEARCH) {
-          this.router.navigate(['/search'], { replaceUrl: true });
-        } else {
-          this.router.navigate(['/home'], { replaceUrl: true });
-        }
+        this.router.navigate(target, { replaceUrl: true });
       }
     }
   }

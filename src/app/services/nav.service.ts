@@ -79,16 +79,6 @@ export class NavService {
       } else {
         this._canSwitchContext.set(true);
       }
-
-      // update context
-      // if a context is specified in the path, update it
-      if (ctxParam && ctxParam !== 'ALL') {
-        this._context.set({ type: 'SPECIFIC', value: ctxParam as MediaType });
-      } 
-      // if we are in ALL
-      else if (ctxParam === 'ALL') {
-        this._context.set({ type: 'ALL' });
-      }
     });
   }
 
