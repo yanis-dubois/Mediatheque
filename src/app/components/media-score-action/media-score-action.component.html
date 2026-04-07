@@ -1,0 +1,5 @@
+@if (media(); as media) {
+  <div style="width: fit-content;">
+    <app-score-display [score]="localScore()" (scoreChange)="updateScore($event)"></app-score-display>
+  </div>
+}

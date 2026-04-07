@@ -38,18 +38,13 @@
 }
 
 .card:hover .menu-slot, 
-.card.is-menu-open .menu-slot,
-.card:hover .fav-slot, 
-.card.is-menu-open .fav-slot,
-.card:hover .status-container, 
-.card.is-menu-open .status-container {
+.card.is-menu-open .menu-slot {
+  transform: translateY(0);
   opacity: 1;
   pointer-events: auto;
 }
 
-.menu-slot, 
-.fav-slot, 
-.status-container {
+.menu-slot {
   opacity: 0;
   pointer-events: none;
   transition: opacity 0.3s ease;
@@ -63,52 +58,6 @@
   top: 4px;
   right: 4px;
   z-index: 20;
-}
-
-.fav-slot {
-  overflow: hidden;
-  position: absolute;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 100%;
-  top: 4px;
-  left: 4px;
-  z-index: 20;
-  text-align: center;
-  width: 1.4rem;
-  height: 1.4rem;
-
-  border-radius: 50%;
-  backdrop-filter: blur(8px);
-
-  --fav-size: 16px;
-}
-
-.card:hover .status-container,
-.card.is-menu-open .status-container {
-  transform: translateY(0);
-}
-
-.status-container {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-
-  backdrop-filter: blur(10px);
-  background-color: rgba(0, 0, 0, 0.6);
-  position: absolute;
-  bottom: 0px;
-  left: 0px;
-  border-top-right-radius: 8px;
-  border-bottom: none !important;
-  border-left: none !important;
-  padding: 4px;
-
-  transform: translateY(12px);
-  transition: opacity 0.3s ease, transform 0.3s ease;
-
-  --status-size: 16px;
 }
 
 .skeleton-container {

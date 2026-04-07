@@ -14,7 +14,7 @@
       [class.is-visible]="((hasLoaded() && resolvedSrc()) || !media?.hasPoster)"
       [style.width.px]="width" [style.height.px]="height"
     >
-    
+
       <a 
         class="item-content"
         [routerLink]="['/media', media.id]"
@@ -31,14 +31,6 @@
           </app-media-image>
         </div>
       </a>
-
-      <div class="fav-slot">
-        <app-media-favorite-action [mediaId]="media.id"></app-media-favorite-action>
-      </div>
-
-      <div class="status-container menu-background">
-        <app-media-status-action [mediaId]="media.id"></app-media-status-action>
-      </div>
 
       <div class="menu-slot">
         <ng-content select="[mediaMenu]"></ng-content>

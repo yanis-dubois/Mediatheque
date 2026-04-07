@@ -5,7 +5,6 @@ import { RouterModule } from '@angular/router';
 import { BookExtension, DetailedMedia, isLibraryMedia, MediaStatus, MediaType, MovieExtension, SeriesExtension, sortEntityByOrder, TabletopGameExtension, TagType, VideoGameExtension } from '@models/media.model'
 
 import { MediaService } from '@services/media.service'
-import { ScoreDisplayComponent } from "@app/components/score-display/score-display.component";
 import { PosterLightboxComponent } from "../poster-lightbox/poster-lightbox.component";
 import { MediaStatusActionComponent } from "../media-status-action/media-status-action.component";
 import { DurationPipe } from "../../pipe/duration.pipe";
@@ -19,13 +18,14 @@ import { LocalImagePathPipe } from '@app/pipe/local-image.pipe';
 import { ImageSize, ImageType } from '@app/models/image.model';
 import { ImageService } from '@app/services/image.service';
 import { FilterTagsPipe } from "../../pipe/filter-tag.pipe";
+import { MediaScoreActionComponent } from "../media-score-action/media-score-action.component";
 
 const MAX_LENGTH_NOTES = 5000;
 
 @Component({
   selector: 'app-media-details',
   standalone: true,
-  imports: [CommonModule, RouterModule, ScoreDisplayComponent, PosterLightboxComponent, MediaStatusActionComponent, DurationPipe, MediaImageComponent, MediaFavoriteActionComponent, FilterTagsPipe],
+  imports: [CommonModule, RouterModule, PosterLightboxComponent, MediaStatusActionComponent, DurationPipe, MediaImageComponent, MediaFavoriteActionComponent, FilterTagsPipe, MediaScoreActionComponent],
   providers: [ExternalImagePathPipe, LocalImagePathPipe],
   templateUrl: './media-details.component.html',
   styleUrl: './media-details.component.scss'
@@ -182,16 +182,4 @@ export class MediaDetailsComponent {
     }
   }
 
-  async onScoreChange(newScore: number | undefined) {
-    const media = this.media();
-    if (!media || !isLibraryMedia(media)) return;
-
-    try {
-      await this.mediaService.updateScore(media.id, newScore);
-      this.score.set(newScore);
-    } catch (e) {
-      console.error("Error while updating score :", e);
-      this.score.set(this.score());
-    }
-  }
 }

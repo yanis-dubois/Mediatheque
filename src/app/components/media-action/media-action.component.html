@@ -2,8 +2,11 @@
   <button class="dropdown-button" (click)="favoriteAction.toggleFavorite()" style="display: flex; justify-content: center;">
     <app-media-favorite-action #favoriteAction [mediaId]="media.id"></app-media-favorite-action>
   </button>
-  <button class="dropdown-button">
+  <button class="dropdown-button" style="display: flex; justify-content: center;">
     <app-media-status-action [mediaId]="media.id"></app-media-status-action>
+  </button>
+  <button class="dropdown-button" style="display: flex; justify-content: center;">
+    <app-media-score-action [mediaId]="media.id"></app-media-score-action>
   </button>
   <button class="dropdown-button" (click)="openPicker($event)">
     Add to collection

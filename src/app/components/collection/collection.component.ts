@@ -82,7 +82,7 @@ export class CollectionComponent {
 
   searchQuery = signal<string>('');
 
-  private refreshLayout$ = new Subject<void>();
+  private refreshLayout$ = new Subject<boolean>();
 
   isPageReady = signal(false);
 
@@ -99,8 +99,8 @@ export class CollectionComponent {
   ) {
     this.refreshLayout$.pipe(
       debounceTime(50)
-    ).subscribe(() => {
-      this.loadLayoutData();
+    ).subscribe((isUpdate) => {
+      this.loadLayoutData(isUpdate, false);
     });
 
     // wait the end of animation before loading data
@@ -112,13 +112,22 @@ export class CollectionComponent {
     effect(() => {
       this.id();
       this.searchQuery();
-      this.entityService.lastUpdate();
       const ready = this.isPageReady();
 
       untracked(() => {
         if (ready) {
-          this.refreshLayout$.next();
+          this.currentPage.set(1);
+          this.canLoadMore.set(true);
+          this.refreshLayout$.next(false);
         }
+      });
+    });
+
+    effect(() => {
+      this.entityService.lastUpdate();
+
+      untracked(() => {
+        this.refreshLayout$.next(true);
       });
     });
 
@@ -145,11 +154,9 @@ export class CollectionComponent {
     });
   }
 
-  async loadLayoutData(isNextPage = false) {
-    if (this.isLoading()) return;
+  async loadLayoutData(isUpdate: boolean, isNextPage = false) {
+    if (this.isLoading() || !this.isPageReady()) return;
     this.isLoading.set(true);
-
-    const limit = getPaginationLimit(this.screenService.size(), this.preferredLayout(), this.view);
 
     // add loading item
     if (this.mediaLayoutData().length === 0) {
@@ -159,12 +166,17 @@ export class CollectionComponent {
     }
 
     // reinit pagination if query has changed
-    if (!isNextPage) {
+    if (!isUpdate && !isNextPage) {
       this.currentPage.set(1);
       this.canLoadMore.set(true);
     }
 
-    const pagination = {limit: limit, offset: (this.currentPage() - 1) * limit};
+    const limit = getPaginationLimit(this.screenService.size(), this.preferredLayout(), this.view);
+    const offset = (this.currentPage() - 1) * limit;
+    const pagination = {
+      limit: isUpdate ? this.currentPage()*limit : limit, 
+      offset: isUpdate ? 0 : offset
+    };
     let data = await this.collectionService.getLayoutData(this.id(), this.searchQuery(), pagination);
 
     if (data.length < limit) {
@@ -195,7 +207,7 @@ export class CollectionComponent {
   onScroll() {
     if (!this.isLoading() && this.canLoadMore()) {
       this.currentPage.update(p => p + 1);
-      this.loadLayoutData(true);
+      this.loadLayoutData(false, true);
     }
   }
 
@@ -265,7 +277,6 @@ export class CollectionComponent {
   async onSortChanged(newSort: MediaOrder[]) {
     try {
       await this.collectionService.updateSort(this.id(), newSort);
-      this.refreshLayout$.next(); 
     } catch (e) {
       console.error("Sort update failed", e);
     }
@@ -289,7 +300,6 @@ export class CollectionComponent {
 
     try {
       await this.collectionService.updateFilter(this.id(), newFilter);
-      this.refreshLayout$.next();
     } catch (e) {
       console.error("Filter update failed", e);
     }
@@ -300,7 +310,6 @@ export class CollectionComponent {
 
     try {
       await this.collectionService.addMediaBatchToCollection(this.id(), newMediaIds);
-      this.refreshLayout$.next();
     } catch (e) {
       console.error("Error while adding media to collection", e);
     }
@@ -311,7 +320,6 @@ export class CollectionComponent {
 
     try {
       await this.collectionService.removeMedia(this.id(), mediaId);
-      this.refreshLayout$.next();
     } catch (e) {
       console.error("Error while adding media to collection", e);
     }

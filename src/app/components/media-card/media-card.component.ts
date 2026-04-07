@@ -4,8 +4,6 @@ import { RouterModule } from '@angular/router';
 
 import { getStatusColor } from '@app/models/media.model';
 import { EntityService } from '@app/services/entity.service';
-import { MediaStatusActionComponent } from "../media-status-action/media-status-action.component";
-import { MediaFavoriteActionComponent } from "../media-favorite-action/media-favorite-action.component";
 import { MediaImageComponent } from "../media-image/media-image.component";
 import { ImageSize, ImageType } from '@app/models/image.model';
 import { ImageService } from '@app/services/image.service';
@@ -14,7 +12,7 @@ import { animate, style, transition, trigger } from '@angular/animations';
 @Component({
   selector: 'app-media-card',
   standalone: true,
-  imports: [CommonModule, RouterModule, MediaStatusActionComponent, MediaFavoriteActionComponent, MediaImageComponent],
+  imports: [CommonModule, RouterModule, MediaImageComponent],
   templateUrl: './media-card.component.html',
   styleUrls: ['./media-card.component.scss'],
   animations: [
@@ -72,9 +70,7 @@ export class MediaCardComponent {
             ImageType.POSTER, 
             ImageSize.MEDIUM
           );
-          requestAnimationFrame(() => {
-            this.resolvedSrc.set(url);
-          });
+          this.resolvedSrc.set(url);
         } catch (e) {
           console.error("Error while loading image", e);
         }

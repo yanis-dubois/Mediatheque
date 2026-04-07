@@ -13,11 +13,12 @@ import { MediaFavoriteActionComponent } from "../media-favorite-action/media-fav
 import { MediaService } from '@app/services/media.service';
 import { Router } from '@angular/router';
 import { NavService, PageType } from '@app/services/nav.service';
+import { MediaScoreActionComponent } from "../media-score-action/media-score-action.component";
 
 @Component({
   selector: 'app-media-action',
   standalone: true,
-  imports: [CollectionPickerComponent, MediaStatusActionComponent, MediaFavoriteActionComponent],
+  imports: [CollectionPickerComponent, MediaStatusActionComponent, MediaFavoriteActionComponent, MediaScoreActionComponent],
   templateUrl: './media-action.component.html'
 })
 export class MediaActionComponent {

@@ -171,16 +171,13 @@
           <!-- action -->
           @if (isLibraryMedia(media)) {
             <div class="meta-line action">
-              @if (displayMode() !== ScoreDisplayModes.HIDDEN) {
-                <app-score-display 
-                  [score]="score()" 
-                  (scoreChange)="onScoreChange($event)"
-                />
-              }
-  
               <app-media-favorite-action [mediaId]="media.id"></app-media-favorite-action>
   
               <app-media-status-action [mediaId]="media.id"></app-media-status-action>
+
+              @if (displayMode() !== ScoreDisplayModes.HIDDEN) {
+                <app-media-score-action [mediaId]="media.id"/>
+              }
             </div>
           }
   

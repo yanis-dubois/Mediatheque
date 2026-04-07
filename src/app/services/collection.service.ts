@@ -120,6 +120,7 @@ export class CollectionService {
 
   async removeMedia(id: string, mediaId: string) {
     await invoke('remove_media_from_collection', { id, mediaId });
+    this.entityService.update();
   }
 
   /* create */
