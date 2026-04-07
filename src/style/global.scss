@@ -88,11 +88,17 @@
   --color-light-soft: #D0D0D0;
   --color-light-dark: #808080;
   /* dark */
-  --color-dark-lighter: #454545;
-  --color-dark-light: #333;
-  --color-dark-soft: #191919;
-  --color-dark: #131313; /* DEFAULT */
-  --color-dark-deep: #030303;
+  --color-dark-lighter: oklch(0.27 0 0);
+  --color-dark-light: oklch(0.24 0 0);
+  --color-dark-soft: oklch(0.21 0 0);
+  --color-dark: oklch(0.18 0 0); /* DEFAULT */
+  --color-dark-deep: oklch(0.15 0 0);
+  /* transparent */
+  --color-transparent-light-soft: rgba(255,255,255,0.15);
+  --color-transparent-light-softer: rgba(255,255,255,0.075);
+  --color-transparent-dark-light: oklch(0.4 0 0 / 0.66);
+  --color-transparent-dark-soft: oklch(0.3 0 0 / 0.66);
+  --color-transparent-dark: oklch(0.2 0 0 / 0.66);
   /* status */
   --color-status-finished: oklch(42% 0.1 145);
   --color-status-in-progress: oklch(42% 0.1 260);
@@ -209,7 +215,7 @@ h1 {
 
 /* transparent menu */
 .menu-background {
-  background: rgba(0, 0, 0, 0.66);
+  background: var(--color-transparent-dark);
   backdrop-filter: blur(8px);
   border: 1px solid rgba(255, 255, 255, 0.1);
 }
@@ -239,7 +245,7 @@ h1 {
   align-items: center;
 }
 .action-button:hover {
-  background: rgba(52, 52, 52, 0.66);
+  background: var(--color-transparent-dark-soft);
 }
 .layout-selector {
   position: relative;
@@ -280,7 +286,7 @@ h1 {
 }
 .tool-item {
   font-size: var(--text-base);
-  background-color: rgba(0,0,0, 0);
+  background-color: rgba(0,0,0,0);
   border: none;
   color: var(--color-light);
 
@@ -302,10 +308,10 @@ h1 {
   }
 
   &.is-active {
-    background-color: var(--color-dark-light);
+    background-color: var(--color-transparent-light-softer);
   }
   &:hover {
-    background-color: var(--color-dark-lighter);
+    background-color: var(--color-transparent-light-soft);
   }
 
 }
@@ -332,7 +338,7 @@ button.tool-item {
   height: 1.4rem;
   border-radius: 100%;
   &:hover {
-    background: rgba(50, 50, 50, 0.8);
+    background: var(--color-transparent-dark-light);
   }
   cursor: pointer;
 
@@ -373,7 +379,7 @@ button.tool-item {
   text-align: left;
   cursor: pointer;
   &:hover { 
-    background: var(--color-dark-light);
+    background: var(--color-dark-lighter);
   }
 }
 .delete-item {
@@ -400,7 +406,7 @@ button.tool-item {
   font-size: var(--text-xl);
   border-radius: 100%;
   &:hover {
-    background: rgba(50, 50, 50, 0.8);
+    background: var(--color-dark-lighter);
   }
   cursor: pointer;
 
@@ -428,7 +434,7 @@ button.tool-item {
   padding: 8px 16px;
   border-radius: 16px;
   border: none;
-  background: rgba(255, 255, 255, 0.1);
+  background: var(--color-dark-lighter);
   color: var(--color-light);
   font-size: var(--text-base);
 }
