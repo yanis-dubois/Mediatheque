@@ -555,6 +555,22 @@ select {
 }
 
 /* picker */
+.picker-popover-wrapper {
+  background: transparent;
+  border: none;
+  width: 100vw;
+  height: 100vh;
+  margin: 0;
+  padding: 0;
+
+  max-width: none;
+  max-height: none;
+
+  animation: slideUp 0.3s cubic-bezier(0.25, 1, 0.5, 1) forwards;
+  &.closing {
+    animation: slideDown 0.3s cubic-bezier(0.25, 1, 0.5, 1) forwards !important;
+  }
+}
 .picker-overlay {
   overscroll-behavior: contain;
   position: fixed;
@@ -567,27 +583,12 @@ select {
 
   background: var(--color-dark);
   color: var(--color-light);
-
-  animation: slideUp 0.3s cubic-bezier(0.25, 1, 0.5, 1);
 }
 @keyframes slideUp {
-  from {
-    transform: translateY(100%);
-    opacity: 0;
-  }
-  to {
-    transform: translateY(0);
-    opacity: 1;
-  }
+  from { transform: translateY(100%); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
 }
-.picker-popover-wrapper {
-  background: transparent;
-  border: none;
-  width: 100vw;
-  height: 100vh;
-  margin: 0;
-  padding: 0;
-
-  max-width: none;
-  max-height: none;
+@keyframes slideDown {
+  from { transform: translateY(0); opacity: 1; }
+  to { transform: translateY(100%); opacity: 0; }
 }

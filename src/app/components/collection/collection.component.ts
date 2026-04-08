@@ -1,4 +1,4 @@
-import { Component, computed, effect, ElementRef, inject, input, Input, signal, untracked, viewChild } from '@angular/core';
+import { Component, computed, effect, ElementRef, inject, input, Input, signal, untracked, ViewChild, viewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { debounceTime, Subject } from 'rxjs';
@@ -41,6 +41,9 @@ export class CollectionComponent {
   @Input({ required: true }) view!: CollectionDisplayMode;
   id = input.required<string>();
 
+  @ViewChild('pickerPopover') pickerPopover!: ElementRef<HTMLElement>;
+  isPickerVisible = signal(false);
+
   nameInput = viewChild<ElementRef<HTMLHeadingElement>>('nameInput');
   private route = inject(ActivatedRoute);
   private router = inject(Router);
@@ -73,9 +76,6 @@ export class CollectionComponent {
     favoriteOnly: undefined,
     searchQuery: undefined
   });
-
-  // for manual collection
-  showPicker = signal(false);
 
   // media menu
   activeMediaMenuId = signal<string | null>(null);
@@ -202,6 +202,22 @@ export class CollectionComponent {
     });
 
     this.isLoading.set(false);
+  }
+
+  // picker for manual collection
+  openPicker(event: MouseEvent) {
+    event.stopPropagation();
+    this.isPickerVisible.set(true);
+    setTimeout(() => this.pickerPopover.nativeElement.showPopover());
+  }
+
+  async closePicker() {
+    this.pickerPopover.nativeElement.classList.add('closing');
+    await new Promise(resolve => setTimeout(resolve, 300));
+
+    this.pickerPopover.nativeElement.hidePopover();
+    this.pickerPopover.nativeElement.classList.remove('closing');
+    this.isPickerVisible.set(false);
   }
 
   onScroll() {

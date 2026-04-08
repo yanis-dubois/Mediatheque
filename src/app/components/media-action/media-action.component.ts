@@ -53,8 +53,12 @@ export class MediaActionComponent {
     setTimeout(() => this.pickerPopover.nativeElement.showPopover());
   }
 
-  closePicker() {
+  async closePicker() {
+    this.pickerPopover.nativeElement.classList.add('closing');
+    await new Promise(resolve => setTimeout(resolve, 300));
+
     this.pickerPopover.nativeElement.hidePopover();
+    this.pickerPopover.nativeElement.classList.remove('closing');
     this.isPickerVisible.set(false);
     this.closeMenu.emit();
   }

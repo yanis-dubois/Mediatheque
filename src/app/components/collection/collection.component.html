@@ -48,7 +48,7 @@
             />
           }
           @else if (collection.collectionType === CollectionType.MANUAL) {
-            <button class="tool-item" (click)="showPicker.set(true)">
+            <button class="tool-item" (click)="openPicker($event)">
               <img src="assets/icons/plus.svg" alt="Plus"/>
             </button>
           }
@@ -206,13 +206,15 @@
           }
         }
 
-        @if (showPicker()) {
-          <app-media-picker 
-            [collection]="collection"
-            (onCancel)="showPicker.set(false)"
-            (onConfirm)="showPicker.set(false); addSelectedMedia($event)"
-          />
-        }
+        <div #pickerPopover popover="manual" class="picker-popover-wrapper">
+          @if (isPickerVisible()) {
+            <app-media-picker 
+              [collection]="collection"
+              (onCancel)="closePicker()"
+              (onConfirm)="addSelectedMedia($event); closePicker()"
+            />
+          }
+        </div>
       </section>
     }
   }
