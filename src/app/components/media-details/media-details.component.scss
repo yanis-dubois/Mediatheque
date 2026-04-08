@@ -164,8 +164,9 @@
           gap: 8px;
           margin: 4px 0;
 
-          --fav-size: 16px;
-          --status-size: 16px;
+          --fav-size: 20px;
+          --status-size: 20px;
+          --score-size: 20px;
         }
         // Phone
         @media (max-width: 600px) {

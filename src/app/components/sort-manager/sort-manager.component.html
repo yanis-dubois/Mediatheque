@@ -34,7 +34,7 @@
             {{ order.direction === 'ASC' ? '↑' : '↓' }}
           </button>
 
-          <button (click)="$event.stopPropagation(); removeSort($index)" class="delete-item btn-remove">×</button>
+          <button (click)="$event.stopPropagation(); removeSort($index)" class="delete-item btn-remove">✕</button>
 
           <div *cdkDragPlaceholder class="sort-placeholder"></div>
         </div>
@@ -43,7 +43,7 @@
     </div>
 
     @if (canAddSort() && sortOrder().length > 0) {
-      <hr>
+      <hr class="dropdown-separator">
     }
 
     @if (canAddSort()) {

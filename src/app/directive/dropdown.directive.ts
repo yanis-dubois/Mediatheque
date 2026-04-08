@@ -57,12 +57,14 @@ export class DropdownTriggerDirective {
       (node) => node.nodeType === 1
     ) as HTMLElement;
     const menuDom = menuElement.classList.contains('dropdown-menu') 
-    ? menuElement 
-    : menuElement.querySelector('.dropdown-menu') as HTMLElement;
+      ? menuElement 
+      : menuElement.querySelector('.dropdown-menu') as HTMLElement;
     if (!menuDom) {
-      console.error("can't find the .dropdown-menu element");
+      console.error("Can't find the .dropdown-menu element");
       return;
     }
+
+    this.renderer.addClass(this.document.body, 'no-scroll');
 
     const container = this.embeddedView.rootNodes[0];
 
@@ -98,8 +100,9 @@ export class DropdownTriggerDirective {
     this.renderer.setStyle(container, 'visibility', 'visible');
     this.renderer.setStyle(container, 'display', 'block');
     this.renderer.setStyle(container, 'transform', 'translate(-100%, 0)');
-    this.renderer.setStyle(container, 'width', `${menuWidth}px`);
-    this.renderer.setStyle(container, 'min-width', `${this.minWidth()}px`);
+    // this.renderer.setStyle(container, 'width', `${menuWidth}px`);
+    // this.renderer.setStyle(container, 'min-width', `${this.minWidth()}px`);
+    this.renderer.setStyle(container, 'width', `auto`);
     this.renderer.setStyle(container, 'top', `${y}px`);
     this.renderer.setStyle(container, 'left', `${x}px`);
     this.renderer.setStyle(container, 'z-index', '1000');
@@ -132,6 +135,10 @@ export class DropdownTriggerDirective {
   }
 
   close() {
+    if (this.isBrowser) {
+      this.renderer.removeClass(this.document.body, 'no-scroll');
+    }
+
     if (this.backdropElement) {
       this.renderer.removeChild(this.document.body, this.backdropElement);
       this.backdropElement = null;

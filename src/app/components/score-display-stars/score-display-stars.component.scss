@@ -3,7 +3,7 @@
   display: flex;
   justify-content: center;
   align-items: center;
-  height: 100%;
+  height: var(--score-size, 24px);
   cursor: pointer;
 
   .hidden-slider {
@@ -23,14 +23,13 @@
   }
 
   .stars-display {
-    font-size: var(--text-lg);
+    font-size: var(--score-size, 24px);;
     z-index: 1; // below slider
     pointer-events: none;
 
     .star-wrapper {
       position: relative;
       display: inline-block;
-      font-size: var(--text-lg);
     }
 
     .star-outline {

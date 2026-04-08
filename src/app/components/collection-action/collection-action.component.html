@@ -3,6 +3,8 @@
     <app-collection-favorite-action #favoriteAction [collectionId]="collection.id"></app-collection-favorite-action>
   </button>
 
+  <hr class="dropdown-separator">
+
   @if (collection.collectionType === CollectionType.MANUAL) {
     <button class="dropdown-button" (click)="openPicker($event)">
       Add media
@@ -27,8 +29,10 @@
   }
 
   @if (collection.collectionType !== CollectionType.SYSTEM) {
+    <hr class="dropdown-separator">
+
     <button class="dropdown-button delete-item" (click)="onDelete()">
-      Delete
+      Delete from Library
     </button>
   }
 

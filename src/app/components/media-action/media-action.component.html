@@ -5,9 +5,14 @@
   <button class="dropdown-button" style="display: flex; justify-content: center;">
     <app-media-status-action [mediaId]="media.id"></app-media-status-action>
   </button>
-  <button class="dropdown-button" style="display: flex; justify-content: center;">
-    <app-media-score-action [mediaId]="media.id"></app-media-score-action>
-  </button>
+  @if (showScore) {
+    <button class="dropdown-button" style="display: flex; justify-content: center;">
+      <app-media-score-action [mediaId]="media.id"></app-media-score-action>
+    </button>
+  }
+
+  <hr class="dropdown-separator">
+
   <button class="dropdown-button" (click)="openPicker($event)">
     Add to collection
   </button>
@@ -17,6 +22,8 @@
       Refresh data
     </button>
   }
+
+  <hr class="dropdown-separator">
 
   @if (canDeleteFromCollection()) {
     <button class="dropdown-button delete-item" (click)="onDeleteFromCollection()">

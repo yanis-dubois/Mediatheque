@@ -6,13 +6,15 @@
   gap: 8px;
   align-items: center;
   box-sizing: border-box;
+  height: 34px;
 }
 
 .drag-handle {
   flex: none;
   cursor: grab;
   color: var(--color-light-dark);
-  padding: 0 8px;
+  padding: 0 4px;
+  padding-left: 8px;
   user-select: none;
 }
 .drag-handle:active {
@@ -24,6 +26,8 @@ select {
 }
 
 .btn-direction {
+  padding: 1px;
+  border-radius: 4px;
   flex: none;
   width: 32px; 
   background: var(--color-dark);
@@ -31,9 +35,12 @@ select {
   color: var(--color-light);
 }
 .btn-remove { 
+  padding: 0;
+  border-radius: 4px;
   flex: none;
   width: 32px; 
-  font-size: 1.2rem; 
+  font-size: 20px; 
+  text-align: center;
 }
 
 .cdk-drop-list-dragging .cdk-drag {
@@ -51,12 +58,6 @@ select {
 .sort-placeholder {
   background: rgba(255, 255, 255, 0.05);
   border: 1px dashed var(--color-dark-light);
-  min-height: 40px;
+  min-height: 32px;
   transition: transform 250ms cubic-bezier(0, 0, 0.2, 1);
-}
-
-hr {
-  width: 100%;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  margin: 0;
 }

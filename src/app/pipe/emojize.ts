@@ -75,7 +75,7 @@ export class EmojizePipe implements PipeTransform {
         case FiveStep.LIKE: return "😊"; // unused because match before ↑
         case FiveStep.NEUTRAL: return "😐";
         case FiveStep.DISLIKE: return "😕"; // unused because match before ↑
-        case FiveStep.HATE: return "💩";
+        case FiveStep.HATE: return "☹️";
         case FiveStep.UNDEFINED: return "";
       }
     }

@@ -10,8 +10,8 @@
 <ng-template #dotsMenu>
   <div class="dropdown-menu">
 
-    <button class="dropdown-button">
-      <label>Type : </label>
+    <button class="dropdown-button filter-item">
+      <label>Type :&nbsp;</label>
       <select 
         #mediaTypeSelect
         [value]="filter().mediaType || ''" 
@@ -27,8 +27,8 @@
       </select>
     </button>
 
-    <button class="dropdown-button">
-      <label>Status : </label>
+    <button class="dropdown-button filter-item">
+      <label>Status :&nbsp;</label>
       <select [value]="filter().status || ''" (change)="updateFilter('status', $any($event.target).value)">
         <option value="">All</option>
         @for (status of statusOptions; track status) {
@@ -48,10 +48,10 @@
         [checked]="filter().favoriteOnly" 
         (change)="updateFilter('favoriteOnly', $any($event.target).checked)"
       />
-      <label>Favorite only</label>
+      <label>&nbsp;Favorite only</label>
     </button>
 
-    <hr> <!-- TODO: media specific filter -->
+    <hr class="dropdown-separator"> <!-- TODO: media specific filter -->
 
     <button (click)="resetFilter()" class="dropdown-button">Reset filter</button>
 

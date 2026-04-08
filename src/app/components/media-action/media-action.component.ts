@@ -14,6 +14,8 @@ import { MediaService } from '@app/services/media.service';
 import { Router } from '@angular/router';
 import { NavService, PageType } from '@app/services/nav.service';
 import { MediaScoreActionComponent } from "../media-score-action/media-score-action.component";
+import { SettingsService } from '@app/services/settings.service';
+import { ScoreDisplayMode } from '@app/models/score.model';
 
 @Component({
   selector: 'app-media-action',
@@ -43,6 +45,8 @@ export class MediaActionComponent {
   private router = inject(Router);
   private location = inject(Location);
   private navService = inject(NavService);
+  private settingsService = inject(SettingsService);
+  showScore = this.settingsService.scoreDisplayMode() !== ScoreDisplayMode.HIDDEN;
 
   media = computed(() => {
     return this.entityService.getMedia(this.mediaId());
