@@ -1,7 +1,6 @@
 .collection-row.cdk-drag-preview {
   box-shadow: 0 5px 15px rgba(0,0,0,0.5);
   opacity: 0.9;
-  cursor: grabbing;
 }
 .placeholder {
   background: rgba(255, 255, 255, 0.05);
@@ -10,12 +9,13 @@
   margin: 10px 0;
   border-radius: 8px;
 }
-.drag-handle-container {
+.drag-handle {
   cursor: grab;
   display: flex;
   align-items: center;
-  gap: 10px;
-  padding: 10px 0;
+}
+.drag-handle:active {
+  cursor: grabbing;
 }
 
 .links {

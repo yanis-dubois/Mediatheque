@@ -1,26 +1,27 @@
 <div class="page-container picker-container">
-  <header class="page-header picker-header">
-    <h2>{{ title() }}</h2>
 
-    <div class="picker-header-content">
-      <button class="cancel-btn" (click)="onCancel.emit()">Cancel</button>
-      <div class="search-box-picker">
-        <input 
-          class="input-search"
-          type="text"
-          [ngModel]="searchQuery()" 
-          (ngModelChange)="onSearchChange($event)"
-          [placeholder]="searchPlaceholder()"
-        />
+  <header class="picker-header">
+    <div class="page-header">
+      <h2>{{ title() }}</h2>
+
+      <div class="picker-header-content">
+          <input 
+            class="input-search"
+            type="text"
+            [ngModel]="searchQuery()" 
+            (ngModelChange)="onSearchChange($event)"
+            [placeholder]="searchPlaceholder()"
+          />
       </div>
-      <button 
-        class="done-btn" 
-        [disabled]="selectedIds().size === 0"
-        (click)="onConfirm.emit(selectedIds())"
-      >
-        Confirm ({{ selectedIds().size }})
-      </button>
     </div>
+
+    <button class="action-button menu-background left-buton" (click)="onCancel.emit()">
+      <img class="chevron" src="assets/icons/plus.svg" style="transform: rotate(45deg);"/>
+    </button>
+
+    <button class="action-button menu-background right-buton" (click)="onConfirm.emit(selectedIds())">
+      <img class="chevron" src="assets/icons/valid.svg"/>
+    </button>
   </header>
 
   <ng-content></ng-content>

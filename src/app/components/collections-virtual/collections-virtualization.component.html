@@ -26,6 +26,7 @@
               >
                 <app-collection-action 
                   [collectionId]="id"
+                  (closeMenu)="activeMenuId.set(null);"
                 />
               </app-dropdown>
             </div>

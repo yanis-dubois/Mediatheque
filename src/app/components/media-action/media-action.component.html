@@ -35,11 +35,13 @@
     Delete from library
   </button>
 
-  <ng-template #pickerTemplate>
-    <app-collection-picker 
-      [media]="media"
-      (onCancel)="closePicker()"
-      (onConfirm)="addToSelectedCollection($event); closePicker()"
-    />
-  </ng-template>
+  <div #pickerPopover popover="manual" class="picker-popover-wrapper">
+    @if (isPickerVisible()) {
+      <app-collection-picker 
+        [media]="media"
+        (onCancel)="closePicker()"
+        (onConfirm)="addToSelectedCollection($event); closePicker()"
+      />
+    }
+  </div>
 }

@@ -1,6 +1,6 @@
 <app-generic-picker
   class="picker-overlay"
-  [title]="'Add to ' + collection.name"
+  [title]="'Add to « ' + collection.name+' »'"
   (searchChange)="onSearch($event)"
   (onCancel)="onCancel.emit()"
   (onConfirm)="onConfirm.emit($event)"

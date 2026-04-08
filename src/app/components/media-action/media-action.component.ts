@@ -1,11 +1,10 @@
-import { Component, computed, EmbeddedViewRef, inject, input, output, Renderer2, TemplateRef, ViewChild, ViewContainerRef } from '@angular/core';
+import { Component, computed, ElementRef, inject, input, output, signal, ViewChild } from '@angular/core';
 import { Location } from '@angular/common';
 
 import { ask } from '@tauri-apps/plugin-dialog';
 
 import { MediaStatus } from '@app/models/media.model';
 import { CollectionPickerComponent } from "../collection-picker/collection-picker.component";
-import { DOCUMENT } from '@angular/common';
 import { CollectionService } from '@app/services/collection.service';
 import { EntityService } from '@app/services/entity.service';
 import { MediaStatusActionComponent } from "../media-status-action/media-status-action.component";
@@ -24,18 +23,14 @@ import { ScoreDisplayMode } from '@app/models/score.model';
   templateUrl: './media-action.component.html'
 })
 export class MediaActionComponent {
-  @ViewChild('pickerTemplate') pickerTemplate!: TemplateRef<any>;
-
-  private viewContainerRef = inject(ViewContainerRef);
-  private document = inject(DOCUMENT);
-  private renderer = inject(Renderer2);
-  private embeddedView: EmbeddedViewRef<any> | null = null;
+  @ViewChild('pickerPopover') pickerPopover!: ElementRef<HTMLElement>;
+  isPickerVisible = signal(false);
 
   mediaId = input.required<string>();
   canDeleteFromCollection = input<boolean>(false);
 
   deleteFromCollectionRequest = output<string>();
-  deleteFromLibraryRequest = output<void>();
+  closeMenu = output<void>();
 
   statusOptions = Object.values(MediaStatus);
 
@@ -54,22 +49,14 @@ export class MediaActionComponent {
 
   openPicker(event: MouseEvent) {
     event.stopPropagation();
-    if (this.embeddedView) return;
-
-    // attach picker to body
-    this.embeddedView = this.viewContainerRef.createEmbeddedView(this.pickerTemplate);
-    this.embeddedView.rootNodes.forEach(node => {
-      this.renderer.appendChild(this.document.body, node);
-    });
-
-    this.embeddedView.detectChanges();
+    this.isPickerVisible.set(true);
+    setTimeout(() => this.pickerPopover.nativeElement.showPopover());
   }
 
   closePicker() {
-    if (this.embeddedView) {
-      this.embeddedView.destroy();
-      this.embeddedView = null;
-    }
+    this.pickerPopover.nativeElement.hidePopover();
+    this.isPickerVisible.set(false);
+    this.closeMenu.emit();
   }
 
   async addToSelectedCollection(collectionIds: Set<string>) {
@@ -130,7 +117,7 @@ export class MediaActionComponent {
         }
       }
 
-      this.deleteFromLibraryRequest.emit();
+      this.closeMenu.emit();
     } catch (e) {
       console.error("Error during collection deletion", e);
     }

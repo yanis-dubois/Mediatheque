@@ -51,10 +51,11 @@
               >
                 <app-collection-action 
                   [collectionId]="id"
+                  (closeMenu)="activeMenuId.set(null);"
                 />
               </app-dropdown>
 
-              <div class="line-action" cdkDragHandle>
+              <div class="drag-handle line-action" cdkDragHandle>
                 ⋮⋮
               </div>
             </div>

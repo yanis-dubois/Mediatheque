@@ -1,7 +1,7 @@
 .picker-header {
   padding: 1rem 0;
   border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-  background: var(--color-dark-deep);
+  background-color: var(--color-dark-deep);
 }
 
 .picker-header h2 {
@@ -16,16 +16,14 @@
   justify-content: space-between;
 }
 
-.search-box-picker {
-  flex: 1;
-  margin: 0 20px;
-}
+.action-button {
+  position: fixed;
+  top: 8px;
 
-.done-btn {
-  color: var(--primary-color);
-  font-weight: bold;
-  background: rgba(var(--color-dark-soft), 0.8);
-  border: none;
-  cursor: pointer;
-  &:disabled { opacity: 0.3; }
+  &.left-buton {
+    left: 16px;
+  }
+  &.right-buton {
+    right: 16px;
+  }
 }

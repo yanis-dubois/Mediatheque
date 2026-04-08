@@ -556,15 +556,18 @@ select {
 
 /* picker */
 .picker-overlay {
+  overscroll-behavior: contain;
   position: fixed;
   top: 0;
   left: 0;
   width: 100vw;
   height: 100vh;
-  z-index: 2000;
-  background: var(--color-dark);
   display: flex;
   flex-direction: column;
+
+  background: var(--color-dark);
+  color: var(--color-light);
+
   animation: slideUp 0.3s cubic-bezier(0.25, 1, 0.5, 1);
 }
 @keyframes slideUp {
@@ -576,4 +579,15 @@ select {
     transform: translateY(0);
     opacity: 1;
   }
+}
+.picker-popover-wrapper {
+  background: transparent;
+  border: none;
+  width: 100vw;
+  height: 100vh;
+  margin: 0;
+  padding: 0;
+
+  max-width: none;
+  max-height: none;
 }

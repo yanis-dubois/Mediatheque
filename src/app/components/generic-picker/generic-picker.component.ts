@@ -6,7 +6,7 @@ import { FormsModule } from '@angular/forms';
   standalone: true,
   imports: [FormsModule],
   templateUrl: './generic-picker.component.html',
-  styleUrl: './generic-picker.component.css'
+  styleUrl: './generic-picker.component.scss'
 })
 export class GenericPickerComponent<T> {
 

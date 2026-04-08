@@ -56,7 +56,10 @@
             <span class="specific-info">
               @switch (media.mediaType) {
                 @case (MediaType.MOVIE) { 
-                  <span>{{asMovie(media).duration | duration}}</span> 
+                  <div class="meta-block">
+                    <img class="icon" src="assets/icons/time.svg"/>
+                    <span>&nbsp;{{asMovie(media).duration | duration}}</span> 
+                  </div>
                 }
                 @case (MediaType.SERIES) { 
                   <span>{{asSerie(media).seasons}} Seasons, {{asSerie(media).episodes}} Episodes</span> 

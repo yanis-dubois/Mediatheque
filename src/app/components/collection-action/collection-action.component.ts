@@ -1,11 +1,10 @@
-import { Component, computed, EmbeddedViewRef, inject, input, output, Renderer2, signal, TemplateRef, ViewChild, ViewContainerRef } from '@angular/core';
+import { Component, computed, ElementRef, inject, input, output, signal, ViewChild } from '@angular/core';
 import { Router } from '@angular/router';
 import { Location } from '@angular/common';
 
 import { CollectionType, CollectionMediaType } from '@app/models/collection.model';
 import { CollectionService } from '@app/services/collection.service';
 import { MediaPickerComponent } from "../media-picker/media-picker.component";
-import { DOCUMENT } from '@angular/common';
 import { PinService } from '@app/services/pin.service';
 import { HumanizePipe } from "../../pipe/humanize";
 import { EntityService } from '@app/services/entity.service';
@@ -18,21 +17,19 @@ import { CollectionFavoriteActionComponent } from "../collection-favorite-action
   templateUrl: './collection-action.component.html'
 })
 export class CollectionActionComponent {
-  @ViewChild('pickerTemplate') pickerTemplate!: TemplateRef<any>;
-
-  private viewContainerRef = inject(ViewContainerRef);
-  private document = inject(DOCUMENT);
-  private renderer = inject(Renderer2);
-  private embeddedView: EmbeddedViewRef<any> | null = null;
+  @ViewChild('pickerPopover') pickerPopover!: ElementRef<HTMLElement>;
+  isPickerVisible = signal(false);
 
   collectionId = input.required<string>();
-  deleteRequest = output<void>();
+  closeMenu = output<void>();
   private router = inject(Router);
 
   private entityService = inject(EntityService);
   private collectionService = inject(CollectionService);
   private pinService = inject(PinService);
   private location = inject(Location);
+
+  protected readonly CollectionType = CollectionType;
 
   collection = computed(() => 
     this.entityService.getCollection(this.collectionId())
@@ -56,9 +53,17 @@ export class CollectionActionComponent {
     return null;
   });
 
-  protected readonly CollectionType = CollectionType;
+  openPicker(event: MouseEvent) {
+    event.stopPropagation();
+    this.isPickerVisible.set(true);
+    setTimeout(() => this.pickerPopover.nativeElement.showPopover());
+  }
 
-  showPicker = signal(false);
+  closePicker() {
+    this.pickerPopover.nativeElement.hidePopover();
+    this.isPickerVisible.set(false);
+    this.closeMenu.emit();
+  }
 
   async toggleFavorite() {
     const collection = this.collection();
@@ -94,29 +99,9 @@ export class CollectionActionComponent {
           this.router.navigateByUrl('/', { replaceUrl: true });
         }
       }
-      this.deleteRequest.emit();
+      this.closeMenu.emit();
     } catch (e) {
       console.error("Error during collection deletion", e);
-    }
-  }
-
-  openPicker(event: MouseEvent) {
-    event.stopPropagation();
-    if (this.embeddedView) return;
-
-    // attach picker to body
-    this.embeddedView = this.viewContainerRef.createEmbeddedView(this.pickerTemplate);
-    this.embeddedView.rootNodes.forEach(node => {
-      this.renderer.appendChild(this.document.body, node);
-    });
-
-    this.embeddedView.detectChanges();
-  }
-
-  closePicker() {
-    if (this.embeddedView) {
-      this.embeddedView.destroy();
-      this.embeddedView = null;
     }
   }
 

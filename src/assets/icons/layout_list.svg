@@ -1,7 +1,23 @@
 <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
   <g color="white" fill="white">
-    <rect x="4" y="4" width="16" height="2" rx="1.5" stroke="currentColor" stroke-width="2"/>
-    <rect x="4" y="11" width="16" height="2" rx="1.5" stroke="currentColor" stroke-width="2"/>
-    <rect x="4" y="18" width="16" height="2" rx="1.5" stroke="currentColor" stroke-width="2"/>
+    <rect x="4" y="4" width="16" height="3" rx="1.5" stroke="currentColor"/>
+    <rect x="4" y="10.5" width="16" height="3" rx="1.5" stroke="currentColor"/>
+    <rect x="4" y="17" width="16" height="3" rx="1.5" stroke="currentColor"/>
+  </g>
+
+  <style>
+    #grid-layer { display: none; }
+    @media (min-width: 100px) {
+      #grid-layer { display: block; opacity: 0.3; }
+    }
+  </style>
+
+  <g id="grid-layer">
+    <defs>
+      <pattern id="grid" width="2" height="2" patternUnits="userSpaceOnUse">
+        <path d="M 2 0 L 0 0 0 2" fill="none" stroke="gray" stroke-width="0.05"/>
+      </pattern>
+    </defs>
+    <rect width="24" height="24" fill="url(#grid)" pointer-events="none" />
   </g>
 </svg>

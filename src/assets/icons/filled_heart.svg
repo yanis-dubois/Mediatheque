@@ -13,4 +13,20 @@
     C13.9229 18.4479 18.3778 14.4654 19.8499 12.5772
     C21.6204 10.3061 21.3417 7.07538 19.0484 5.17534
     C16.7551 3.2753 13.7994 3.90317 12 6.00019Z"/>
+
+  <style>
+    #grid-layer { display: none; }
+    @media (min-width: 100px) {
+      #grid-layer { display: block; opacity: 0.3; }
+    }
+  </style>
+
+  <g id="grid-layer">
+    <defs>
+      <pattern id="grid" width="2" height="2" patternUnits="userSpaceOnUse">
+        <path d="M 2 0 L 0 0 0 2" fill="none" stroke="gray" stroke-width="0.05"/>
+      </pattern>
+    </defs>
+    <rect width="24" height="24" fill="url(#grid)" pointer-events="none" />
+  </g>
 </svg>

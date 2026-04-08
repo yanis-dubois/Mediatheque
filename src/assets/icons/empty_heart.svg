@@ -17,4 +17,20 @@
     stroke-width="2"
     stroke-linecap="round"
     stroke-linejoin="round"/>
+
+  <style>
+    #grid-layer { display: none; }
+    @media (min-width: 100px) {
+      #grid-layer { display: block; opacity: 0.3; }
+    }
+  </style>
+
+  <g id="grid-layer">
+    <defs>
+      <pattern id="grid" width="2" height="2" patternUnits="userSpaceOnUse">
+        <path d="M 2 0 L 0 0 0 2" fill="none" stroke="gray" stroke-width="0.05"/>
+      </pattern>
+    </defs>
+    <rect width="24" height="24" fill="url(#grid)" pointer-events="none" />
+  </g>
 </svg>
