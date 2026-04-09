@@ -1,6 +1,9 @@
 <app-action-bar [leftButtonType]="'settings'">
-  <app-dropdown [customClass]="'action-button action-button-right menu-background'" [isOpenExternal]="true">
-    <app-collections-action/>
+  <app-dropdown 
+    [customClass]="'action-button action-button-right menu-background'" 
+    [isOpenExternal]="isMenuOpen()"
+  >
+    <app-home-action (openMenu)="isMenuOpen.set(true)" (closeMenu)="isMenuOpen.set(false)"/>
   </app-dropdown>
 </app-action-bar>
 
@@ -35,35 +38,26 @@
       }
     </div>
 
-    <div cdkDropList (cdkDropListDropped)="drop($event)">
-      @for (id of collectionIds(); track $index) {
-        <div cdkDrag class="collection-row">
-          <app-collection [id]="id" [view]="CollectionDisplayMode.PREVIEW">
-            <div 
-              collectionMenu 
-              (click)="$event.preventDefault(); $event.stopPropagation()" 
-              class="collection-action">
-              <app-dropdown
-                [customClass]="'line-action'"
-                [isOpenExternal]="activeMenuId() === id"
-                (opened)="activeMenuId.set(id)"
-                (closed)="activeMenuId.set(null)"
-              >
-                <app-collection-action 
-                  [collectionId]="id"
-                  (closeMenu)="activeMenuId.set(null);"
-                />
-              </app-dropdown>
-
-              <div class="drag-handle line-action" cdkDragHandle>
-                ⋮⋮
-              </div>
-            </div>
-          </app-collection>
-
-          <div *cdkDragPlaceholder class="placeholder"></div>
+    @for (id of collectionIds(); track $index) {
+      <app-collection [id]="id" [view]="CollectionDisplayMode.PREVIEW">
+        <div 
+          collectionMenu 
+          (click)="$event.preventDefault(); $event.stopPropagation()" 
+          class="collection-action"
+        >
+          <app-dropdown
+            [customClass]="'line-action'"
+            [isOpenExternal]="activeMenuId() === id"
+            (opened)="activeMenuId.set(id)"
+            (closed)="activeMenuId.set(null)"
+          >
+            <app-collection-action 
+              [collectionId]="id"
+              (closeMenu)="activeMenuId.set(null);"
+            />
+          </app-dropdown>
         </div>
-      }
-    </div>
+      </app-collection>
+    }
   }
 </section>

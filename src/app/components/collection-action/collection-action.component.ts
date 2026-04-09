@@ -119,8 +119,4 @@ export class CollectionActionComponent {
     }
   }
 
-  ngOnDestroy() {
-    this.closePicker();
-  }
-
 }

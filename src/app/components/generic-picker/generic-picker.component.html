@@ -1,10 +1,11 @@
-<div class="page-container picker-container">
+<div class="page-container picker-overlay">
 
   <header class="picker-header">
     <div class="page-header">
-      <h2>{{ title() }}</h2>
+      <h1>{{ title() }}</h1>
 
-      <div class="picker-header-content">
+      @if (showSearch()) {
+        <div class="picker-header-content">
           <input 
             class="input-search"
             type="text"
@@ -12,7 +13,8 @@
             (ngModelChange)="onSearchChange($event)"
             [placeholder]="searchPlaceholder()"
           />
-      </div>
+        </div>
+      }
     </div>
 
     <button class="action-button menu-background left-buton" (click)="onCancel.emit()">

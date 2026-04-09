@@ -18,6 +18,8 @@
       @for (order of sortOrder(); track order.field) {
         <div class="dropdown-button sort-item" cdkDrag>
 
+          <div *cdkDragPlaceholder class="sort-placeholder"></div>
+
           <div class="drag-handle" cdkDragHandle>
             ⋮⋮
           </div>
@@ -35,8 +37,6 @@
           </button>
 
           <button (click)="$event.stopPropagation(); removeSort($index)" class="delete-item btn-remove">✕</button>
-
-          <div *cdkDragPlaceholder class="sort-placeholder"></div>
         </div>
       }
 

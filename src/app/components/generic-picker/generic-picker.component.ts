@@ -8,9 +8,10 @@ import { FormsModule } from '@angular/forms';
   templateUrl: './generic-picker.component.html',
   styleUrl: './generic-picker.component.scss'
 })
-export class GenericPickerComponent<T> {
+export class GenericPickerComponent {
 
   title = input.required<string>();
+  showSearch = input<boolean>(true);
   searchPlaceholder = input<string>("Search...");
   allowEmpty = input<boolean>(true);
 

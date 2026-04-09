@@ -1,0 +1,42 @@
+.drag-list {
+  display: flex;
+  flex-direction: column;
+  padding: 8px var(--side-margin);
+  gap: 8px;
+}
+
+.cdk-drop-list-dragging .cdk-drag {
+  transition: transform 250ms cubic-bezier(0, 0, 0.2, 1);
+}
+
+.drag-item {
+  display: flex;
+  align-items: center;
+  height: 58px;
+  padding: 0 16px;
+  background: var(--color-dark-soft);
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+
+  &.cdk-drag-preview {
+    box-shadow: 0 6px 16px rgba(0,0,0,0.5);
+    background: var(--color-dark-soft);
+  }
+}
+
+.drag-handle {
+  cursor: grab;
+  padding-right: 16px;
+
+  &:active {
+    cursor: grabbing;
+  }
+}
+
+.placeholder {
+  background: var(--color-dark);
+  border: 1px dashed var(--color-dark-lighter);
+  height: 58px;
+  border-radius: 8px;
+  transition: transform 250ms cubic-bezier(0, 0, 0.2, 1);
+}

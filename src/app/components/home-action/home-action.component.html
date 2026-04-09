@@ -1,0 +1,16 @@
+<button class="dropdown-button" (click)="openPicker($event)">
+  Organize pins
+</button>
+
+<hr class="dropdown-separator">
+
+<app-collections-action></app-collections-action>
+
+<div #pickerPopover popover="manual" class="picker-popover-wrapper">
+  @if (isPickerVisible()) {
+    <app-pin-organizer 
+      (onCancel)="closePicker()" 
+      (onSave)="closePicker()"
+    />
+  }
+</div>

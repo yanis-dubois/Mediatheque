@@ -1,0 +1,17 @@
+<app-generic-picker
+  title="Organize pinned collection"
+  [showSearch]="false"
+  (onCancel)="onCancel.emit()"
+  (onConfirm)="saveOrder()"
+>
+  <div cdkDropList (cdkDropListDropped)="drop($event)" class="drag-list">
+    @for (col of localPins(); track col.id) {
+      <div cdkDrag class="drag-item">
+        <div class="drag-handle" cdkDragHandle>⋮⋮</div>
+        <span class="collection-name">{{ col.name }} – {{ col.mediaType | emojize }}</span>
+
+        <div *cdkDragPlaceholder class="placeholder"></div>
+      </div>
+    }
+  </div>
+</app-generic-picker>
