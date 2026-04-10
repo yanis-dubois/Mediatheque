@@ -237,9 +237,7 @@ h1 {
 .action-button {
   color: var(--color-light);
   border-radius: 100%;
-  width: 24px;
-  height: 24px;
-  padding: 20px;
+  padding: 17px;
   cursor: pointer;
   z-index: 100;
 
@@ -247,6 +245,11 @@ h1 {
   display: flex;
   justify-content: center;
   align-items: center;
+
+  img {
+    width: 24px;
+    height: 24px;
+  }
 }
 .action-button:hover {
   background: var(--color-transparent-dark-soft);

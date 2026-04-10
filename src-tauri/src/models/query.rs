@@ -4,8 +4,14 @@ use serde::{Deserialize, Serialize};
 use super::enums::{MediaStatus, MediaType};
 
 #[derive(Clone, serde::Serialize)]
-pub struct Payload {
+pub struct AddPayload {
   pub id: String,
+}
+
+#[derive(Clone, serde::Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct DeletePayload {
+  pub external_id: u32,
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]

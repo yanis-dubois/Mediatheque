@@ -24,6 +24,7 @@ export class GenericListComponent<T> {
   private el = inject(ElementRef);
   private destroyRef = inject(DestroyRef);
   private isDestroyed = false;
+  private isLoading = true;
 
   virtualizer = injectVirtualizer(() => ({
     count: this.items().length,
@@ -71,7 +72,10 @@ export class GenericListComponent<T> {
     this.windowResize.emit();
     const ro = new ResizeObserver(() => this.virtualizer.measure());
     ro.observe(this.scrollElement.nativeElement);
+    this.virtualizer.measure();
     this.getPadding();
+
+    this.isLoading = false;
   }
 
   @HostListener('window:resize')

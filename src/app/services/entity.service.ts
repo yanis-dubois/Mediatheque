@@ -22,6 +22,9 @@ export class EntityService {
   private mediaInsertedSource = new Subject<LibraryMedia>();
   mediaInserted$ = this.mediaInsertedSource.asObservable();
 
+  private mediaDeletedSource = new Subject<number>();
+  mediaDeleted$ = this.mediaDeletedSource.asObservable();
+
   private async setupTauriListeners() {
     await listen<{ id: string }>('media-inserted', async (event) => {
       const newId = event.payload.id;
@@ -34,6 +37,12 @@ export class EntityService {
       if (media) {
         this.mediaInsertedSource.next(media);
       }
+    });
+
+    await listen<{ externalId: number }>('media-deleted', async (event) => {
+      const externalId = event.payload.externalId;
+
+      this.mediaDeletedSource.next(externalId);
     });
   }
 

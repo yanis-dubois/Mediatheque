@@ -21,6 +21,7 @@ export class ApiSearchActionComponent {
   data = model.required<AnyApiMedia>();
   customClass = input<string>('dots-button dots-button-simple');
   beforeAdded = output<void>();
+  beforeRemove = output<void>();
   onAdded = output<string>();
 
   async onClick() {
@@ -70,7 +71,8 @@ export class ApiSearchActionComponent {
     }
 
     try {
-      await this.mediaService.delete(id);
+      this.beforeRemove.emit();
+      await this.mediaService.delete(id, data.externalId);
       this.data.set({...data, isInLibrary: false});
     } catch (e) {
       console.error("Error during collection deletion", e);

@@ -81,8 +81,8 @@ export class MediaService {
 
   /* delete media */
 
-  async delete(id: string) {
-    await invoke('delete_media', { id });
+  async delete(id: string, externalId?: number) {
+    await invoke('delete_media', { id, externalId: externalId });
     this.entityService.removeEntity(EntityType.MEDIA, id);
     this.entityService.update();
     this.imageService.clearCache(id);

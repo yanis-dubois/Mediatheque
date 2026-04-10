@@ -44,14 +44,14 @@
       <app-search-list 
         class="virtual-host virtual-host-list"
         [layoutData]="layoutData()" 
-        (endReached)="onScroll()"
+        (endReached)="onScrollLibrary()"
       >
       </app-search-list>
     } @else {
       <app-api-search-list
         class="virtual-host virtual-host-list"
         [layoutData]="apiResults()" 
-        (endReached)="onScroll()"
+        (endReached)="onScrollApi()"
       >
       </app-api-search-list>
     }

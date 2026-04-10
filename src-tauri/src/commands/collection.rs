@@ -8,27 +8,28 @@ use crate::models::enums::{
   CollectionMediaType, CollectionType, MediaType, MetadataType,
 };
 use crate::models::query::{MediaFilter, MediaOrder, Pagination};
+use crate::utils::unicode::remove_accents;
 
 // convert SQL -> Collection
 fn map_row_to_collection(row: &rusqlite::Row) -> rusqlite::Result<Collection> {
   // data that has to be transformed
-  let collection_type_str: String = row.get(2)?;
-  let collection_media_type_str: String = row.get(3)?;
-  let fav_int: i32 = row.get(5)?;
-  let prefered_view_str: String = row.get(7)?;
-  let sort_order_raw: String = row.get(8)?;
-  let filter_raw: Option<String> = row.get(9)?;
-  let has_image_int: i32 = row.get(10)?;
-  let can_be_sorted_int: i32 = row.get(11)?;
+  let collection_type_str: String = row.get(3)?;
+  let collection_media_type_str: String = row.get(4)?;
+  let fav_int: i32 = row.get(6)?;
+  let prefered_view_str: String = row.get(8)?;
+  let sort_order_raw: String = row.get(9)?;
+  let filter_raw: Option<String> = row.get(10)?;
+  let has_image_int: i32 = row.get(11)?;
+  let can_be_sorted_int: i32 = row.get(12)?;
 
   let mut collection = Collection {
     id: row.get(0)?,
     name: row.get(1)?,
     collection_type: match_collection_type(&collection_type_str),
     media_type: match_collection_media_type(&collection_media_type_str),
-    added_date: row.get(4)?,
+    added_date: row.get(5)?,
     favorite: fav_int == 1,
-    description: row.get(6)?,
+    description: row.get(7)?,
     preferred_layout: match_collection_view(&prefered_view_str),
     sort_order: serde_json::from_str(&sort_order_raw).unwrap_or_default(),
     has_image: has_image_int == 1,
@@ -105,13 +106,14 @@ pub fn search_in_collections(
   let connection = state.connection.lock().map_err(|_| "DB Lock failed")?;
 
   let context_str = context.to_db_string();
+  let search_query_str = remove_accents(&search_query.trim());
 
   // Base
-  let mut sql = "SELECT id FROM collection WHERE name LIKE ?1".to_string();
-  let pattern = if search_query.trim().is_empty() {
+  let mut sql = "SELECT id FROM collection WHERE normalized_name LIKE ?1".to_string();
+  let pattern = if search_query_str.is_empty() {
     "%".to_string()
   } else {
-    format!("%{}%", search_query.trim())
+    format!("%{}%", search_query_str)
   };
   let mut params: Vec<Box<dyn rusqlite::ToSql>> = vec![Box::new(pattern)];
 
@@ -280,7 +282,10 @@ pub fn update_collection_name(
     .map_err(|_| "Failed to lock database")?;
 
   connection
-    .execute("UPDATE collection SET name = ?1 WHERE id = ?2", [name, id])
+    .execute(
+      "UPDATE collection SET name = ?2, normalized_name = ?3 WHERE id = ?1",
+      [id, name.clone(), remove_accents(&name)],
+    )
     .map_err(|e| e.to_string())?;
 
   Ok(())
@@ -548,11 +553,12 @@ pub fn create_collection(
 
   // insert in parent table Collection
   connection.execute(
-    "INSERT INTO collection (id, name, type, media_type, added_date, favorite, description, preferred_layout, sort_order, filter, has_image, can_be_sorted)
-     VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12)",
+    "INSERT INTO collection (id, name, normalized_name, type, media_type, added_date, favorite, description, preferred_layout, sort_order, filter, has_image, can_be_sorted)
+     VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12, ?13)",
     params![
       collection_uuid,
       "New Collection",
+      "new collection",
       collection_type_str,
       media_type_str,
       added_date,

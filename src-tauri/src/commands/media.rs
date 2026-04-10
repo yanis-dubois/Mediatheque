@@ -14,8 +14,9 @@ use crate::models::media::{
   LibraryState, MediaBase, MediaData, MediaExtension,
 };
 use crate::models::metadata::Tag;
-use crate::models::query::{MediaFilter, MediaOrder, Pagination, Payload};
+use crate::models::query::{AddPayload, DeletePayload, MediaFilter, MediaOrder, Pagination};
 use crate::utils::image::{delete_media_files, download_assets};
+use crate::utils::unicode::remove_accents;
 
 // convert SQL -> Media
 pub fn map_row_to_media(row: &rusqlite::Row) -> rusqlite::Result<LibraryMedia> {
@@ -23,7 +24,7 @@ pub fn map_row_to_media(row: &rusqlite::Row) -> rusqlite::Result<LibraryMedia> {
   let media_type = match_media_type(&type_str);
   let source_str: String = row.get(3)?;
   let media_source = match_media_source(&source_str);
-  let creators_raw: String = row.get(16)?;
+  let creators_raw: String = row.get(17)?;
   let creators: Vec<String> = serde_json::from_str(&creators_raw).unwrap_or_default();
 
   // build base
@@ -31,8 +32,8 @@ pub fn map_row_to_media(row: &rusqlite::Row) -> rusqlite::Result<LibraryMedia> {
     media_type: media_type.clone(),
     source: media_source,
     title: row.get(6)?,
-    description: row.get(7)?,
-    release_date: row.get(8)?,
+    description: row.get(8)?,
+    release_date: row.get(9)?,
     creators,
   };
 
@@ -40,13 +41,13 @@ pub fn map_row_to_media(row: &rusqlite::Row) -> rusqlite::Result<LibraryMedia> {
   let state = LibraryState {
     id: row.get(0)?,
     external_id: row.get(1)?,
-    added_date: row.get(9)?,
-    status: match_media_status(&row.get::<_, String>(10)?),
-    favorite: row.get::<_, i32>(11)? == 1,
-    notes: row.get(12)?,
-    score: row.get(13)?,
-    has_poster: row.get::<_, i32>(14)? == 1,
-    has_backdrop: row.get::<_, i32>(15)? == 1,
+    added_date: row.get(10)?,
+    status: match_media_status(&row.get::<_, String>(11)?),
+    favorite: row.get::<_, i32>(12)? == 1,
+    notes: row.get(13)?,
+    score: row.get(14)?,
+    has_poster: row.get::<_, i32>(15)? == 1,
+    has_backdrop: row.get::<_, i32>(16)? == 1,
     poster_width: row.get(4)?,
     poster_height: row.get(5)?,
   };
@@ -452,16 +453,16 @@ fn build_media_query_parts(
     conditions.push("m.favorite = 1".to_string());
   }
   if let Some(t) = &filter.title {
-    conditions.push("m.title LIKE ?".to_string());
-    params.push(Box::new(format!("%{}%", t)));
+    conditions.push("m.normalized_name LIKE ?".to_string());
+    params.push(Box::new(format!("%{}%", remove_accents(&t.trim()))));
   }
   // search on every text field
   if let Some(q) = &filter.search_query {
-    let pattern = format!("%{}%", q);
+    let pattern = format!("%{}%", remove_accents(&q.trim()));
     let mut search_conditions = Vec::new();
 
     // generic fields
-    search_conditions.push("m.title LIKE ?".to_string());
+    search_conditions.push("m.normalized_name LIKE ?".to_string());
     search_conditions.push("m.description LIKE ?".to_string());
     search_conditions.push("m.notes LIKE ?".to_string());
     for _ in 0..3 {
@@ -473,7 +474,7 @@ fn build_media_query_parts(
       "EXISTS (
         SELECT 1 FROM media_person mp 
         JOIN person p ON mp.person_id = p.id 
-        WHERE mp.media_id = m.id AND p.name LIKE ?
+        WHERE mp.media_id = m.id AND p.normalized_name LIKE ?
       )"
       .to_string(),
     );
@@ -484,7 +485,7 @@ fn build_media_query_parts(
       "EXISTS (
         SELECT 1 FROM media_company mc 
         JOIN company c ON mc.company_id = c.id 
-        WHERE mc.media_id = m.id AND c.name LIKE ?
+        WHERE mc.media_id = m.id AND c.normalized_name LIKE ?
       )"
       .to_string(),
     );
@@ -495,7 +496,7 @@ fn build_media_query_parts(
       "EXISTS (
         SELECT 1 FROM media_tag mt 
         JOIN tag t ON mt.tag_id = t.id 
-        WHERE mt.media_id = m.id AND t.name LIKE ?
+        WHERE mt.media_id = m.id AND t.normalized_name LIKE ?
       )"
       .to_string(),
     );
@@ -512,11 +513,14 @@ fn build_media_query_parts(
       "EXISTS (
         SELECT 1 FROM media_person mp 
         JOIN person p ON mp.person_id = p.id 
-        WHERE mp.media_id = m.id AND p.name LIKE ?
+        WHERE mp.media_id = m.id AND p.normalized_name LIKE ?
       )"
       .to_string(),
     );
-    params.push(Box::new(format!("%{}%", person_name)));
+    params.push(Box::new(format!(
+      "%{}%",
+      remove_accents(&person_name.trim())
+    )));
   }
   // by person
   if let Some(company_name) = &filter.company {
@@ -524,11 +528,14 @@ fn build_media_query_parts(
       "EXISTS (
         SELECT 1 FROM media_company mc 
         JOIN company c ON mc.company_id = c.id 
-        WHERE mc.media_id = m.id AND c.name LIKE ?
+        WHERE mc.media_id = m.id AND c.normalized_name LIKE ?
       )"
       .to_string(),
     );
-    params.push(Box::new(format!("%{}%", company_name)));
+    params.push(Box::new(format!(
+      "%{}%",
+      remove_accents(&company_name.trim())
+    )));
   }
   // by tag
   if let Some(tag) = &filter.tag {
@@ -538,11 +545,11 @@ fn build_media_query_parts(
       "EXISTS (
         SELECT 1 FROM media_tag mt 
         JOIN tag t ON mt.tag_id = t.id 
-        WHERE mt.media_id = m.id AND mt.type = '{}' AND t.name LIKE ?
+        WHERE mt.media_id = m.id AND mt.type = '{}' AND t.normalized_name LIKE ?
       )",
       tag_type.to_string()
     ));
-    params.push(Box::new(format!("%{}%", tag_name)));
+    params.push(Box::new(format!("%{}%", remove_accents(&tag_name.trim()))));
   }
   // TODO [...]
   // metadata collection
@@ -823,14 +830,15 @@ pub async fn update_media_data(
   // update parent media table
   tx.execute(
     "UPDATE media 
-     SET poster_width = ?2, poster_height = ?3, title = ?4, description = ?5, 
-         release_date = ?6, has_poster = ?7, has_backdrop = ?8, creators = ?9
-     WHERE id = ?1",
+        SET poster_width = ?2, poster_height = ?3, title = ?4, normalized_name = ?5, description = ?6, 
+            release_date = ?7, has_poster = ?8, has_backdrop = ?9, creators = ?10
+        WHERE id = ?1",
     params![
       id,
       assets.poster_width,
       assets.poster_height,
       base.title,
+      remove_accents(&base.title),
       base.description,
       base.release_date,
       assets.has_poster,
@@ -927,8 +935,8 @@ pub fn insert_external_media(
 
   // insert in parent media table
   tx.execute(
-    "INSERT INTO media (id, external_id, media_type, source, poster_width, poster_height, title, description, release_date, added_date, status, favorite, notes, has_poster, has_backdrop, creators)
-      VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12, ?13, ?14, ?15, ?16)",
+    "INSERT INTO media (id, external_id, media_type, source, poster_width, poster_height, title, normalized_name, description, release_date, added_date, status, favorite, notes, has_poster, has_backdrop, creators)
+      VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12, ?13, ?14, ?15, ?16, ?17)",
     params![
       media_uuid,
       external_id,
@@ -937,6 +945,7 @@ pub fn insert_external_media(
       poster_width,
       poster_height,
       base.title,
+      remove_accents(&base.title),
       base.description,
       base.release_date,
       added_date,
@@ -1007,7 +1016,10 @@ fn insert_relations_person(
   persons: &HashMap<String, ApiEntityRelation>,
 ) -> Result<(), rusqlite::Error> {
   for (name, relation) in persons {
-    tx.execute("INSERT OR IGNORE INTO person (name) VALUES (?1)", [name])?;
+    tx.execute(
+      "INSERT OR IGNORE INTO person (name, normalized_name) VALUES (?1, ?2)",
+      [name, &remove_accents(name)],
+    )?;
 
     for role in &relation.values {
       tx.execute(
@@ -1025,7 +1037,10 @@ fn insert_relations_company(
   companies: &HashMap<String, ApiEntityRelation>,
 ) -> Result<(), rusqlite::Error> {
   for (name, relation) in companies {
-    tx.execute("INSERT OR IGNORE INTO company (name) VALUES (?1)", [name])?;
+    tx.execute(
+      "INSERT OR IGNORE INTO company (name, normalized_name) VALUES (?1, ?2)",
+      [name, &remove_accents(name)],
+    )?;
     for role in &relation.values {
       tx.execute(
         "INSERT INTO media_company (media_id, company_id, role, sort_order) 
@@ -1044,7 +1059,10 @@ fn insert_media_tags(
   for (tag_type, tag_names) in tags {
     let type_str = serde_plain::to_string(tag_type).unwrap();
     for name in tag_names {
-      tx.execute("INSERT OR IGNORE INTO tag (name) VALUES (?1)", [name])?;
+      tx.execute(
+        "INSERT OR IGNORE INTO tag (name, normalized_name) VALUES (?1, ?2)",
+        [name, &remove_accents(name)],
+      )?;
       tx.execute(
         "INSERT INTO media_tag (media_id, tag_id, type) 
                SELECT ?1, id, ?3 FROM tag WHERE name = ?2",
@@ -1098,7 +1116,7 @@ pub async fn add_media_to_library(
   app
     .emit(
       "media-inserted",
-      Payload {
+      AddPayload {
         id: media_uuid.clone(),
       },
     )
@@ -1114,7 +1132,10 @@ pub fn delete_media(
   app: tauri::AppHandle,
   state: tauri::State<'_, DbState>,
   id: String,
+  external_id: Option<u32>,
 ) -> Result<(), String> {
+  println!("delete_media");
+
   let mut connection = state
     .connection
     .lock()
@@ -1136,6 +1157,13 @@ pub fn delete_media(
 
   tx.commit()
     .map_err(|e| format!("Failed to commit transaction: {}", e))?;
+
+  // send signal to frontend when media deletion has ended
+  if let Some(id) = external_id {
+    app
+      .emit("media-deleted", DeletePayload { external_id: id })
+      .unwrap();
+  }
 
   Ok(())
 }

@@ -1,6 +1,7 @@
 use crate::db::DbState;
 use crate::models::enums::{match_entity_type, EntityType, MediaType};
 use crate::models::query::Pagination;
+use crate::utils::unicode::remove_accents;
 
 #[tauri::command]
 pub fn search_in_library(
@@ -16,9 +17,8 @@ pub fn search_in_library(
   let sql_like = if search_query.is_empty() {
     "%".to_string()
   } else {
-    format!("%{}%", search_query)
+    format!("%{}%", remove_accents(&search_query))
   };
-  let search_filter = "LIKE ?1".to_string();
 
   let (type_filter, has_context) = if context.is_none() {
     ("", false)
@@ -29,41 +29,43 @@ pub fn search_in_library(
   let query_str = format!(
     "
     -- 1. MEDIA
-    SELECT id, 'MEDIA' as type FROM media m WHERE title {search_filter} {media_filter}
-    
+    SELECT id, 'MEDIA' as type, title as display_name, normalized_name, 1 as priority 
+    FROM media m WHERE normalized_name LIKE ?1{media_filter}
+
     UNION ALL
-    
-    -- 2. COLLECTIONS (On garde celles du type ou celles qui acceptent tout)
-    SELECT id, 'COLLECTION' as type FROM collection WHERE name {search_filter} {media_filter}
-    
+
+    -- 2. COLLECTIONS
+    SELECT id, 'COLLECTION' as type, name as display_name, normalized_name, 2 as priority 
+    FROM collection WHERE normalized_name LIKE ?1 {media_filter}
+
     UNION ALL
-    
-    -- 3. PERSONS (Uniquement si liées à un média du type context)
-    SELECT DISTINCT CAST(p.id AS TEXT), 'PERSON' as type 
+
+    -- 3. PERSONS
+    SELECT DISTINCT CAST(p.id AS TEXT), 'PERSON' as type, p.name as display_name, p.normalized_name, 3 as priority 
     FROM person p
     JOIN media_person mp ON p.id = mp.person_id
     JOIN media m ON mp.media_id = m.id
-    WHERE p.name {search_filter} {type_filter}
-    
+    WHERE p.normalized_name LIKE ?1 {type_filter}
+
     UNION ALL
-    
+
     -- 4. COMPANIES
-    SELECT DISTINCT CAST(c.id AS TEXT), 'COMPANY' as type 
+    SELECT DISTINCT CAST(c.id AS TEXT), 'COMPANY' as type, c.name as display_name, c.normalized_name, 4 as priority 
     FROM company c
     JOIN media_company mc ON c.id = mc.company_id
     JOIN media m ON mc.media_id = m.id
-    WHERE c.name {search_filter} {type_filter}
-    
+    WHERE c.normalized_name LIKE ?1 {type_filter}
+
     UNION ALL
-    
-    -- 5. TAGS (Filtrés par leur catégorie ET par le type de média lié)
-    SELECT DISTINCT CAST(t.id AS TEXT), mt.type as type 
+
+    -- 5. TAGS
+    SELECT DISTINCT CAST(t.id AS TEXT), mt.type as type, t.name as display_name, t.normalized_name, 5 as priority 
     FROM tag t
     JOIN media_tag mt ON t.id = mt.tag_id
     JOIN media m ON mt.media_id = m.id
-    WHERE t.name {search_filter} AND mt.type IN ('GENRE', 'SAGA', 'GAME_MECHANIC') {type_filter}
+    WHERE t.normalized_name LIKE ?1 AND mt.type IN ('GENRE', 'SAGA', 'GAME_MECHANIC') {type_filter}
 
-    
+    ORDER BY priority ASC, normalized_name COLLATE NOCASE ASC
     LIMIT {limit} OFFSET {offset}
     ",
     media_filter = if has_context {
@@ -71,7 +73,6 @@ pub fn search_in_library(
     } else {
       ""
     },
-    search_filter = search_filter,
     type_filter = type_filter,
     limit = pagination.limit,
     offset = pagination.offset

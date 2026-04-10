@@ -1,5 +1,5 @@
 <app-generic-list 
-  [items]="enrichedData()"
+  [items]="layoutData()"
   [itemHeight]="containerHeight()"
   (windowResize)="updateDimensions()" 
   (endReached)="endReached.emit()"
@@ -19,8 +19,9 @@
           <app-api-search-action
             menu
             [data]="item"
-            (click)="$event.preventDefault(); $event.stopPropagation()"
+            (click)="$event.preventDefault(); $event.stopPropagation();"
             (beforeAdded)="hasBeenAdded.set(true)"
+            (beforeRemove)="hasBeenAdded.set(false)"
           ></app-api-search-action>
         </app-api-search-row>
       </a>

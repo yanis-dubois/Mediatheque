@@ -101,7 +101,7 @@ export class MediaActionComponent {
     }
 
     try {
-      await this.mediaService.delete(id);
+      await this.mediaService.delete(id, media.externalId);
 
       // if on /search/media page -> redirect to api version
       if (isInSearchPage && media.externalId) {

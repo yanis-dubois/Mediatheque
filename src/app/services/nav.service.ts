@@ -1,7 +1,6 @@
 import { Injectable, signal } from '@angular/core';
 import { NavigationEnd, Router } from '@angular/router';
 import { CollectionMediaType } from '@app/models/collection.model';
-import { MediaType } from '@app/models/media.model';
 
 import { filter, map } from 'rxjs';
 
@@ -26,9 +25,6 @@ export class NavService {
 
   private _canSwitchContext = signal<boolean>(true);
   readonly canSwitchContext = this._canSwitchContext.asReadonly();
-
-  // for search page 
-  searchMode = signal<'library' | 'api'>('api');
 
   constructor(private router: Router) {
     this.router.events.pipe(

@@ -3,6 +3,7 @@ use std::collections::HashMap;
 use crate::db::DbState;
 use crate::models::enums::{CollectionMediaType, EntityType, MetadataType};
 use crate::models::metadata::{Company, Person, Tag};
+use crate::utils::unicode::remove_accents;
 
 // convert SQL -> Metadata
 pub fn map_row_to_person(row: &rusqlite::Row) -> rusqlite::Result<Person> {
@@ -52,7 +53,7 @@ fn fetch_layout_data(
   } else {
     format!("{}_id", table)
   };
-  let pattern = format!("%{}%", search_query);
+  let pattern = format!("%{}%", remove_accents(&search_query));
 
   // filter by type for tag
   let type_clause = if let Some(t) = tag_filter {
@@ -65,27 +66,27 @@ fn fetch_layout_data(
     if let Some(t) = tag_filter {
       // JOIN media_tag to filter by type
       format!(
-        "SELECT DISTINCT CAST(t.id AS TEXT), t.name 
+        "SELECT DISTINCT CAST(t.id AS TEXT), t.normalized_name 
          FROM tag t 
          JOIN media_tag mt ON t.id = mt.tag_id 
-         WHERE t.name LIKE ?1 AND mt.type = '{}' 
-         ORDER BY t.name ASC",
+         WHERE t.normalized_name LIKE ?1 AND mt.type = '{}' 
+         ORDER BY t.normalized_name ASC",
         t
       )
     } else {
       format!(
-        "SELECT CAST(id AS TEXT), name FROM {} WHERE name LIKE ?1 ORDER BY name ASC",
+        "SELECT CAST(id AS TEXT), normalized_name FROM {} WHERE normalized_name LIKE ?1 ORDER BY normalized_name ASC",
         table
       )
     }
   } else {
     format!(
-      "SELECT DISTINCT CAST(t.id AS TEXT), t.name 
+      "SELECT DISTINCT CAST(t.id AS TEXT), t.normalized_name 
        FROM {} t
        JOIN {} rel ON t.id = rel.{}
        JOIN media m ON rel.media_id = m.id
-       WHERE t.name LIKE ?1 AND m.media_type = ?2 {} {}
-       ORDER BY t.name ASC",
+       WHERE t.normalized_name LIKE ?1 AND m.media_type = ?2 {} {}
+       ORDER BY t.normalized_name ASC",
       table,
       relation_table,
       fk_column,

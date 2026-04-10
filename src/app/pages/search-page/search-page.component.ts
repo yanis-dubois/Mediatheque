@@ -4,17 +4,18 @@ import { RouterModule } from '@angular/router';
 
 import { ActionBarComponent } from "@app/components/action-bar/action-bar.component";
 import { SearchListComponent } from "@app/components/search-list/search-list.component";
-import { EntityType } from '@app/models/entity.model';
 import { EntityService } from '@app/services/entity.service';
 import { debounceTime, Subject } from 'rxjs';
 import { ApiService } from '@app/services/api.service';
 import { ApiSearchListComponent } from "@app/components/api-search-list/api-search-list.component";
-import { ApiSearchResult, MediaType } from '@app/models/media.model';
+import { MediaType } from '@app/models/media.model';
 import { NavService } from '@app/services/nav.service';
-import { CollectionLayout, CollectionMediaType } from '@app/models/collection.model';
+import { CollectionLayout } from '@app/models/collection.model';
 import { HumanizePipe } from "../../pipe/humanize";
 import { getPaginationLimit } from '@app/models/media-query.model';
 import { ScreenService } from '@app/services/screen.service';
+import { SearchService } from '@app/services/search.service';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 @Component({
   selector: 'app-search-page',
@@ -25,19 +26,27 @@ import { ScreenService } from '@app/services/screen.service';
 })
 export class SearchPageComponent {
 
+  searchService = inject(SearchService);
+  mode = this.searchService.searchMode;
+  mediaType = this.searchService.mediaType;
+  searchQuery = this.searchService.searchQuery;
+  librarySearchQuery = this.searchService.librarySearchQuery;
+  apiSearchQuery = this.searchService.apiSearchQuery;
+  layoutData = this.searchService.libraryResults;
+  apiResults = this.searchService.apiResults;
+  librarySearchPage = this.searchService.librarySearchPage;
+  apiSearchPage = this.searchService.apiSearchPage;
+  libraryCanLoadMore = this.searchService.libraryCanLoadMore;
+  apiCanLoadMore = this.searchService.apiCanLoadMore;
+
   screenService = inject(ScreenService);
-  mode = this.navService.searchMode;
-  mediaType = signal<CollectionMediaType>({type: 'ALL'});
-  searchQuery = signal<string>('');
+  isLoading = signal<boolean>(false);
+  lastMode = signal<string>(this.mode());
+  lastLibraryQuery = signal<string>(this.librarySearchQuery());
+  lastApiQuery = signal<string>(this.apiSearchQuery());
 
   private refreshLibraryData$ = new Subject<void>();
-  layoutData = signal<[string, EntityType][]>([]);
-
   private refreshInternetData$ = new Subject<void>();
-  apiResults = signal<ApiSearchResult[]>([]);
-  isLoading = signal<boolean>(false);
-  currentPage = signal<number>(1);
-  canLoadMore = signal<boolean>(true);
 
   context = computed(() => {
     return this.navService.context()
@@ -49,39 +58,97 @@ export class SearchPageComponent {
     private navService: NavService
   ) {
     this.refreshInternetData$.pipe(
-      debounceTime(300)
+      debounceTime(500),
+      takeUntilDestroyed()
     ).subscribe(() => {
       this.loadApiData();
     });
 
     this.refreshLibraryData$.pipe(
-      debounceTime(50)
+      debounceTime(50),
+      takeUntilDestroyed()
     ).subscribe(() => {
       this.loadLibraryData();
     });
 
     effect(() => {
-      const query = this.searchQuery();
+      const searchQuery = this.searchQuery();
+      const mode = this.mode();
+      if (mode === 'library') this.librarySearchQuery.set(searchQuery);
+      else this.apiSearchQuery.set(searchQuery);
+    }, { allowSignalWrites: true });
+
+    effect(() => {
       this.entityService.lastUpdate();
+      const query = this.librarySearchQuery();
       const ctx = this.navService.context();
+      const mode = this.mode();
+      let reload = false;
+
+      if (mode === 'api') return;
 
       if (this.mediaType() !== ctx) {
         this.mediaType.set(ctx);
-        this.layoutData.set([]);
-        this.apiResults.set([]);
+        this.resetLibraryResults();
+        reload = true;
       }
 
-      if (!query || query.trim().length === 0) {
-        this.layoutData.set([]);
-        this.apiResults.set([]);
-        if (this.mode() == 'api')
-          return;
+      const hasEmptyQuery = !query || query.trim().length === 0;
+      // reload data if query has changed
+      if (this.lastLibraryQuery() !== query || (this.layoutData().length === 0 && hasEmptyQuery)) {
+        this.lastLibraryQuery.set(query);
+        this.resetLibraryResults();
+        reload = true;
       }
 
-      if (this.mode() === 'library') 
+      // load data only if needed
+      if (reload) {
         this.refreshLibraryData$.next();
-      else this.refreshInternetData$.next();
+      }
     }, { allowSignalWrites: true });
+
+    effect(() => {
+      const query = this.apiSearchQuery();
+      const ctx = this.navService.context();
+      const mode = this.mode();
+      let reload = false;
+
+      if (mode === 'library') return;
+
+      if (this.mediaType() !== ctx) {
+        this.mediaType.set(ctx);
+        this.resetApiResults();
+        reload = true;
+      }
+
+      const hasEmptyQuery = !query || query.trim().length === 0;
+      // don't load data if there is no search query
+      if (hasEmptyQuery) {
+        this.resetApiResults();
+        this.apiResults.set([]);
+        return;
+      } 
+      // reload data if query has changed
+      if (this.lastApiQuery() !== query) {
+        this.lastApiQuery.set(query);
+        this.resetApiResults();
+        reload = true;
+      }
+
+      // load data only if needed
+      if (reload) {
+        this.refreshInternetData$.next();
+      }
+    }, { allowSignalWrites: true });
+  }
+
+  private resetLibraryResults() {
+    this.librarySearchPage.set(1);
+    this.libraryCanLoadMore.set(true);
+  }
+  private resetApiResults() {
+    this.apiSearchPage.set(1);
+    this.apiCanLoadMore.set(true);
   }
 
   private async loadLibraryData(isNextPage = false) {
@@ -95,25 +162,24 @@ export class SearchPageComponent {
     }
 
     if (!isNextPage) {
-      this.currentPage.set(1);
-      this.canLoadMore.set(true);
+      this.resetLibraryResults();
     }
 
     try {
       const limit = getPaginationLimit(this.screenService.size(), CollectionLayout.LIST);
-      const pagination = {limit: limit, offset: (this.currentPage() - 1) * limit};
+      const pagination = {limit: limit, offset: (this.librarySearchPage() - 1) * limit};
       let newResults = await this.entityService.getLayoutData(
-        this.searchQuery(), 
+        this.librarySearchQuery(), 
         this.mediaType(), 
         pagination
       );
 
       if (newResults.length < limit) {
-        this.canLoadMore.set(false);
+        this.libraryCanLoadMore.set(false);
       }
 
       // add loading item to the end of results
-      if (this.canLoadMore()) {
+      if (this.libraryCanLoadMore()) {
         newResults.push(undefined as any);
       }
 
@@ -144,24 +210,23 @@ export class SearchPageComponent {
     }
 
     if (!isNextPage) {
-      this.currentPage.set(1);
-      this.canLoadMore.set(true);
+      this.resetApiResults();
     }
 
     try {
       let type = this.mediaType();
       let newResults = await this.apiService.search(
-        this.searchQuery(), 
+        this.apiSearchQuery(), 
         type.type === 'SPECIFIC' ? type.value : MediaType.MOVIE,
-        this.currentPage()
+        this.apiSearchPage()
       );
 
       if (newResults.length < 20) {
-        this.canLoadMore.set(false);
+        this.apiCanLoadMore.set(false);
       }
 
       // add loading item to the end of results
-      if (this.canLoadMore()) {
+      if (this.apiCanLoadMore()) {
         newResults.push(undefined as any);
       }
 
@@ -181,15 +246,17 @@ export class SearchPageComponent {
     }
   }
 
-  onScroll() {
-    if (!this.isLoading() && this.canLoadMore()) {
-      this.currentPage.update(p => p + 1);
-      if (this.mode() === 'api') {
-        this.loadApiData(true);
-      }
-      else {
-        this.loadLibraryData(true);
-      }
+  onScrollLibrary() {
+    if (!this.isLoading() && this.libraryCanLoadMore()) {
+      this.librarySearchPage.update(p => p + 1);
+      this.loadLibraryData(true);
+    }
+  }
+
+  onScrollApi() {
+    if (!this.isLoading() && this.apiCanLoadMore()) {
+      this.apiSearchPage.update(p => p + 1);
+      this.loadApiData(true);
     }
   }
 

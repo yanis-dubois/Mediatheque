@@ -15,6 +15,7 @@ use crate::models::enums::TagType;
 use crate::models::enums::{MediaStatus, MediaType};
 use crate::models::query::MediaFilter;
 use crate::models::query::MediaOrder;
+use crate::utils::unicode::remove_accents;
 
 pub struct DbState {
   pub connection: Mutex<Connection>,
@@ -112,6 +113,7 @@ pub fn init_db(connection: &mut Connection) -> Result<()> {
     CREATE TABLE IF NOT EXISTS collection (
       id TEXT PRIMARY KEY,
       name TEXT NOT NULL,
+      normalized_name TEXT NOT NULL,
 
       type TEXT NOT NULL CHECK(
         type IN ('MANUAL', 'DYNAMIC', 'SYSTEM')
@@ -165,6 +167,7 @@ pub fn init_db(connection: &mut Connection) -> Result<()> {
       poster_height INTEGER NOT NULL,
 
       title TEXT NOT NULL,
+      normalized_name TEXT NOT NULL,
       description TEXT NOT NULL,
 
       release_date TEXT NOT NULL,
@@ -238,17 +241,20 @@ pub fn init_db(connection: &mut Connection) -> Result<()> {
 
     CREATE TABLE IF NOT EXISTS person (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
-      name TEXT NOT NULL UNIQUE
+      name TEXT NOT NULL UNIQUE,
+      normalized_name TEXT NOT NULL
     );
 
     CREATE TABLE IF NOT EXISTS company (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
-      name TEXT NOT NULL UNIQUE
+      name TEXT NOT NULL UNIQUE,
+      normalized_name TEXT NOT NULL
     );
 
     CREATE TABLE IF NOT EXISTS tag (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
-      name TEXT NOT NULL UNIQUE
+      name TEXT NOT NULL UNIQUE,
+      normalized_name TEXT NOT NULL
     );
 
 
@@ -521,8 +527,8 @@ pub fn seed_data(connection: &mut Connection) -> Result<()> {
 
     // insert in parent table Media
     tx.execute(
-      "INSERT INTO media (id, external_id, media_type, source, poster_width, poster_height, title, description, release_date, added_date, status, favorite, notes, score, has_poster, has_backdrop)
-        VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12, ?13, ?14, ?15, ?16)",
+      "INSERT INTO media (id, external_id, media_type, source, poster_width, poster_height, title, normalized_name, description, release_date, added_date, status, favorite, notes, score, has_poster, has_backdrop)
+        VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12, ?13, ?14, ?15, ?16, ?17)",
       params![
         m.id,
         m.external_id,
@@ -531,6 +537,7 @@ pub fn seed_data(connection: &mut Connection) -> Result<()> {
         m.image_width,
         m.image_height,
         m.title,
+        remove_accents(m.title),
         m.description,
         m.release_date,
         m.added_date,
@@ -668,7 +675,10 @@ fn seed_persons(
   role: &str,
 ) -> rusqlite::Result<()> {
   for name in names {
-    tx.execute("INSERT OR IGNORE INTO person (name) VALUES (?1)", [name])?;
+    tx.execute(
+      "INSERT OR IGNORE INTO person (name, normalized_name) VALUES (?1, ?2)",
+      [name, &remove_accents(name)],
+    )?;
     tx.execute(
       "INSERT INTO media_person (media_id, person_id, category, role)
         SELECT ?1, id, ?3, ?4 FROM person WHERE name = ?2",
@@ -684,7 +694,10 @@ fn seed_companies(
   role: &str,
 ) -> rusqlite::Result<()> {
   for name in names {
-    tx.execute("INSERT OR IGNORE INTO company (name) VALUES (?1)", [name])?;
+    tx.execute(
+      "INSERT OR IGNORE INTO company (name, normalized_name) VALUES (?1, ?2)",
+      [name, &remove_accents(name)],
+    )?;
     tx.execute(
       "INSERT INTO media_company (media_id, company_id, role)
         SELECT ?1, id, ?3 FROM company WHERE name = ?2",
@@ -699,7 +712,10 @@ fn seed_genres(
   genres: Vec<&str>,
 ) -> rusqlite::Result<()> {
   for genre in genres {
-    tx.execute("INSERT OR IGNORE INTO tag (name) VALUES (?1)", [genre])?;
+    tx.execute(
+      "INSERT OR IGNORE INTO tag (name, normalized_name) VALUES (?1, ?2)",
+      [genre, &remove_accents(genre)],
+    )?;
     tx.execute(
       "INSERT INTO media_tag (media_id, tag_id, type)
         SELECT ?1, id, ?3 FROM tag WHERE name = ?2",
@@ -710,7 +726,10 @@ fn seed_genres(
 }
 fn seed_saga(tx: &rusqlite::Transaction, media_id: &str, sagas: Vec<&str>) -> rusqlite::Result<()> {
   for saga in sagas {
-    tx.execute("INSERT OR IGNORE INTO tag (name) VALUES (?1)", [saga])?;
+    tx.execute(
+      "INSERT OR IGNORE INTO tag (name, normalized_name) VALUES (?1, ?2)",
+      [saga, &remove_accents(saga)],
+    )?;
     tx.execute(
       "INSERT INTO media_tag (media_id, tag_id, type)
         SELECT ?1, id, ?3 FROM tag WHERE name = ?2",
@@ -726,7 +745,10 @@ fn seed_tag(
   tag_name: &str,
 ) -> rusqlite::Result<()> {
   for tag in tags {
-    tx.execute("INSERT OR IGNORE INTO tag (name) VALUES (?1)", [tag])?;
+    tx.execute(
+      "INSERT OR IGNORE INTO tag (name, normalized_name) VALUES (?1, ?2)",
+      [tag, &remove_accents(tag)],
+    )?;
     tx.execute(
       "INSERT INTO media_tag (media_id, tag_id, type)
         SELECT ?1, id, ?3 FROM tag WHERE name = ?2",
@@ -741,7 +763,10 @@ fn seed_game_mechanics(
   game_mechanics: Vec<&str>,
 ) -> rusqlite::Result<()> {
   for mech in game_mechanics {
-    tx.execute("INSERT OR IGNORE INTO tag (name) VALUES (?1)", [mech])?;
+    tx.execute(
+      "INSERT OR IGNORE INTO tag (name, normalized_name) VALUES (?1, ?2)",
+      [mech, &remove_accents(mech)],
+    )?;
     tx.execute(
       "INSERT INTO media_tag (media_id, tag_id, type)
         SELECT ?1, id, ?3 FROM tag WHERE name = ?2",
@@ -772,11 +797,12 @@ fn seed_collection(tx: &rusqlite::Transaction, c: SeedCollection) -> rusqlite::R
 
   // insert in parent table Collection
   tx.execute(
-    "INSERT INTO collection (id, name, type, media_type, added_date, favorite, description, preferred_layout, sort_order, filter, has_image, can_be_sorted)
-     VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12)",
+    "INSERT INTO collection (id, name, normalized_name, type, media_type, added_date, favorite, description, preferred_layout, sort_order, filter, has_image, can_be_sorted)
+     VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12, ?13)",
     params![
       c.id.to_string(),
       c.name,
+      remove_accents(c.name),
       collection_type_str,
       media_type_str,
       c.added_date,

@@ -30,7 +30,6 @@ export class HomeActionComponent {
     this.pickerPopover.nativeElement.hidePopover();
     this.pickerPopover.nativeElement.classList.remove('closing');
     this.isPickerVisible.set(false);
-    console.log('close Menu emit');
     this.closeMenu.emit();
   }
 

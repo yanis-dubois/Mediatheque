@@ -40,6 +40,8 @@ pub async fn search_media_on_internet(
   language: Language,
   page: u32,
 ) -> Result<Vec<ApiSearchResult>, String> {
+  println!("search_media_on_internet");
+
   // get API results
   let provider = provider_store
     .get_default(&media_type)
