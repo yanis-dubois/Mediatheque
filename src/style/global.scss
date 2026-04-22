@@ -74,7 +74,7 @@
   /* margin & gap */
   --side-margin: 16px;
   --list-padding: 4px;
-  --nav-height: 96px;
+  --nav-height: 50px;
   /* animation */
   --scale-card-in: 0.225s;
   --scale-card-out: 0.6s;
@@ -224,6 +224,10 @@ h1 {
   border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
+.nav-space {
+  height: var(--nav-height);
+}
+
 /* icons */
 // ...
 
@@ -277,7 +281,7 @@ h1 {
     appearance: none;
     -webkit-appearance: none;
     
-    /* Pour IE/Edge */
+    /* for IE/Edge */
     &::-ms-expand {
       display: none;
     }
@@ -289,7 +293,7 @@ h1 {
   border-radius: 32px;
   display: flex;
   align-items: center;
-  gap: 4px;
+  gap: 2px;
 }
 .tool-item {
   font-size: var(--text-base);
@@ -297,7 +301,7 @@ h1 {
   border: none;
   color: var(--color-light);
 
-  padding: 4px 8px;
+  padding: 1px 6px;
   border-radius: 32px;
   cursor: pointer;
   z-index: 100;
@@ -554,6 +558,10 @@ select {
 
   &.viewport-container-list {
     padding: 0 var(--side-margin);
+  }
+
+  &.viewport-container-collections {
+    padding: 0;
   }
 }
 

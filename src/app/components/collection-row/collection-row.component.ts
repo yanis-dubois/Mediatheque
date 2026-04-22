@@ -39,6 +39,7 @@ export class CollectionRowComponent {
   rowHeight = signal(150*1.5);
   containerWidth = signal(0);
   private gap = 8;
+  navHeight = signal<number>(50);
 
   rows = computed(() => {
     const lines: PositionedMedia[][] = [];
@@ -105,6 +106,7 @@ export class CollectionRowComponent {
       return height + this.gap;
     },
     overscan: 2,
+    paddingEnd: this.navHeight(),
     onChange: (instance) => {
       this.syncVisibleMedia(instance.getVirtualItems());
     }
@@ -205,6 +207,11 @@ export class CollectionRowComponent {
     const width = this.scrollElement.nativeElement.clientWidth;
     if (width > 0) {
       this.containerWidth.set(width);
+    }
+
+    const cssNavHeight = style.getPropertyValue('--nav-height').trim();
+    if (cssNavHeight) {
+      this.navHeight.set(parseInt(cssNavHeight, 10));
     }
   }
 }

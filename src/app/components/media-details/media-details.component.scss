@@ -80,7 +80,7 @@
       "poster desc"
       "poster crew";
     gap: 0 48px;
-    padding: 96px var(--side-margin) 32px var(--side-margin);
+    padding: 56px var(--side-margin) 32px var(--side-margin);
 
     // Tablet
     @media (max-width: 1025px) {
@@ -439,10 +439,6 @@
 
   .skeleton-text {
     padding: 4px 0;
-  }
-
-  .nav-space{
-    padding-bottom: var(--nav-height);
   }
 
 }

@@ -1,22 +1,22 @@
 import { Component, inject } from '@angular/core';
-import { ActivatedRoute, Router, RouterModule } from '@angular/router';
+import { Router, RouterModule } from '@angular/router';
 
 import { MediaType } from '@models/media.model';
 import { EmojizePipe } from "../../pipe/emojize";
 import { NavService, PageType } from '@app/services/nav.service';
 import { CollectionMediaType, compareCollectionMediaType } from '@app/models/collection.model';
+import { HumanizePipe } from "../../pipe/humanize";
 
 @Component({
   selector: 'app-navigation',
   standalone: true,
-  imports: [RouterModule, EmojizePipe],
+  imports: [RouterModule, EmojizePipe, HumanizePipe],
   templateUrl: './navigation.component.html',
   styleUrl: './navigation.component.scss'
 })
 export class NavigationComponent {
 
   private router = inject(Router);
-  private route = inject(ActivatedRoute);
   private navService = inject(NavService);
   currentContext = this.navService.context;
   currentPage = this.navService.page;

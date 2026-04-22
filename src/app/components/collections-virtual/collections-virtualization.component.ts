@@ -17,8 +17,7 @@ import { EntityType } from '@app/models/entity.model';
   selector: 'app-collections-virtualization',
   standalone: true,
   imports: [CommonModule, DropdownComponent, CollectionActionComponent, CollectionComponent],
-  templateUrl: './collections-virtualization.component.html',
-  styleUrls: ['./collections-virtualization.component.scss']
+  templateUrl: './collections-virtualization.component.html'
 })
 export class CollectionsVirtualizationComponent {
   @ViewChild('scrollElement') scrollElement!: ElementRef<HTMLElement>;
@@ -35,6 +34,7 @@ export class CollectionsVirtualizationComponent {
   activeMenuId = signal<string | null>(null);
 
   containerHeight = signal(202);
+  navHeight = signal<number>(50);
 
   virtualizer = injectVirtualizer(() => ({
     count: this.collectionIds().length,
@@ -44,6 +44,7 @@ export class CollectionsVirtualizationComponent {
       return this.containerHeight();
     },
     overscan: 5,
+    paddingEnd: this.navHeight(),
     onChange: (instance) => {
       this.syncVisibleCollection(instance.getVirtualItems());
     },
@@ -114,7 +115,11 @@ export class CollectionsVirtualizationComponent {
   
     if (cssWidth) {
       this.containerHeight.set(parseInt(cssWidth, 10) * 1.5 + 58);
-      // this.containerHeight.set(parseInt(cssWidth, 10) * 1.5 - 100);
+    }
+
+    const cssNavHeight = style.getPropertyValue('--nav-height').trim();
+    if (cssNavHeight) {
+      this.navHeight.set(parseInt(cssNavHeight, 10));
     }
   }
 

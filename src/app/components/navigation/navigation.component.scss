@@ -1,67 +1,30 @@
 .nav {
+  padding: 4px 0;
   position: fixed;
-  bottom: 16px;
-  left: 50%;
-  transform: translateX(-50%);
+  bottom: 0;
+  left: 0;
+  width: 100%;
   display: flex;
-  gap: 12px;
+  gap: 32px;
   align-items: center;
+  justify-content: center;
   z-index: 1000;
 }
 
-.nav-group {
-  padding: 4px;
-  border-radius: 32px;
-  display: flex;
-  align-items: center;
-  box-shadow: 0 10px 30px rgba(0,0,0,0.5);
-  gap: 4px;
-
-  // Phone
-  @media (max-width: 600px) {
-    width: 176px;
-    gap: 0;
-
-    overflow-x: auto;
-    overflow-y: hidden;
-
-    /* remove scrollbar */
-    /* Firefox */
-    scrollbar-width: none;
-    /* Internet Explorer + Edge */
-    -ms-overflow-style: none;
-    /* Chrome + Safari + Opera */
-    &::-webkit-scrollbar {
-      display: none;
-    }
-  }
-
-  .nav-item {
-    padding: 8px 12px;
-    border-radius: 32px;
-  }
-}
-
 .nav-navigate {
-  border-radius: 100%;
   display: flex;
   align-items: center;
-  box-shadow: 0 10px 30px rgba(0,0,0,0.5);
-
-  .nav-item {
-    padding: 12px;
-    border-radius: 100%;
-  }
-
 }
 
 .nav-item {
-  background-color: rgba(0,0,0,0.0);
+  border-radius: 32px;
+  padding: 8px 16px;
+  background-color: rgba(0,0,0,0);
   font-size: 1.5rem;
   text-decoration: none;
   opacity: 0.75;
-  transition: opacity 0.2s ease, background-color 0.2s ease;
-  will-change: opacity, background-color;
+  transition: opacity 0.2s ease;
+  will-change: opacity;
   cursor: pointer;
 
   &.active {
@@ -72,10 +35,4 @@
     background-color: var(--color-transparent-light-soft);
     opacity: 1;
   }
-}
-
-.divider {
-  margin: 0 4px;
-  height: 24px;
-  color: rgba(255, 255, 255, 0.2);
 }

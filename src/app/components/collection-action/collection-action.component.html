@@ -13,17 +13,17 @@
 
   <button class="dropdown-button" (click)="togglePin({type: 'ALL'})">
     @if (isPinnedGlobal()) {
-      📌 Unpin from Home
+      Unpin from Home
     } @else {
-      📍 Pin to Home
+      Pin to Home
     }
   </button>
   @if (hasSpecificContext(); as mediaType) {
     <button class="dropdown-button" (click)="togglePin(collection.mediaType)">
       @if (isPinnedSpecific()) {
-        📌 Unpin from {{ mediaType | humanize }} Home
+        Unpin from {{ mediaType | humanize }} Home
       } @else {
-        📍 Pin to {{ mediaType | humanize}} Home
+        Pin to {{ mediaType | humanize}} Home
       }
     </button>
   }

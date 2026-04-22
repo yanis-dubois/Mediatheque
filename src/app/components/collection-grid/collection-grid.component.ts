@@ -30,6 +30,7 @@ export class CollectionGridComponent {
 
   minColumnWidth = signal(150);
   containerWidth = signal(0);
+  navHeight = signal<number>(50);
 
   columns = computed(() => {
     const width = this.containerWidth();
@@ -65,6 +66,7 @@ export class CollectionGridComponent {
     lanes: this.columns() || 1,
     enabled: !!this.scrollElement?.nativeElement,
     overscan: 5,
+    paddingEnd: this.navHeight(),
     onChange: (instance) => {
       this.syncVisibleMedia(instance.getVirtualItems());
     }
@@ -164,6 +166,11 @@ export class CollectionGridComponent {
     const width = this.scrollElement.nativeElement.clientWidth;
     if (width > 0) {
       this.containerWidth.set(width);
+    }
+
+    const cssNavHeight = style.getPropertyValue('--nav-height').trim();
+    if (cssNavHeight) {
+      this.navHeight.set(parseInt(cssNavHeight, 10));
     }
   }
 }

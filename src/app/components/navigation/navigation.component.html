@@ -1,39 +1,38 @@
-<nav class="nav">
-  <div class="nav-navigate menu-background" [class.active]="isTypeActive(PageType.HOME)" >
+<nav class="nav menu-background">
+  <div class="nav-item" [class.active]="isTypeActive(PageType.HOME)" >
     <a 
       (click)="onPageChange('home')"
       [class.active]="isTypeActive(PageType.HOME)" 
-      class="nav-item"
     >
       🏠
     </a>
   </div>
 
-  <div class="nav-group menu-background">
-    <a 
-      (click)="onContextChange()"
-      [class.active]="isTypeActive()" 
-      class="nav-item"
-    >
-      🪎
-    </a>
-    <hr class="divider">
-    @for (type of mediaType; track type) {
-      <a 
-        (click)="onContextChange(type)"
-        [class.active]="isTypeActive(type)" 
-        class="nav-item"
+  <div class="nav-item layout-selector">
+    @if (currentContext(); as context) {
+      @if (context.type === 'ALL') {
+        <span class="layout-icon">🪎</span>
+      }
+      @else {
+        <span class="layout-icon">{{ context.value | emojize }}</span>
+      }
+
+      <select 
+        [value]="context" 
+        (change)="onContextChange($any($event.target).value)"
       >
-        {{ type | emojize }}
-      </a>
+        <option value="" [selected]="context.type === 'ALL'">🪎 All</option>
+        @for (opt of mediaType; track opt) {
+          <option [value]="opt" [selected]="context.type === 'SPECIFIC' && opt === context.value">{{ opt | emojize }} {{ opt | humanize }}</option>
+        }
+      </select>
     }
   </div>
 
-  <div class="nav-navigate menu-background" [class.active]="isTypeActive(PageType.SEARCH)" >
+  <div class="nav-item" [class.active]="isTypeActive(PageType.SEARCH)" >
     <a 
       (click)="onPageChange('search')"
-      [class.active]="isTypeActive(PageType.SEARCH)" 
-      class="nav-item"
+      [class.active]="isTypeActive(PageType.SEARCH)"
     >
       🔍
     </a>

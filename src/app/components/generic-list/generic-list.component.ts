@@ -17,6 +17,7 @@ export class GenericListComponent<T> {
   items = input.required<T[]>();
   itemHeight = input.required<number>();
   listPadding = signal<number>(8);
+  navHeight = signal<number>(50);
 
   visibleItemsChanged = output<T[]>();
   windowResize = output();
@@ -24,7 +25,6 @@ export class GenericListComponent<T> {
   private el = inject(ElementRef);
   private destroyRef = inject(DestroyRef);
   private isDestroyed = false;
-  private isLoading = true;
 
   virtualizer = injectVirtualizer(() => ({
     count: this.items().length,
@@ -32,7 +32,7 @@ export class GenericListComponent<T> {
     getScrollElement: () => this.scrollElement?.nativeElement || null,
     estimateSize: () => this.itemHeight() + (this.listPadding()*2),
     overscan: 10,
-    paddingEnd: 2 * (this.itemHeight() + (this.listPadding()*2)),
+    paddingEnd: this.navHeight(),
     onChange: (instance) => {
       if (this.isDestroyed) return;
 
@@ -74,8 +74,6 @@ export class GenericListComponent<T> {
     ro.observe(this.scrollElement.nativeElement);
     this.virtualizer.measure();
     this.getPadding();
-
-    this.isLoading = false;
   }
 
   @HostListener('window:resize')
@@ -87,9 +85,15 @@ export class GenericListComponent<T> {
 
   getPadding() {
     const style = getComputedStyle(this.el.nativeElement);
+
     const cssPadding = style.getPropertyValue('--list-padding').trim();
     if (cssPadding) {
       this.listPadding.set(parseInt(cssPadding, 10));
+    }
+
+    const cssNavHeight = style.getPropertyValue('--nav-height').trim();
+    if (cssNavHeight) {
+      this.navHeight.set(parseInt(cssNavHeight, 10));
     }
   }
 }
