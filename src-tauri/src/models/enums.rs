@@ -215,6 +215,7 @@ pub enum CollectionLayout {
   Row,
   Column,
   List,
+  Detailed,
 }
 
 #[derive(Debug, Serialize, Deserialize, PartialEq, Clone)]
@@ -310,7 +311,8 @@ pub fn match_collection_view(s: &str) -> CollectionLayout {
     "ROW" => CollectionLayout::Row,
     "COLUMN" => CollectionLayout::Column,
     "LIST" => CollectionLayout::List,
-    _ => CollectionLayout::Grid,
+    "DETAILED" => CollectionLayout::Detailed,
+    _ => todo!(), // default
   }
 }
 pub fn match_entity_type(s: &str) -> EntityType {

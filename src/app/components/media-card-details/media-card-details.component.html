@@ -1,0 +1,55 @@
+<div class="card"
+  [class.is-menu-open]="isMenuOpen()"
+  [style.width.px]="width()"
+>
+
+  @if (media(); as media) {
+    <div class="media-card" @fadeIn>
+
+      <a [routerLink]="['/media', media.id]">
+        <div [style.width.px]="width()" [style.height.px]="height()" style="contain: strict;">
+          <app-media-image 
+            [source]="resolvedSrc()"
+            [title]="media.title" 
+            [type]="'backdrop'" 
+            [hasImage]="media.hasBackdrop || media.hasPoster"
+            [customStyle]="'width: 100%; height: 100%; object-fit: cover;'"
+            (onLoad)="onImageReady()"
+          >
+          </app-media-image>
+        </div>
+      </a>
+
+      <div class="menu-slot">
+        <ng-content select="[mediaMenu]"></ng-content>
+      </div>
+
+      <div class="info">
+        <h4 class="title" [attr.title]="media.title">{{ media.title }}</h4>
+
+        <div class="action">
+          <div class="fav-slot">
+            <app-media-favorite-action [mediaId]="media.id"></app-media-favorite-action>
+          </div>
+    
+          <div class="status-container">
+            <app-media-status-action [mediaId]="media.id"></app-media-status-action>
+          </div>
+
+          <div class="score-slot">
+            <app-media-score-action [mediaId]="media.id"></app-media-score-action>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  }
+
+  <div class="skeleton-container" [class.is-hidden]="media() && ((hasLoaded() && resolvedSrc()) || !media()?.hasPoster)">
+    <div class="skeleton-card" 
+      [style.width.px]="width()" 
+      [style.height.px]="height()">
+    </div>
+  </div>
+
+</div>

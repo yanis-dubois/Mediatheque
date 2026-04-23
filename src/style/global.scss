@@ -94,7 +94,9 @@
   /* dark */
   --color-dark-lighter: oklch(0.36 0 0);
   --color-dark-light: oklch(0.3 0 0);
+  --color-dark-soft-2: oklch(0.27 0 0);
   --color-dark-soft: oklch(0.24 0 0);
+  --color-dark-2: oklch(0.21 0 0); /* DEFAULT */
   --color-dark: oklch(0.18 0 0); /* DEFAULT */
   --color-dark-deep: oklch(0.12 0 0);
   /* transparent */
@@ -241,7 +243,7 @@ h1 {
 .action-button {
   color: var(--color-light);
   border-radius: 100%;
-  padding: 17px;
+  padding: 18px;
   cursor: pointer;
   z-index: 100;
 
@@ -301,7 +303,7 @@ h1 {
   border: none;
   color: var(--color-light);
 
-  padding: 1px 6px;
+  padding: 2px 8px;
   border-radius: 32px;
   cursor: pointer;
   z-index: 100;

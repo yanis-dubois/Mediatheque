@@ -2,20 +2,20 @@
   <app-action-bar [leftButtonType]="'home'">
 
       <div class="tool-bar menu-background">
-        <button 
+        <div 
           class="tool-item" 
           [class.is-active]="mode === 'library'"
           (click)="onModeChange('library')"
         >
           Library
-        </button>
-        <button 
+        </div>
+        <div 
           class="tool-item" 
           [class.is-active]="mode === 'api'"
           (click)="onModeChange('api')"
         >
           Internet
-        </button>
+        </div>
       </div>
     
   </app-action-bar>

@@ -45,19 +45,17 @@
 }
 
 .menu-slot {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  z-index: 20;
+
   opacity: 0;
   pointer-events: none;
   transition: opacity 0.3s ease;
 
   will-change: opacity;
   transform: translateZ(0);
-}
-
-.menu-slot {
-  position: absolute;
-  top: 4px;
-  right: 4px;
-  z-index: 20;
 }
 
 .skeleton-container {

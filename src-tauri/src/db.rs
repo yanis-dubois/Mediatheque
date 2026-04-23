@@ -128,7 +128,7 @@ pub fn init_db(connection: &mut Connection) -> Result<()> {
       description TEXT NOT NULL DEFAULT '',
 
       preferred_layout TEXT CHECK(
-        preferred_layout IN ('GRID', 'ROW', 'COLUMN', 'LIST')
+        preferred_layout IN ('GRID', 'ROW', 'COLUMN', 'LIST', 'DETAILED')
       ) DEFAULT 'GRID',
       sort_order TEXT, -- in JSON, ex: [{field: 'favorite', direction: 'DESC'}, {field: 'status', direction: 'ASC'}]
       filter TEXT, -- for dynamic colection - in JSON, ex: [{media_type: 'MOVIE'}, {favorite: 'true'}]

@@ -10,12 +10,12 @@ import { EntityType } from '@app/models/entity.model';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 @Component({
-  selector: 'app-collection-grid',
+  selector: 'app-collection-detailed-grid',
   standalone: true,
   imports: [CommonModule, RouterModule],
-  templateUrl: './collection-grid.component.html'
+  templateUrl: './collection-detailed-grid.component.html'
 })
-export class CollectionGridComponent {
+export class CollectionDetailedGridComponent {
   @ViewChild('scrollElement') scrollElement!: ElementRef<HTMLElement>;
   @ContentChild('itemRef') itemTemplate!: TemplateRef<any>;
 
@@ -27,22 +27,23 @@ export class CollectionGridComponent {
   private scrollSubject = new Subject<string[]>();
   private el = inject(ElementRef);
 
-  minColumnWidth = signal(150);
+  minColumnWidth = signal(0);
   containerWidth = signal(0);
+  cardHeight = signal(198);
   navHeight = signal<number>(50);
+  gap = 12;
 
   columns = computed(() => {
     const width = this.containerWidth();
     const minWidth = this.minColumnWidth();
-    const gap = 8;
-    return Math.max(1, Math.floor(width / (minWidth + gap)));
+    if (width < 1 || minWidth < 1) return 0;
+    return Math.max(1, Math.floor(width / (minWidth + this.gap)));
   });
 
   columnWidth = computed(() => {
     const totalWidth = this.containerWidth();
     const nbCols = this.columns();
-    const gap = 8;
-    return (totalWidth - (gap * (nbCols))) / nbCols;
+    return (totalWidth - (this.gap * nbCols)) / nbCols;
   });
 
   protected getMediaLayout(index: number) {
@@ -56,14 +57,10 @@ export class CollectionGridComponent {
     scrollElement: undefined, 
     getScrollElement: () => this.scrollElement?.nativeElement || null,
     estimateSize: (index: number) => {
-      const width = this.columnWidth();
-      const imageRatio = 1.5;
-      const extraSpace = 8; // for padding & other infos if added (title, ...)
-
-      return (width * imageRatio) + extraSpace;
+      return this.cardHeight() + this.gap;
     },
-    lanes: this.columns() || 1,
-    enabled: !!this.scrollElement?.nativeElement,
+    lanes: this.columns(),
+    enabled: !!this.scrollElement?.nativeElement && this.columns() > 0,
     overscan: 5,
     paddingEnd: this.navHeight(),
     onChange: (instance) => {
@@ -108,6 +105,7 @@ export class CollectionGridComponent {
     effect(() => {
       this.mediaLayoutData().length;
       this.containerWidth();
+      this.columns();
 
       untracked(() => {
         if (this.virtualizer && this.scrollElement?.nativeElement) {
@@ -142,10 +140,12 @@ export class CollectionGridComponent {
     const ro = new ResizeObserver((entries) => {
       const width = entries[0].contentRect.width;
       this.containerWidth.set(width);
-      this.virtualizer.measure();
+      // this.virtualizer.measure();
     });
 
     ro.observe(this.scrollElement.nativeElement);
+
+    console.log('grid', this.mediaLayoutData().length, this.minColumnWidth(), this.columnWidth(), this.columns());
   }
 
   @HostListener('window:resize')
@@ -157,7 +157,7 @@ export class CollectionGridComponent {
     if (!this.scrollElement) return;
 
     const style = getComputedStyle(this.el.nativeElement);
-    const cssWidth = style.getPropertyValue('--card-width-grid').trim();
+    const cssWidth = style.getPropertyValue('--card-width-detailed').trim();
     if (cssWidth) {
       this.minColumnWidth.set(parseInt(cssWidth, 10));
     }
@@ -165,6 +165,11 @@ export class CollectionGridComponent {
     const width = this.scrollElement.nativeElement.clientWidth;
     if (width > 0) {
       this.containerWidth.set(width);
+    }
+
+    const cssSideMargin = style.getPropertyValue('--side-margin').trim();
+    if (cssSideMargin) {
+      this.containerWidth.set(this.containerWidth() - 2 * parseInt(cssSideMargin, 10));
     }
 
     const cssNavHeight = style.getPropertyValue('--nav-height').trim();

@@ -1,12 +1,11 @@
 <nav class="nav menu-background">
-  <div class="nav-item" [class.active]="isTypeActive(PageType.HOME)" >
-    <a 
-      (click)="onPageChange('home')"
-      [class.active]="isTypeActive(PageType.HOME)" 
-    >
-      🏠
-    </a>
-  </div>
+  <a 
+    class="nav-item"
+    (click)="onPageChange('home')"
+    [class.active]="isTypeActive(PageType.HOME)" 
+  >
+    <img src="assets/icons/home.svg"/>
+  </a>
 
   <div class="nav-item layout-selector">
     @if (currentContext(); as context) {
@@ -29,12 +28,11 @@
     }
   </div>
 
-  <div class="nav-item" [class.active]="isTypeActive(PageType.SEARCH)" >
-    <a 
-      (click)="onPageChange('search')"
-      [class.active]="isTypeActive(PageType.SEARCH)"
-    >
-      🔍
-    </a>
-  </div>
+  <a 
+    class="nav-item"
+    (click)="onPageChange('search')"
+    [class.active]="isTypeActive(PageType.SEARCH)"
+  >
+    <img src="assets/icons/search.svg"/>
+  </a>
 </nav>

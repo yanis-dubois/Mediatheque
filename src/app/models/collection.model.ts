@@ -54,7 +54,8 @@ export enum CollectionLayout {
   GRID = "GRID",
   ROW = "ROW",
   COLUMN = "COLUMN",
-  LIST = "LIST"
+  LIST = "LIST",
+  DETAILED = "DETAILED"
 }
 
 export enum CollectionDisplayMode {

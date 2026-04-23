@@ -29,11 +29,13 @@ import { EmojizePipe } from "../../pipe/emojize";
 import { EntityService } from '@app/services/entity.service';
 import { LayoutManagerComponent } from "@app/components/layout-manager/layout-manager.component";
 import { ScreenService } from '@app/services/screen.service';
+import { MediaCardDetailsComponent } from "../media-card-details/media-card-details.component";
+import { CollectionDetailedGridComponent } from "../collection-detailed-grid/collection-detailed-grid.component";
 
 @Component({
   selector: 'app-collection',
   standalone: true,
-  imports: [CommonModule, RouterModule, SortManagerComponent, FilterManagerComponent, CollectionLineComponent, CollectionGridComponent, CollectionColumnComponent, CollectionRowComponent, CollectionListComponent, MediaCardComponent, MediaRowComponent, MediaPickerComponent, DropdownComponent, MediaActionComponent, ActionBarComponent, CollectionActionComponent, EmojizePipe, LayoutManagerComponent],
+  imports: [CommonModule, RouterModule, SortManagerComponent, FilterManagerComponent, CollectionLineComponent, CollectionGridComponent, CollectionColumnComponent, CollectionRowComponent, CollectionListComponent, MediaCardComponent, MediaRowComponent, MediaPickerComponent, DropdownComponent, MediaActionComponent, ActionBarComponent, CollectionActionComponent, EmojizePipe, LayoutManagerComponent, MediaCardDetailsComponent, CollectionDetailedGridComponent],
   templateUrl: './collection.component.html',
   styleUrl: './collection.component.scss'
 })

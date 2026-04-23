@@ -1,0 +1,98 @@
+.card {
+  position: relative;
+  margin: 0px 4px;
+  will-change: background-color;
+  overflow: hidden;
+  border-radius: 16px;
+
+  background-color: var(--color-dark-2);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+
+  transition: background-color 0.3s ease;
+}
+
+.card:hover,
+.card.is-menu-open {
+  background-color: var(--color-dark-light);
+  transition: background-color 0.2ms ease-out;
+}
+
+.media-card {
+  display: flex;
+  flex-direction: column;
+  z-index: 2;
+  padding: 0;
+
+  .info {
+    padding: 8px;
+  }
+
+  .title {
+    margin: 0;
+    margin-bottom: 4px;
+
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+
+    width: 100%;
+    display: block;
+  }
+}
+
+.card:hover .menu-slot, 
+.card.is-menu-open .menu-slot {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.menu-slot {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  z-index: 20;
+
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s ease;
+
+  will-change: opacity;
+  transform: translateZ(0);
+}
+
+.action {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+
+.fav-slot {
+  --fav-size: 20px;
+}
+
+.status-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  padding: 4px;
+  --status-size: 20px;
+}
+
+.score-slot {
+  --score-size: 20px;
+}
+
+.skeleton-container {
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 1;
+  opacity: 1;
+
+  transition: opacity 0.45s ease-out;
+  &.is-hidden {
+    opacity: 0;
+    pointer-events: none;
+  }
+}
