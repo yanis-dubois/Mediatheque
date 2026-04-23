@@ -28,17 +28,31 @@
   background-color: rgba(0,0,0,0);
   font-size: 1.5rem;
   text-decoration: none;
-  opacity: 0.75;
-  transition: opacity 0.2s ease;
-  will-change: opacity;
+  transition: background-color 0.2s ease;
+  will-change: background-color;
   cursor: pointer;
 
   &.active {
     background-color: var(--color-transparent-light-softer);
-    opacity: 1;
   }
   &:hover {
     background-color: var(--color-transparent-light-soft);
-    opacity: 1;
+  }
+}
+
+.ctx-item {
+  width: 24px;
+  height: 24px;
+  border-radius: 100%;
+  padding: 12px;
+  background-color: var(--color-transparent-light-softer-2);
+  font-size: 1.5rem;
+  text-decoration: none;
+  transition: background-color 0.2s ease;
+  will-change: background-color;
+  cursor: pointer;
+
+  &:hover {
+    background-color: var(--color-transparent-light-soft-2);
   }
 }

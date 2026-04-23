@@ -5,7 +5,7 @@
   <div text>
     @let isSearch = display() === 'search';
     @if (collection) {
-      <p class="title">{{ (collection.collectionType | emojize) + " " + collection.name }}</p>
+      <p class="title">{{ collection.name }}</p>
       @if (isSearch) {
         <p class="sub-info">{{ (collection.mediaType | emojize) + " " + (type | humanize) }}</p>
       }

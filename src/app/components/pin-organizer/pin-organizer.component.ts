@@ -6,12 +6,11 @@ import { EntityService } from '@app/services/entity.service';
 import { NavService } from '@app/services/nav.service';
 import { PinService } from '@app/services/pin.service';
 import { GenericPickerComponent } from "../generic-picker/generic-picker.component";
-import { EmojizePipe } from "../../pipe/emojize";
 
 @Component({
   selector: 'app-pin-organizer',
   standalone: true,
-  imports: [GenericPickerComponent, EmojizePipe, CdkDragPlaceholder, CdkDropList, CdkDrag, CdkDragHandle],
+  imports: [GenericPickerComponent, CdkDragPlaceholder, CdkDropList, CdkDrag, CdkDragHandle],
   templateUrl: './pin-organizer.component.html',
   styleUrls: ['./pin-organizer.component.scss'],
 })

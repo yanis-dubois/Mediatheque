@@ -134,7 +134,17 @@ pub fn search_in_collections(
   }
 
   // ORDER BY
-  sql.push_str(" ORDER BY type DESC, favorite DESC, name COLLATE NOCASE ASC");
+  sql.push_str(
+    " 
+    ORDER BY 
+    CASE type
+      WHEN 'MANUAL' THEN 1
+      WHEN 'DYNAMIC' THEN 2
+      ELSE 3
+    END ASC, 
+    favorite DESC, 
+    name COLLATE NOCASE ASC",
+  );
 
   let mut stmt = connection.prepare(&sql).map_err(|e| e.to_string())?;
   let params_refs: Vec<&dyn rusqlite::ToSql> =

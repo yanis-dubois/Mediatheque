@@ -8,7 +8,7 @@
     @for (col of localPins(); track col.id) {
       <div cdkDrag class="drag-item">
         <div class="drag-handle" cdkDragHandle>⋮⋮</div>
-        <span class="collection-name">{{ col.name }} – {{ col.mediaType | emojize }}</span>
+        <span class="collection-name">{{ col.name }}</span>
 
         <div *cdkDragPlaceholder class="placeholder"></div>
       </div>

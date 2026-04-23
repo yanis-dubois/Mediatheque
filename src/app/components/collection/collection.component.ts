@@ -25,7 +25,6 @@ import { getPaginationLimit, MediaFilter, MediaOrder } from '@models/media-query
 import { CollectionService } from '@services/collection.service';
 import { CollectionActionComponent } from "../collection-action/collection-action.component";
 import { PinService } from '@app/services/pin.service';
-import { EmojizePipe } from "../../pipe/emojize";
 import { EntityService } from '@app/services/entity.service';
 import { LayoutManagerComponent } from "@app/components/layout-manager/layout-manager.component";
 import { ScreenService } from '@app/services/screen.service';
@@ -35,7 +34,7 @@ import { CollectionDetailedGridComponent } from "../collection-detailed-grid/col
 @Component({
   selector: 'app-collection',
   standalone: true,
-  imports: [CommonModule, RouterModule, SortManagerComponent, FilterManagerComponent, CollectionLineComponent, CollectionGridComponent, CollectionColumnComponent, CollectionRowComponent, CollectionListComponent, MediaCardComponent, MediaRowComponent, MediaPickerComponent, DropdownComponent, MediaActionComponent, ActionBarComponent, CollectionActionComponent, EmojizePipe, LayoutManagerComponent, MediaCardDetailsComponent, CollectionDetailedGridComponent],
+  imports: [CommonModule, RouterModule, SortManagerComponent, FilterManagerComponent, CollectionLineComponent, CollectionGridComponent, CollectionColumnComponent, CollectionRowComponent, CollectionListComponent, MediaCardComponent, MediaRowComponent, MediaPickerComponent, DropdownComponent, MediaActionComponent, ActionBarComponent, CollectionActionComponent, LayoutManagerComponent, MediaCardDetailsComponent, CollectionDetailedGridComponent],
   templateUrl: './collection.component.html',
   styleUrl: './collection.component.scss'
 })

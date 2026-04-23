@@ -22,7 +22,7 @@
       @let cxt = context.type === 'ALL' ? '' : context.value;
 
       <a [routerLink]="['/collections', cxt]">
-        <h2 class="title-chevron">
+        <h2 class="link title-chevron">
           Collections
           <img src="assets/icons/chevron.svg"/>
         </h2>
@@ -30,7 +30,7 @@
 
       @for (link of visibleLinks(); track link.type) {
         <a [routerLink]="['/metadata-list', link.type, cxt]">
-          <h2 class="title-chevron">
+          <h2 class="link title-chevron">
             {{ link.label }}
             <img src="assets/icons/chevron.svg"/>
           </h2>

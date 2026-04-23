@@ -6,7 +6,6 @@ import { debounceTime, delay, Subject, switchMap } from 'rxjs';
 import { injectVirtualizer, VirtualItem } from '@tanstack/angular-virtual';
 
 import { Collection, CollectionType } from '@models/collection.model';
-import { EmojizePipe } from "../../pipe/emojize";
 import { EntityService } from '@app/services/entity.service';
 import { EntityType } from '@app/models/entity.model';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
@@ -14,7 +13,7 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 @Component({
   selector: 'app-collection-line',
   standalone: true,
-  imports: [CommonModule, RouterModule, EmojizePipe],
+  imports: [CommonModule, RouterModule],
   templateUrl: './collection-line.component.html',
   styleUrl: './collection-line.component.scss'
 })

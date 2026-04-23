@@ -74,7 +74,7 @@
   /* margin & gap */
   --side-margin: 16px;
   --list-padding: 4px;
-  --nav-height: 50px;
+  --nav-height: 58px;
   /* animation */
   --scale-card-in: 0.225s;
   --scale-card-out: 0.6s;
@@ -83,7 +83,7 @@
   /* primary */
   --color-primary-bright: #D2B0FF;
   --color-primary-light: #B09AFF;
-  --color-primary: #9683EC; /* DEFAULT */ /* --color-primary: oklch(76% 0.1165 86); */
+  --color-primary: #9683EC; /* DEFAULT */
   --color-primary-dark: #5F61BB;
   --color-primary-deep: #343E92;
   /* light */
@@ -98,13 +98,15 @@
   --color-dark-soft: oklch(0.24 0 0);
   --color-dark-2: oklch(0.21 0 0); /* DEFAULT */
   --color-dark: oklch(0.18 0 0); /* DEFAULT */
-  --color-dark-deep: oklch(0.12 0 0);
+  --color-dark-deep: oklch(0.15 0 0);
   /* transparent */
+  --color-transparent-light-soft-2: rgba(255,255,255,0.25);
+  --color-transparent-light-softer-2: rgba(255,255,255,0.175);
   --color-transparent-light-soft: rgba(255,255,255,0.15);
   --color-transparent-light-softer: rgba(255,255,255,0.075);
-  --color-transparent-dark-light: oklch(0.4 0 0 / 0.66);
-  --color-transparent-dark-soft: oklch(0.3 0 0 / 0.66);
-  --color-transparent-dark: oklch(0.2 0 0 / 0.66);
+  --color-transparent-dark-light: oklch(0.35 0 0 / 0.66);
+  --color-transparent-dark-soft: oklch(0.25 0 0 / 0.66);
+  --color-transparent-dark: oklch(0.15 0 0 / 0.66);
   /* status */
   --color-status-finished: oklch(42% 0.1 145);
   --color-status-in-progress: oklch(42% 0.1 260);
@@ -204,7 +206,6 @@ h1 {
 
 .title-chevron {
   margin: 0;
-  padding: 8px 0;
   display: flex;
   align-items: center;
 
