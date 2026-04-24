@@ -327,3 +327,13 @@ pub fn match_entity_type(s: &str) -> EntityType {
     _ => EntityType::Media,
   }
 }
+
+pub fn from_metadata_type_to_entity_type(metadata_type: MetadataType) -> EntityType {
+  match metadata_type {
+    MetadataType::Person => EntityType::Person,
+    MetadataType::Company => EntityType::Company,
+    MetadataType::Saga => EntityType::Saga,
+    MetadataType::Genre => EntityType::Genre,
+    MetadataType::GameMechanic => EntityType::GameMechanic,
+  }
+}

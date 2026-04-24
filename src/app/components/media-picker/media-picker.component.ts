@@ -26,6 +26,7 @@ export class MediaPickerComponent {
   searchQuery = signal('');
   mediaType = signal<CollectionMediaType>({type: "ALL"});
   gap = signal<number>(8);
+  mediaCount = signal(0);
 
   isLoading = signal<boolean>(false);
   currentPage = signal<number>(1);
@@ -51,6 +52,10 @@ export class MediaPickerComponent {
     if (!isNextPage) {
       this.currentPage.set(1);
       this.canLoadMore.set(true);
+
+      this.mediaCount.set(
+        await this.collectionService.getMediaCountFromSearch(query, this.mediaType())
+      );
     }
 
     const pagination = {limit: this.LIMIT, offset: (this.currentPage() - 1) * this.LIMIT};

@@ -26,6 +26,7 @@ export class CollectionLineComponent {
 
   // all media infos (id, width, height)
   mediaLayoutData = input.required<[string, number, number][]>();
+  mediaCount = input.required<number>();
 
   protected readonly CollectionType = CollectionType;
   private scrollSubject = new Subject<string[]>();

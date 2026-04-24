@@ -57,6 +57,7 @@ export class MetadataPageComponent {
     favoriteOnly: undefined,
     searchQuery: undefined
   });
+  mediaCount = signal(0);
 
   metadata = computed(() => {
     return this.entityService.getEntitySignal(this.type() as unknown as EntityType, this.id())();
@@ -133,6 +134,16 @@ export class MetadataPageComponent {
       this.currentPage.set(1);
       this.canLoadMore.set(true);
     }
+
+    this.mediaCount.set(
+      await this.metadataService.getMediaCount(
+        this.type(),
+        parseInt(this.id(), 10),
+        this.searchQuery(),
+        this.filter(),
+        this.context()
+      )
+    );
 
     const limit = getPaginationLimit(this.screenService.size(), this.preferredLayout());
 

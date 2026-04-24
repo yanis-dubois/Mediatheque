@@ -1,27 +1,25 @@
 @if (mode(); as mode) {
   <app-action-bar [leftButtonType]="'home'">
-
-      <div class="tool-bar menu-background">
-        <div 
-          class="tool-item" 
-          [class.is-active]="mode === 'library'"
-          (click)="onModeChange('library')"
-        >
-          Library
-        </div>
-        <div 
-          class="tool-item" 
-          [class.is-active]="mode === 'api'"
-          (click)="onModeChange('api')"
-        >
-          Internet
-        </div>
+    <div class="tool-bar menu-background">
+      <div 
+        class="tool-item" 
+        [class.is-active]="mode === 'library'"
+        (click)="onModeChange('library')"
+      >
+        Library
       </div>
-    
+      <div 
+        class="tool-item" 
+        [class.is-active]="mode === 'api'"
+        (click)="onModeChange('api')"
+      >
+        Internet
+      </div>
+    </div>
   </app-action-bar>
 
   <section class="page-container virtual">
-    
+
     <div class="page-header">
       @let ctx = context();
       <h1>Search {{ctx.type === 'SPECIFIC' ? (ctx.value | humanize) : 'Anything'}}</h1>

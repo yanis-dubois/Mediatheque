@@ -648,7 +648,46 @@ fn build_media_query_parts(
   (joins, where_clause, order_clause, pagination, params)
 }
 
-#[tauri::command]
+pub fn get_media_count(
+  state: tauri::State<'_, DbState>,
+  collection_type: CollectionType,
+  collection_media_type: CollectionMediaType,
+  filter: MediaFilter,
+) -> Result<u32, String> {
+  let connection = state.connection.lock().map_err(|_| "Lock error")?;
+
+  let (joins, where_clause, _, _, params) = build_media_query_parts(
+    &collection_type,
+    &collection_media_type,
+    &filter,
+    &vec![], // no order
+    &Pagination {
+      limit: 0,
+      offset: 0,
+    }, // no pagination
+  );
+
+  let is_distinct = if collection_type == CollectionType::Manual {
+    ""
+  } else {
+    "DISTINCT"
+  };
+
+  let sql = format!(
+    "SELECT COUNT({} m.id) FROM media m {} {}",
+    is_distinct, joins, where_clause
+  );
+
+  let mut stmt = connection.prepare(&sql).map_err(|e| e.to_string())?;
+  let params_ref: Vec<&dyn rusqlite::ToSql> = params.iter().map(|p| p.as_ref()).collect();
+
+  let count: u32 = stmt
+    .query_row(&params_ref[..], |row| row.get(0))
+    .map_err(|e| e.to_string())?;
+
+  Ok(count)
+}
+
 pub fn get_media_layout_list(
   state: tauri::State<'_, DbState>,
   collection_type: CollectionType,

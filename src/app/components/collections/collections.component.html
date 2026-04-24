@@ -29,6 +29,10 @@
         (keydown.enter)="searchInput.blur()"
         (keydown.escape)="searchQuery.set(''); searchInput.blur()"
       />
+
+      <div class="media-count">
+        {{ collectionCount() }}
+      </div>
     </div>
   </div>
 

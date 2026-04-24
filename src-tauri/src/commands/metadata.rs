@@ -1,7 +1,9 @@
 use std::collections::HashMap;
 
 use crate::db::DbState;
-use crate::models::enums::{CollectionMediaType, EntityType, MetadataType};
+use crate::models::enums::{
+  from_metadata_type_to_entity_type, CollectionMediaType, EntityType, MetadataType,
+};
 use crate::models::metadata::{Company, Person, Tag};
 use crate::utils::unicode::remove_accents;
 
@@ -33,16 +35,11 @@ pub fn map_row_to_tag(row: &rusqlite::Row) -> rusqlite::Result<Tag> {
 
 use rusqlite::{params_from_iter, Result as SqlResult, Row};
 
-fn fetch_layout_data(
-  state: &tauri::State<'_, DbState>,
+fn build_metadata_query(
   table: &str,
   tag_filter: Option<&str>,
-  metadata_type: MetadataType,
-  search_query: String,
   context: CollectionMediaType,
-) -> Result<Vec<(String, EntityType)>, String> {
-  let connection = state.connection.lock().map_err(|_| "Lock failed")?;
-
+) -> String {
   let relation_table = if tag_filter.is_some() {
     "media_tag".to_string()
   } else {
@@ -53,7 +50,6 @@ fn fetch_layout_data(
   } else {
     format!("{}_id", table)
   };
-  let pattern = format!("%{}%", remove_accents(&search_query));
 
   // filter by type for tag
   let type_clause = if let Some(t) = tag_filter {
@@ -62,7 +58,7 @@ fn fetch_layout_data(
     "".to_string()
   };
 
-  let sql = if context == CollectionMediaType::All {
+  if context == CollectionMediaType::All {
     if let Some(t) = tag_filter {
       // JOIN media_tag to filter by type
       format!(
@@ -98,18 +94,63 @@ fn fetch_layout_data(
         "".to_string()
       }
     )
+  }
+}
+#[tauri::command]
+pub fn get_metadata_count(
+  state: tauri::State<'_, DbState>,
+  metadata_type: MetadataType,
+  query: String,
+  context: CollectionMediaType,
+) -> Result<i64, String> {
+  let (table, tag_filter) = match metadata_type {
+    MetadataType::Person => ("person", None),
+    MetadataType::Company => ("company", None),
+    MetadataType::Saga => ("tag", Some("SAGA")),
+    MetadataType::Genre => ("tag", Some("GENRE")),
+    MetadataType::GameMechanic => ("tag", Some("GAME_MECHANIC")),
   };
+
+  let connection = state.connection.lock().map_err(|_| "Lock failed")?;
+  let sql = format!(
+    "SELECT COUNT(*) FROM ({})",
+    build_metadata_query(table, tag_filter, context.clone())
+  );
 
   let mut stmt = connection.prepare(&sql).map_err(|e| e.to_string())?;
 
-  let entity_type = match metadata_type {
-    MetadataType::Person => EntityType::Person,
-    MetadataType::Company => EntityType::Company,
-    MetadataType::Saga => EntityType::Saga,
-    MetadataType::Genre => EntityType::Genre,
-    MetadataType::GameMechanic => EntityType::GameMechanic,
+  let pattern = format!("%{}%", remove_accents(&query));
+  let params: Vec<String> = if context == CollectionMediaType::All {
+    vec![pattern]
+  } else {
+    vec![pattern, context.to_db_string()]
   };
 
+  let params_refs: Vec<&dyn rusqlite::ToSql> =
+    params.iter().map(|s| s as &dyn rusqlite::ToSql).collect();
+
+  let count: i64 = stmt
+    .query_row(&*params_refs, |row| row.get(0))
+    .map_err(|e| e.to_string())?;
+
+  Ok(count)
+}
+fn fetch_layout_data(
+  state: &tauri::State<'_, DbState>,
+  table: &str,
+  tag_filter: Option<&str>,
+  metadata_type: MetadataType,
+  search_query: String,
+  context: CollectionMediaType,
+) -> Result<Vec<(String, EntityType)>, String> {
+  let connection = state.connection.lock().map_err(|_| "Lock failed")?;
+  let sql = build_metadata_query(table, tag_filter, context.clone());
+
+  let mut stmt = connection.prepare(&sql).map_err(|e| e.to_string())?;
+
+  let entity_type = from_metadata_type_to_entity_type(metadata_type);
+
+  let pattern = format!("%{}%", remove_accents(&search_query));
   let params: Vec<String> = if context == CollectionMediaType::All {
     vec![pattern]
   } else {

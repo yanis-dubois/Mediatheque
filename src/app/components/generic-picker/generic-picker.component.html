@@ -5,7 +5,7 @@
       <h1>{{ title() }}</h1>
 
       @if (showSearch()) {
-        <div class="picker-header-content">
+        <div class="picker-header-content search-box">
           <input 
             class="input-search"
             type="text"
@@ -13,6 +13,10 @@
             (ngModelChange)="onSearchChange($event)"
             [placeholder]="searchPlaceholder()"
           />
+
+          <div class="media-count">
+            {{ resultCount() }}
+          </div>
         </div>
       }
     </div>

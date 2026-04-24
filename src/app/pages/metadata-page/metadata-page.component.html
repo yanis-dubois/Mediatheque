@@ -29,12 +29,16 @@
         #searchInput
         class="input-search"
         type="text"
-        placeholder="Search on the collection..."
+        placeholder="Search in the library..."
         [value]="searchQuery()"
         (input)="searchQuery.set($any($event.target).value)"
         (keydown.enter)="searchInput.blur()"
         (keydown.escape)="searchQuery.set(''); searchInput.blur()"
       />
+
+      <div class="media-count">
+        {{ mediaCount() }}
+      </div>
     </div>
 
   </div>

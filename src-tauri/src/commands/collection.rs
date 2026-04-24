@@ -1,6 +1,6 @@
 use rusqlite::params;
 
-use crate::commands::media::get_media_layout_list;
+use crate::commands::media::{get_media_count, get_media_layout_list};
 use crate::db::DbState;
 use crate::models::collection::{Collection, ExternalCollection};
 use crate::models::enums::{
@@ -97,6 +97,54 @@ pub fn get_collection_batch(
 }
 
 #[tauri::command]
+pub fn get_collection_count(
+  state: tauri::State<'_, DbState>,
+  search_query: String,
+  context: CollectionMediaType,
+  is_collection_picker: bool,
+) -> Result<u32, String> {
+  let connection = state.connection.lock().map_err(|_| "DB Lock failed")?;
+
+  let context_str = context.to_db_string();
+  let search_query_str = remove_accents(&search_query.trim());
+
+  // Base
+  let mut sql = "SELECT COUNT(*) FROM collection WHERE normalized_name LIKE ?1".to_string();
+  let pattern = if search_query_str.is_empty() {
+    "%".to_string()
+  } else {
+    format!("%{}%", search_query_str)
+  };
+  let mut params: Vec<Box<dyn rusqlite::ToSql>> = vec![Box::new(pattern)];
+
+  // WHERE
+  if is_collection_picker {
+    sql.push_str(" AND type = 'MANUAL' AND (media_type = ?2 OR media_type = 'ALL')");
+    params.push(Box::new(context_str));
+  } else {
+    match context {
+      CollectionMediaType::All => {
+        sql.push_str(" AND (type != 'SYSTEM' OR (type = 'SYSTEM' AND media_type = 'ALL'))");
+      }
+      CollectionMediaType::Specific(_) => {
+        sql.push_str(" AND media_type = ?2");
+        params.push(Box::new(context_str));
+      }
+    }
+  }
+
+  let mut stmt = connection.prepare(&sql).map_err(|e| e.to_string())?;
+  let params_refs: Vec<&dyn rusqlite::ToSql> =
+    params.iter().map(|p| p as &dyn rusqlite::ToSql).collect();
+
+  let count: u32 = stmt
+    .query_row(&params_refs[..], |row| row.get(0))
+    .map_err(|e| e.to_string())?;
+
+  Ok(count)
+}
+
+#[tauri::command]
 pub fn search_in_collections(
   state: tauri::State<'_, DbState>,
   search_query: String,
@@ -190,6 +238,37 @@ pub fn search_layout_data(
 }
 
 #[tauri::command]
+pub fn get_media_count_from_search(
+  state: tauri::State<'_, DbState>,
+  search_query: String,
+  media_type: CollectionMediaType,
+) -> Result<u32, String> {
+  println!("get_media_count_from_search : {}", search_query);
+
+  let filter = MediaFilter {
+    search_query: if search_query == "" {
+      None
+    } else {
+      Some(search_query)
+    },
+    media_type: match media_type {
+      CollectionMediaType::All => None,
+      CollectionMediaType::Specific(mt) => Some(mt),
+    },
+    ..Default::default()
+  };
+
+  let data = get_media_count(
+    state,
+    CollectionType::Dynamic,
+    CollectionMediaType::All,
+    filter,
+  )?;
+
+  Ok(data)
+}
+
+#[tauri::command]
 pub fn search_in_meta_data(
   state: tauri::State<'_, DbState>,
   metadata_type: MetadataType,
@@ -228,6 +307,40 @@ pub fn search_in_meta_data(
 }
 
 #[tauri::command]
+pub fn get_media_count_from_meta_data(
+  state: tauri::State<'_, DbState>,
+  metadata_type: MetadataType,
+  metadata_id: u32,
+  query: String,
+  mut filter: MediaFilter,
+  media_type: CollectionMediaType,
+) -> Result<u32, String> {
+  println!("get_media_count_from_meta_data : {}", query);
+
+  filter.search_query = if query.is_empty() { None } else { Some(query) };
+  if let CollectionMediaType::Specific(mt) = media_type {
+    filter.media_type = Some(mt);
+  }
+
+  match metadata_type {
+    MetadataType::Person => filter.person_id = Some(metadata_id),
+    MetadataType::Company => filter.company_id = Some(metadata_id),
+    MetadataType::Saga => filter.saga_id = Some(metadata_id),
+    MetadataType::Genre => filter.genre_id = Some(metadata_id),
+    MetadataType::GameMechanic => filter.game_mechanic_id = Some(metadata_id),
+  }
+
+  let data = get_media_count(
+    state,
+    CollectionType::Dynamic,
+    CollectionMediaType::All,
+    filter,
+  )?;
+
+  Ok(data)
+}
+
+#[tauri::command]
 pub fn search_in_collection(
   state: tauri::State<'_, DbState>,
   collection_id: String,
@@ -252,6 +365,33 @@ pub fn search_in_collection(
     collection.filter,
     collection.sort_order,
     pagination,
+  )?;
+
+  Ok(data)
+}
+
+#[tauri::command]
+pub fn get_media_count_from_collection(
+  state: tauri::State<'_, DbState>,
+  collection_id: String,
+  search_query: String,
+) -> Result<u32, String> {
+  println!("get_media_count_from_collection : {}", search_query);
+
+  let mut collection = get_collection_by_id(state.clone(), collection_id.clone())?;
+
+  // update filter with search query
+  collection.filter.search_query = if search_query == "" {
+    None
+  } else {
+    Some(search_query)
+  };
+
+  let data = get_media_count(
+    state,
+    collection.collection_type.clone(),
+    collection.media_type.clone(),
+    collection.filter,
   )?;
 
   Ok(data)

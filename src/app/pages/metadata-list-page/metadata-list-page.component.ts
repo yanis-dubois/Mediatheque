@@ -24,6 +24,7 @@ export class MetadataListPageComponent {
   searchQuery = signal<string>('');
   private refreshLayout$ = new Subject<void>();
   context = this.navService.context;
+  resultsCount = signal(0);
 
   constructor(
     private metadataService: MetadataService,
@@ -54,6 +55,10 @@ export class MetadataListPageComponent {
   async loadLayoutData() {
     this.layoutData.set(
       await this.metadataService.getMetadataLayout(this.type(), this.searchQuery(), this.context())
+    );
+
+    this.resultsCount.set(
+      await this.metadataService.getMetadataCount(this.type(), this.searchQuery(), this.context())
     );
   }
 

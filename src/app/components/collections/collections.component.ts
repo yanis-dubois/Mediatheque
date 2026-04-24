@@ -26,6 +26,7 @@ export class CollectionsComponent {
   private refreshLayout$ = new Subject<void>();
 
   searchQuery = signal<string>('');
+  collectionCount = signal(0);
 
   constructor(
     private entityService: EntityService,
@@ -59,6 +60,10 @@ export class CollectionsComponent {
     try {
       this.collectionIds.set(
         await this.collectionService.searchCollection(this.searchQuery(), this.context())
+      );
+
+      this.collectionCount.set(
+        await this.collectionService.getCollectionCount(this.searchQuery(), this.context())
       );
     } catch (e) {
       console.error(e);

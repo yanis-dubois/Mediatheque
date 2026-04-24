@@ -11,6 +11,7 @@ import { FormsModule } from '@angular/forms';
 export class GenericPickerComponent {
 
   title = input.required<string>();
+  resultCount = input<number>(0);
   showSearch = input<boolean>(true);
   searchPlaceholder = input<string>("Search...");
   allowEmpty = input<boolean>(true);

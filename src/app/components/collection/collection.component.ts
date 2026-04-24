@@ -51,7 +51,7 @@ export class CollectionComponent {
   private hasFocused = false;
   listPadding = signal<number>(8);
 
-  // media data needed for virtualizing (id, width, height) ['', 2, 3]
+  // media data needed for virtualizing (id, width, height)
   mediaLayoutData = signal<[string, number, number][]>([['', 2, 3]]);
 
   // enums
@@ -77,6 +77,7 @@ export class CollectionComponent {
     favoriteOnly: undefined,
     searchQuery: undefined
   });
+  mediaCount = signal(0);
 
   // media menu
   activeMediaMenuId = signal<string | null>(null);
@@ -170,6 +171,13 @@ export class CollectionComponent {
     if (!isUpdate && !isNextPage) {
       this.currentPage.set(1);
       this.canLoadMore.set(true);
+    }
+
+    // 
+    if (!isNextPage) {
+      this.mediaCount.set(
+        await this.collectionService.getMediaCount(this.id(), this.searchQuery())
+      );
     }
 
     const limit = getPaginationLimit(this.screenService.size(), this.preferredLayout(), this.view);

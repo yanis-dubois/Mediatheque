@@ -58,6 +58,16 @@
   width: 100%;
 }
 
+.media-count {
+  display: flex;
+  flex-direction: row;
+  margin-right: 4px;
+  padding-left: 4px;
+  align-self: center;
+  font-size: var(--text-xs);
+  color: var(--color-light-dark);
+}
+
 .menu-slot {
   flex: none;
 }

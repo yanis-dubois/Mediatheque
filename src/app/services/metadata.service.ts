@@ -11,6 +11,18 @@ export class MetadataService {
 
   /* get */
 
+  getMediaCount(
+    type: MetadataType, 
+    id: number, 
+    query: string, 
+    filter: MediaFilter,
+    context: CollectionMediaType, 
+  ) {
+    return invoke<number>('get_media_count_from_meta_data', { 
+      metadataType: type, metadataId: id, query, filter, mediaType: context
+    });
+  }
+
   async searchInMetadata(
     type: MetadataType, 
     id: number, 
@@ -23,6 +35,10 @@ export class MetadataService {
     return await invoke<[string, number, number][]>('search_in_meta_data', { 
       metadataType: type, metadataId: id, query, order, filter, mediaType: context, pagination
     });
+  }
+
+  async getMetadataCount(type: MetadataType, query: string, context: CollectionMediaType): Promise<number> {
+    return await invoke<number>('get_metadata_count', { metadataType: type, query, context });
   }
 
   async getMetadataLayout(type: MetadataType, query: string, context: CollectionMediaType): Promise<[string, EntityType][]> {

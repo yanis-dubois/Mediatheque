@@ -1,4 +1,4 @@
-import { inject, Injectable, signal, WritableSignal } from '@angular/core';
+import { inject, Injectable, signal } from '@angular/core';
 
 import { invoke } from '@tauri-apps/api/core';
 
@@ -40,6 +40,10 @@ export class CollectionService {
     return invoke<string[]>('search_in_collections', { searchQuery: search, context, isCollectionPicker });
   }
 
+  getCollectionCount(search: string, context: CollectionMediaType, isCollectionPicker: boolean = false) {
+    return invoke<number>('get_collection_count', { searchQuery: search, context, isCollectionPicker });
+  }
+
   async getCollectionBatch(ids: string[]): Promise<Collection[]> {
     if (ids.length === 0) return [];
     return await invoke<Collection[]>('get_collection_batch', { ids });
@@ -48,6 +52,16 @@ export class CollectionService {
   searchMedia(query: string, mediaType: CollectionMediaType, pagination: Pagination) {
     return invoke<[string, number, number][]>('search_layout_data', { query: query, mediaType: mediaType, pagination });
   }
+
+  getMediaCount(id: string, search: string) {
+    return invoke<number>('get_media_count_from_collection', { collectionId: id, searchQuery: search });
+  }
+
+  getMediaCountFromSearch(query: string, mediaType: CollectionMediaType) {
+    return invoke<number>('get_media_count_from_search', { searchQuery: query, mediaType: mediaType });
+  }
+
+  /* update */
 
   // generic 
   async toggleFavorite(id: string, isFavorite: boolean): Promise<void> {

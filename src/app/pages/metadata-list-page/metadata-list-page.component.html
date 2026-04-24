@@ -16,6 +16,10 @@
         (keydown.enter)="searchInput.blur()"
         (keydown.escape)="searchQuery.set(''); searchInput.blur()"
       />
+
+      <div class="media-count">
+        {{ resultsCount() }}
+      </div>
     </div>
   </div>
 

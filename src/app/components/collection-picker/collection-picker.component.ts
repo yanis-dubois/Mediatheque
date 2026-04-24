@@ -24,6 +24,7 @@ export class CollectionPickerComponent {
   collectionResults = signal<string[]>([]);
   searchQuery = signal('');
   mediaType = signal<CollectionMediaType>({type: "ALL"});
+  collectionCount = signal(0);
 
   constructor(
     private collectionService: CollectionService
@@ -41,6 +42,10 @@ export class CollectionPickerComponent {
     try {
       this.collectionResults.set(
         await this.collectionService.searchCollection(query, this.mediaType(), true)
+      );
+
+      this.collectionCount.set(
+        await this.collectionService.getCollectionCount(query, this.mediaType(), true)
       );
     } catch (e) {
       console.error("Error while searching", e);

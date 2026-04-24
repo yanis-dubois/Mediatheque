@@ -1,5 +1,6 @@
 <app-generic-picker
   [title]="'Add « ' + media.title + ' » to'"
+  [resultCount]="collectionCount()"
   (searchChange)="onSearch($event)"
   (onCancel)="onCancel.emit()"
   (onConfirm)="onConfirm.emit($event)"
