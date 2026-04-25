@@ -43,10 +43,7 @@
 
   </div>
 
-  @if (mediaLayoutData().length < 1) {
-    <p> No media match these filters. </p>
-  }
-  @else {
+  @if (mediaLayoutData().length > 0) {
     @switch (preferredLayout()) {
       @case (CollectionLayout.GRID) {
         <app-collection-grid

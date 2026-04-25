@@ -104,14 +104,7 @@
           </div>
         </div>
 
-        @if (mediaLayoutData().length < 1) {
-          @if (collection.collectionType === CollectionType.MANUAL) {
-            <p> Click the '+' icon to add media. </p>
-          } @else {
-            <p> No media match these filters. </p>
-          }
-        }
-        @else {
+        @if (mediaLayoutData().length > 0) {
           @switch (preferredLayout()) {
             @case (CollectionLayout.GRID) {
               <app-collection-grid

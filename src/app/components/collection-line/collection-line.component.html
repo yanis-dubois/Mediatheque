@@ -28,13 +28,7 @@
     </button>
 
     <div #scrollElement class="viewport-container viewport-container-line">
-      @if (mediaLayoutData().length < 1) {
-        @if (collection.collectionType === CollectionType.MANUAL) {
-          <p> You can add media to this collection. </p>
-        } @else {
-          <p> No media match these filters. </p>
-        }
-      } @else {
+      @if (mediaLayoutData().length > 0) {
         <div
           [style.width.px]="virtualizer.getTotalSize()"
           style="height: 100%; position: relative;"

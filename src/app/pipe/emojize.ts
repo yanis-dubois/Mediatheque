@@ -9,32 +9,15 @@ import { MediaStatus, MediaType } from '@models/media.model';
 })
 export class EmojizePipe implements PipeTransform {
 
-  transform(value: boolean): string;
-  transform(value: MediaStatus): string;
   transform(value: MediaType): string;
   transform(value: CollectionMediaType): string;
-  transform(value: CollectionType): string;
   transform(value: ThreeStep): string;
   transform(value: FiveStep): string;
   transform(value: any): string {
-    // is favorite
-    if (typeof value === 'boolean') {
-      return value ? "❤️" : "🩶";
-    }
-
-    // status
-    if (Object.values(MediaStatus).includes(value)) {
-      switch (value) {
-        case MediaStatus.FINISHED: return "✅";
-        case MediaStatus.IN_PROGRESS: return "⏳";
-        case MediaStatus.TO_DISCOVER: return "🔖";
-        case MediaStatus.DROPPED: return "❌";
-      }
-    }
 
     // collection media type
     if (isCollectionMediaType(value)) {
-      if (value.type === 'ALL') return "🏠";
+      if (value.type === 'ALL') return "🗃️";
       return this.transform(value.value); // recursif call on MediaType
     }
 
@@ -46,15 +29,6 @@ export class EmojizePipe implements PipeTransform {
         case MediaType.SERIES: return "📺";
         case MediaType.TABLETOP_GAME: return "🎲";
         case MediaType.VIDEO_GAME: return "🎮";
-      }
-    }
-
-    // collection type
-    if (Object.values(CollectionType).includes(value)) {
-      switch (value) {
-        case CollectionType.SYSTEM: return "⚙️";
-        case CollectionType.DYNAMIC: return "🎛️";
-        case CollectionType.MANUAL: return "🗂️";
       }
     }
 

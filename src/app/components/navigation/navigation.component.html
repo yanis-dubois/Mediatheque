@@ -9,18 +9,13 @@
 
   <div class="ctx-item layout-selector">
     @if (currentContext(); as context) {
-      @if (context.type === 'ALL') {
-        <span class="layout-icon">🪎</span>
-      }
-      @else {
-        <span class="layout-icon">{{ context.value | emojize }}</span>
-      }
+      <span class="layout-icon">{{ context | emojize }}</span>
 
       <select 
         [value]="context" 
         (change)="onContextChange($any($event.target).value)"
       >
-        <option value="" [selected]="context.type === 'ALL'">🪎 All</option>
+        <option value="" [selected]="context.type === 'ALL'">{{ {type:'ALL'} | emojize }} All</option>
         @for (opt of mediaType; track opt) {
           <option [value]="opt" [selected]="context.type === 'SPECIFIC' && opt === context.value">{{ opt | emojize }} {{ opt | humanize }}</option>
         }
