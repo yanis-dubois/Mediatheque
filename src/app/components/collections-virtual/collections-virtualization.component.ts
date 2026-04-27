@@ -1,6 +1,6 @@
-import { Component, effect, ElementRef, HostListener, inject, input, signal, untracked, ViewChild } from '@angular/core';
+import { Component, effect, ElementRef, HostListener, inject, input, output, signal, untracked, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { debounceTime, Subject, switchMap } from 'rxjs';
+import { debounceTime, delay, Subject, switchMap } from 'rxjs';
 
 import { injectVirtualizer, VirtualItem } from '@tanstack/angular-virtual';
 
@@ -12,12 +12,14 @@ import { CollectionDisplayMode } from '@models/collection.model';
 
 import { EntityService } from '@app/services/entity.service';
 import { EntityType } from '@app/models/entity.model';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 @Component({
   selector: 'app-collections-virtualization',
   standalone: true,
   imports: [CommonModule, DropdownComponent, CollectionActionComponent, CollectionComponent],
-  templateUrl: './collections-virtualization.component.html'
+  templateUrl: './collections-virtualization.component.html',
+  styleUrl: './collections-virtualization.component.scss',
 })
 export class CollectionsVirtualizationComponent {
   @ViewChild('scrollElement') scrollElement!: ElementRef<HTMLElement>;
@@ -43,15 +45,28 @@ export class CollectionsVirtualizationComponent {
     estimateSize: () => {
       return this.containerHeight();
     },
-    overscan: 5,
+    overscan: 4,
     paddingEnd: this.navHeight(),
     onChange: (instance) => {
       this.syncVisibleCollection(instance.getVirtualItems());
     },
   }));
 
+  private endReachedSubject = new Subject<void>();
+  endReached = output<void>();
+  private readonly COOLDOWN_TIME = 500;
+  private triggerCooldown() {
+    this.endReachedSubject.next();
+  }
+
   private syncVisibleCollection(virtualItems: VirtualItem[]) {
     const visibleIds = virtualItems.map(vItem => this.collectionIds()[vItem.index]);
+
+    if (virtualItems.length === 0) return;
+    const lastItemIndex = virtualItems[virtualItems.length - 1].index;
+    if (lastItemIndex >= this.collectionIds().length - 1) {
+      this.triggerCooldown();
+    }
 
     const missingIds = visibleIds.filter(id => {
       return this.entityService.getCollection(id) === null;
@@ -63,6 +78,13 @@ export class CollectionsVirtualizationComponent {
   }
 
   constructor() {
+    this.endReachedSubject.pipe(
+      delay(this.COOLDOWN_TIME),
+      takeUntilDestroyed()
+    ).subscribe(() => {
+      this.endReached.emit();
+    });
+
     effect(() => {
       const data = this.collectionIds();
       const scrollEl = this.scrollElement?.nativeElement;
@@ -75,10 +97,10 @@ export class CollectionsVirtualizationComponent {
     });
 
     this.scrollSubject.pipe(
-      debounceTime(50),
+      debounceTime(100),
       switchMap(async (ids) => {
         // only gets the missing medias
-        const missingIds = ids.filter(id => this.entityService.getCollection(id) === null);
+        const missingIds = ids.filter(id => !!id && this.entityService.getCollection(id) === null);
         if (missingIds.length === 0) return [];
 
         try {

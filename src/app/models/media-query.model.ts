@@ -1,6 +1,11 @@
 import { ScreenSize } from "@app/services/screen.service";
 import { CollectionDisplayMode, CollectionLayout } from "./collection.model";
-import { MediaStatus, MediaType } from "./media.model";
+import { ApiSearchResult, MediaStatus, MediaType } from "./media.model";
+
+export interface ApiSearchResultCount {
+  results: ApiSearchResult[],
+  count: number,
+}
 
 export enum MediaOrderField {
   TITLE = 'TITLE',
@@ -56,3 +61,5 @@ export const getPaginationLimit = (
   if (screenSize === ScreenSize.TABLET) return 48;
   return 64;
 };
+
+export const collectionsPaginationLimit = 12;

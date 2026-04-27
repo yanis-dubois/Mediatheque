@@ -10,7 +10,7 @@
       [style.height.px]="virtualizer.getTotalSize()"
       style="position: relative;"
     >
-      @for (vItem of virtualizer.getVirtualItems(); track vItem.index + '-' + collectionIds()[vItem.index]) {
+      @for (vItem of virtualizer.getVirtualItems(); track vItem.index) {
         @if (collectionIds()[vItem.index]; as id) {
           <div
             [style.height.px]="containerHeight()" 
@@ -33,6 +33,17 @@
                 </app-dropdown>
               </div>
             </app-collection>
+          </div>
+        } @else {
+          <div
+            class="skeleton-container"
+            [style.height.px]="containerHeight()" 
+            [style.width.%]="100" 
+            [style.transform]="'translateY(' + vItem.start + 'px)'"
+            style="position: absolute; top: 0; left: 0; display: flex; flex-direction: column;"
+          >
+            <div class="skeleton-text"></div>
+            <div class="skeleton-card"></div>
           </div>
         }
       }

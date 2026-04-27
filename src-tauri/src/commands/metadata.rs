@@ -5,6 +5,7 @@ use crate::models::enums::{
   from_metadata_type_to_entity_type, CollectionMediaType, EntityType, MetadataType,
 };
 use crate::models::metadata::{Company, Person, Tag};
+use crate::models::query::Pagination;
 use crate::utils::unicode::remove_accents;
 
 // convert SQL -> Metadata
@@ -39,7 +40,14 @@ fn build_metadata_query(
   table: &str,
   tag_filter: Option<&str>,
   context: CollectionMediaType,
+  pagination: &Pagination,
 ) -> String {
+  let pagination_str = if pagination.limit > 0 {
+    format!("LIMIT {} OFFSET {}", pagination.limit, pagination.offset)
+  } else {
+    "".to_string()
+  };
+
   let relation_table = if tag_filter.is_some() {
     "media_tag".to_string()
   } else {
@@ -58,7 +66,7 @@ fn build_metadata_query(
     "".to_string()
   };
 
-  if context == CollectionMediaType::All {
+  let sql = if context == CollectionMediaType::All {
     if let Some(t) = tag_filter {
       // JOIN media_tag to filter by type
       format!(
@@ -94,7 +102,9 @@ fn build_metadata_query(
         "".to_string()
       }
     )
-  }
+  };
+
+  format!("{} {}", sql, pagination_str)
 }
 #[tauri::command]
 pub fn get_metadata_count(
@@ -114,7 +124,15 @@ pub fn get_metadata_count(
   let connection = state.connection.lock().map_err(|_| "Lock failed")?;
   let sql = format!(
     "SELECT COUNT(*) FROM ({})",
-    build_metadata_query(table, tag_filter, context.clone())
+    build_metadata_query(
+      table,
+      tag_filter,
+      context.clone(),
+      &Pagination {
+        limit: 0,
+        offset: 0,
+      }
+    )
   );
 
   let mut stmt = connection.prepare(&sql).map_err(|e| e.to_string())?;
@@ -142,9 +160,10 @@ fn fetch_layout_data(
   metadata_type: MetadataType,
   search_query: String,
   context: CollectionMediaType,
+  pagination: Pagination,
 ) -> Result<Vec<(String, EntityType)>, String> {
   let connection = state.connection.lock().map_err(|_| "Lock failed")?;
-  let sql = build_metadata_query(table, tag_filter, context.clone());
+  let sql = build_metadata_query(table, tag_filter, context.clone(), &pagination);
 
   let mut stmt = connection.prepare(&sql).map_err(|e| e.to_string())?;
 
@@ -297,6 +316,7 @@ pub fn get_metadata_layout(
   metadata_type: MetadataType,
   query: String,
   context: CollectionMediaType,
+  pagination: Pagination,
 ) -> Result<Vec<(String, EntityType)>, String> {
   let (table, tag_filter) = match metadata_type {
     MetadataType::Person => ("person", None),
@@ -306,7 +326,15 @@ pub fn get_metadata_layout(
     MetadataType::GameMechanic => ("tag", Some("GAME_MECHANIC")),
   };
 
-  fetch_layout_data(&state, table, tag_filter, metadata_type, query, context)
+  fetch_layout_data(
+    &state,
+    table,
+    tag_filter,
+    metadata_type,
+    query,
+    context,
+    pagination,
+  )
 }
 
 #[tauri::command]

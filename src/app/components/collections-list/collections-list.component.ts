@@ -1,4 +1,4 @@
-import { Component, ContentChild, ElementRef, inject, input, signal, TemplateRef } from '@angular/core';
+import { Component, ContentChild, ElementRef, inject, input, output, signal, TemplateRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { debounceTime, Subject, switchMap } from 'rxjs';
@@ -20,6 +20,8 @@ export class CollectionsListComponent {
 
   // all collection id
   collectionIds = input.required<string[]>();
+
+  endReached = output<void>();
 
   private scrollSubject = new Subject<string[]>();
   private el = inject(ElementRef);
@@ -44,7 +46,7 @@ export class CollectionsListComponent {
       debounceTime(50),
       switchMap(async (ids) => {
         // only gets the missing medias
-        const missingIds = ids.filter(id => this.entityService.getCollection(id) === null);
+        const missingIds = ids.filter(id => !!id && this.entityService.getCollection(id) === null);
         if (missingIds.length === 0) return [];
 
         try {

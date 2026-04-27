@@ -39,6 +39,7 @@
   <app-collections-virtualization 
     class="virtual-host-collections"
     [collectionIds]="collectionIds()"
+    (endReached)="onScroll()"
   >
   </app-collections-virtualization>
 </section>

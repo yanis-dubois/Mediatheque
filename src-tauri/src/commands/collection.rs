@@ -149,6 +149,7 @@ pub fn search_in_collections(
   state: tauri::State<'_, DbState>,
   search_query: String,
   context: CollectionMediaType,
+  pagination: Pagination,
   is_collection_picker: bool,
 ) -> Result<Vec<String>, String> {
   let connection = state.connection.lock().map_err(|_| "DB Lock failed")?;
@@ -193,6 +194,10 @@ pub fn search_in_collections(
     favorite DESC, 
     name COLLATE NOCASE ASC",
   );
+
+  // LIMIT
+  let pagination_str = format!(" LIMIT {} OFFSET {}", pagination.limit, pagination.offset);
+  sql.push_str(&pagination_str);
 
   let mut stmt = connection.prepare(&sql).map_err(|e| e.to_string())?;
   let params_refs: Vec<&dyn rusqlite::ToSql> =

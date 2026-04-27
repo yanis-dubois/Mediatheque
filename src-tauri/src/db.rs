@@ -1788,6 +1788,9 @@ fn seed_collection_data() -> Vec<SeedCollection<'static>> {
       collection_dynamic: Some(SeedCollectionDynamic { filter: None }),
       ..Default::default()
     },
+    //
+    //
+    //
     SeedCollection {
       id: 200,
       name: "My Collection",
@@ -1823,6 +1826,136 @@ fn seed_collection_data() -> Vec<SeedCollection<'static>> {
     },
     SeedCollection {
       id: 202,
+      name: "My Collection",
+      collection_type: CollectionType::Manual,
+      prefered_view: CollectionLayout::Row,
+      collection_manual: Some(SeedCollectionManual {
+        media_ids: vec!["1", "204", "201"],
+      }),
+      ..Default::default()
+    },
+    SeedCollection {
+      id: 203,
+      name: "My Collection",
+      collection_type: CollectionType::Manual,
+      prefered_view: CollectionLayout::Row,
+      collection_manual: Some(SeedCollectionManual {
+        media_ids: vec!["1", "204", "201"],
+      }),
+      ..Default::default()
+    },
+    SeedCollection {
+      id: 204,
+      name: "My Collection",
+      collection_type: CollectionType::Manual,
+      prefered_view: CollectionLayout::Row,
+      collection_manual: Some(SeedCollectionManual {
+        media_ids: vec!["1", "204", "201"],
+      }),
+      ..Default::default()
+    },
+    SeedCollection {
+      id: 205,
+      name: "My Collection",
+      collection_type: CollectionType::Manual,
+      prefered_view: CollectionLayout::Row,
+      collection_manual: Some(SeedCollectionManual {
+        media_ids: vec!["1", "204", "201"],
+      }),
+      ..Default::default()
+    },
+    SeedCollection {
+      id: 206,
+      name: "My Collection",
+      collection_type: CollectionType::Manual,
+      prefered_view: CollectionLayout::Row,
+      collection_manual: Some(SeedCollectionManual {
+        media_ids: vec!["1", "204", "201"],
+      }),
+      ..Default::default()
+    },
+    SeedCollection {
+      id: 207,
+      name: "My Collection",
+      collection_type: CollectionType::Manual,
+      prefered_view: CollectionLayout::Row,
+      collection_manual: Some(SeedCollectionManual {
+        media_ids: vec!["1", "204", "201"],
+      }),
+      ..Default::default()
+    },
+    SeedCollection {
+      id: 208,
+      name: "My Collection",
+      collection_type: CollectionType::Manual,
+      prefered_view: CollectionLayout::Row,
+      collection_manual: Some(SeedCollectionManual {
+        media_ids: vec!["1", "204", "201"],
+      }),
+      ..Default::default()
+    },
+    SeedCollection {
+      id: 209,
+      name: "My Collection",
+      collection_type: CollectionType::Manual,
+      prefered_view: CollectionLayout::Row,
+      collection_manual: Some(SeedCollectionManual {
+        media_ids: vec!["1", "204", "201"],
+      }),
+      ..Default::default()
+    },
+    SeedCollection {
+      id: 210,
+      name: "My Collection",
+      collection_type: CollectionType::Manual,
+      prefered_view: CollectionLayout::Row,
+      collection_manual: Some(SeedCollectionManual {
+        media_ids: vec!["1", "204", "201"],
+      }),
+      ..Default::default()
+    },
+    SeedCollection {
+      id: 211,
+      name: "My Collection",
+      collection_type: CollectionType::Manual,
+      prefered_view: CollectionLayout::Row,
+      collection_manual: Some(SeedCollectionManual {
+        media_ids: vec!["1", "204", "201"],
+      }),
+      ..Default::default()
+    },
+    SeedCollection {
+      id: 212,
+      name: "My Collection",
+      collection_type: CollectionType::Manual,
+      prefered_view: CollectionLayout::Row,
+      collection_manual: Some(SeedCollectionManual {
+        media_ids: vec!["1", "204", "201"],
+      }),
+      ..Default::default()
+    },
+    SeedCollection {
+      id: 213,
+      name: "My Collection",
+      collection_type: CollectionType::Manual,
+      prefered_view: CollectionLayout::Row,
+      collection_manual: Some(SeedCollectionManual {
+        media_ids: vec!["1", "204", "201"],
+      }),
+      ..Default::default()
+    },
+    SeedCollection {
+      id: 214,
+      name: "My Collection",
+      collection_type: CollectionType::Manual,
+      prefered_view: CollectionLayout::Row,
+      collection_manual: Some(SeedCollectionManual {
+        media_ids: vec!["1", "204", "201"],
+      }),
+      ..Default::default()
+    },
+    SeedCollection {
+      id: 215,
       name: "My Collection",
       collection_type: CollectionType::Manual,
       prefered_view: CollectionLayout::Row,

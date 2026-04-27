@@ -5,8 +5,9 @@ import { CollectionListComponent } from '@components/collection-list/collection-
 import { MediaRowComponent } from '@components/media-row/media-row.component';
 
 import { CollectionService } from '@app/services/collection.service';
-import { Collection, CollectionMediaType } from '@app/models/collection.model';
+import { Collection, CollectionLayout, CollectionMediaType } from '@app/models/collection.model';
 import { GenericPickerComponent } from "../generic-picker/generic-picker.component";
+import { getPaginationLimit } from '@app/models/media-query.model';
 
 @Component({
   selector: 'app-media-picker',
@@ -17,7 +18,7 @@ import { GenericPickerComponent } from "../generic-picker/generic-picker.compone
 export class MediaPickerComponent {
   @Input({ required: true }) collection!: Collection;
 
-  private readonly LIMIT = 16;
+  private readonly LIMIT = getPaginationLimit(undefined as any, CollectionLayout.LIST);
 
   onCancel = output<void>();
   onConfirm = output<Set<string>>();
@@ -48,6 +49,13 @@ export class MediaPickerComponent {
     if (this.isLoading()) return;
     this.isLoading.set(true);
 
+    // add loading item
+    if (this.mediaResults().length === 0) {
+      this.mediaResults.update(current => {
+        return [...current, undefined as any];
+      });
+    }
+
     // reinit pagination if query has changed
     if (!isNextPage) {
       this.currentPage.set(1);
@@ -64,6 +72,11 @@ export class MediaPickerComponent {
 
       if (data.length < this.LIMIT) {
         this.canLoadMore.set(false);
+      }
+
+      // add loading item to the end of results
+      if (this.canLoadMore()) {
+        data.push(undefined as any);
       }
 
       this.mediaResults.update(current => {

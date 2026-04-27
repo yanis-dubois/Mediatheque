@@ -3,6 +3,7 @@
   [itemHeight]="containerHeight()"
   (visibleItemsChanged)="onVisibleItemsChanged($event)" 
   (windowResize)="updateDimensions()" 
+  (endReached)="endReached.emit()"
 >
   <ng-template #rowRef let-item let-index="index">
     <ng-container 

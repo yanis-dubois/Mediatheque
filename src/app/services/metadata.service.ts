@@ -41,8 +41,8 @@ export class MetadataService {
     return await invoke<number>('get_metadata_count', { metadataType: type, query, context });
   }
 
-  async getMetadataLayout(type: MetadataType, query: string, context: CollectionMediaType): Promise<[string, EntityType][]> {
-    return await invoke<[string, EntityType][]>('get_metadata_layout', { metadataType: type, query, context });
+  async getMetadataLayout(type: MetadataType, query: string, context: CollectionMediaType, pagination: Pagination): Promise<[string, EntityType][]> {
+    return await invoke<[string, EntityType][]>('get_metadata_layout', { metadataType: type, query, context, pagination });
   }
 
   async getDescriptorRolesMap(type: MetadataType, id: number): Promise<Record<string, string[]>> {

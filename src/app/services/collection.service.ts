@@ -36,8 +36,8 @@ export class CollectionService {
     return invoke<[string, number, number][]>('search_in_collection', { collectionId: id, searchQuery: search, pagination });
   }
 
-  searchCollection(search: string, context: CollectionMediaType, isCollectionPicker: boolean = false) {
-    return invoke<string[]>('search_in_collections', { searchQuery: search, context, isCollectionPicker });
+  searchCollection(search: string, context: CollectionMediaType, pagination: Pagination, isCollectionPicker: boolean = false) {
+    return invoke<string[]>('search_in_collections', { searchQuery: search, context, pagination, isCollectionPicker });
   }
 
   getCollectionCount(search: string, context: CollectionMediaType, isCollectionPicker: boolean = false) {

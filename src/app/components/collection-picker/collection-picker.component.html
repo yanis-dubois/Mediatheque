@@ -9,6 +9,7 @@
   <app-collections-list 
     class="virtual-host virtual-host-list picker-content"
     [collectionIds]="collectionResults()" 
+    (endReached)="onScroll()"
   >
     <ng-template #rowRef let-collectionId="collectionId" let-width="width" let-height="height">
       <div (click)="picker.toggleSelection(collectionId)">
