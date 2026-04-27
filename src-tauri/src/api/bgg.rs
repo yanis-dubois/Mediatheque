@@ -3,7 +3,7 @@ use std::collections::HashMap;
 use crate::{
   api::provider::MediaProvider,
   models::{
-    api::BggSearchResponse,
+    api::{ApiSearchResultCount, BggSearchResponse, BggThingResponse},
     enums::{Language, MediaSource, MediaType, TagType},
     image::{ImageConfiguration, ImageSize, ImageType},
     media::{
@@ -77,8 +77,9 @@ impl MediaProvider for BggProvider {
     query: &str,
     _language: Language,
     page: u32,
-  ) -> Result<Vec<ApiSearchResult>, String> {
+  ) -> Result<ApiSearchResultCount, String> {
     let client = reqwest::Client::new();
+    let mut count = -1;
 
     // verify if we need to update ids cache
     let needs_search = {
@@ -115,6 +116,8 @@ impl MediaProvider for BggProvider {
         query: query.to_string(),
         ids: new_ids,
       });
+
+      count = search_data.total;
     }
 
     // load ids from cache that correspond to current page
@@ -125,7 +128,10 @@ impl MediaProvider for BggProvider {
       let end = std::cmp::min(start + (self.page_size as usize), cache.ids.len());
 
       if start >= cache.ids.len() {
-        return Ok(Vec::new());
+        return Ok(ApiSearchResultCount {
+          results: Vec::new(),
+          count: -1,
+        });
       }
       cache.ids[start..end].to_vec()
     };
@@ -149,7 +155,7 @@ impl MediaProvider for BggProvider {
       .map_err(|e| e.to_string())?;
 
     // XML -> struct
-    let full_data: BggSearchResponse = quick_xml::de::from_str(&xml_thing_content)
+    let full_data: BggThingResponse = quick_xml::de::from_str(&xml_thing_content)
       .map_err(|e| format!("Error while parsing BGG XML: {}", e))?;
 
     // keep only wanted fields
@@ -191,7 +197,10 @@ impl MediaProvider for BggProvider {
       })
       .collect();
 
-    Ok(results)
+    Ok(ApiSearchResultCount {
+      results,
+      count: count,
+    })
   }
 
   async fn get_by_id(&self, external_id: u32, _language: Language) -> Result<ApiMedia, String> {

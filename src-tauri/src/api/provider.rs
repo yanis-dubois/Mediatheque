@@ -3,9 +3,10 @@ use std::collections::HashMap;
 use crate::{
   api::{bgg::BggProvider, hardcover::HardcoverProvider, igdb::IgdbProvider, tmdb::TmdbProvider},
   models::{
+    api::ApiSearchResultCount,
     enums::{Language, MediaSource, MediaType},
     image::{ImageConfiguration, ImageSize, ImageType},
-    media::{ApiMedia, ApiSearchResult},
+    media::ApiMedia,
   },
 };
 
@@ -78,7 +79,7 @@ pub trait MediaProvider: Send + Sync {
     query: &str,
     language: Language,
     page: u32,
-  ) -> Result<Vec<ApiSearchResult>, String>;
+  ) -> Result<ApiSearchResultCount, String>;
   async fn get_by_id(&self, external_id: u32, language: Language) -> Result<ApiMedia, String>;
 
   fn get_image_format(&self) -> &str {

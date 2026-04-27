@@ -227,4 +227,11 @@ export class EntityService {
     });
   }
 
+  getDataCount(search: string, context: CollectionMediaType) {
+    return invoke<number>('get_search_in_library_count', { 
+      searchQuery: search, 
+      context: context.type === "ALL" ? null : context.value
+    });
+  }
+
 }

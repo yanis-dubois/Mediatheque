@@ -3,7 +3,7 @@ use std::collections::HashMap;
 use crate::{
   api::provider::MediaProvider,
   models::{
-    api::{HardcoverByIdResponse, HardcoverContributions, HardcoverResponse},
+    api::{ApiSearchResultCount, HardcoverByIdResponse, HardcoverContributions, HardcoverResponse},
     enums::{Language, MediaSource, MediaType, TagType},
     image::{ImageConfiguration, ImageSize, ImageType},
     media::{
@@ -106,7 +106,7 @@ impl MediaProvider for HardcoverProvider {
     query: &str,
     _language: Language,
     page: u32,
-  ) -> Result<Vec<ApiSearchResult>, String> {
+  ) -> Result<ApiSearchResultCount, String> {
     // build request
     let body = serde_json::json!({
       "query": r#"
@@ -136,12 +136,10 @@ impl MediaProvider for HardcoverProvider {
       .json()
       .await
       .map_err(|e| e.to_string())?;
+    let res = response.data.search.results;
 
     // JSON -> ApiSearchResult
-    let results = response
-      .data
-      .search
-      .results
+    let results = res
       .hits
       .into_iter()
       .map(|hit| {
@@ -177,7 +175,10 @@ impl MediaProvider for HardcoverProvider {
       })
       .collect();
 
-    Ok(results)
+    Ok(ApiSearchResultCount {
+      results,
+      count: res.found,
+    })
   }
 
   async fn get_by_id(&self, external_id: u32, _language: Language) -> Result<ApiMedia, String> {

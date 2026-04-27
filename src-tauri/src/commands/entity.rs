@@ -3,34 +3,26 @@ use crate::models::enums::{match_entity_type, EntityType, MediaType};
 use crate::models::query::Pagination;
 use crate::utils::unicode::remove_accents;
 
-#[tauri::command]
-pub fn search_in_library(
-  state: tauri::State<'_, DbState>,
-  search_query: String,
-  context: Option<MediaType>,
-  pagination: Pagination,
-) -> Result<Vec<(String, EntityType)>, String> {
-  let connection = state
-    .connection
-    .lock()
-    .map_err(|_| "Failed to lock database")?;
-  let sql_like = if search_query.is_empty() {
-    "%".to_string()
-  } else {
-    format!("%{}%", remove_accents(&search_query))
-  };
-
+fn build_query(context: Option<MediaType>, pagination: Option<Pagination>) -> String {
   let (type_filter, has_context) = if context.is_none() {
     ("", false)
   } else {
     ("AND m.media_type = ?2", true)
   };
 
-  let query_str = format!(
+  let pagination_str = if let Some(p) = pagination {
+    let limit = p.limit;
+    let offset = p.offset;
+    format!("LIMIT {limit} OFFSET {offset}")
+  } else {
+    "".to_string()
+  };
+
+  format!(
     "
     -- 1. MEDIA
     SELECT id, 'MEDIA' as type, title as display_name, normalized_name, 1 as priority 
-    FROM media m WHERE normalized_name LIKE ?1{media_filter}
+    FROM media m WHERE normalized_name LIKE ?1 {media_filter}
 
     UNION ALL
 
@@ -66,7 +58,7 @@ pub fn search_in_library(
     WHERE t.normalized_name LIKE ?1 AND mt.type IN ('GENRE', 'SAGA', 'GAME_MECHANIC') {type_filter}
 
     ORDER BY priority ASC, normalized_name COLLATE NOCASE ASC
-    LIMIT {limit} OFFSET {offset}
+    {pagination_str}
     ",
     media_filter = if has_context {
       "AND media_type = ?2"
@@ -74,9 +66,28 @@ pub fn search_in_library(
       ""
     },
     type_filter = type_filter,
-    limit = pagination.limit,
-    offset = pagination.offset
-  );
+    pagination_str = pagination_str
+  )
+}
+
+#[tauri::command]
+pub fn search_in_library(
+  state: tauri::State<'_, DbState>,
+  search_query: String,
+  context: Option<MediaType>,
+  pagination: Pagination,
+) -> Result<Vec<(String, EntityType)>, String> {
+  let connection = state
+    .connection
+    .lock()
+    .map_err(|_| "Failed to lock database")?;
+  let sql_like = if search_query.is_empty() {
+    "%".to_string()
+  } else {
+    format!("%{}%", remove_accents(&search_query))
+  };
+
+  let query_str = build_query(context.clone(), Some(pagination));
 
   let mut params: Vec<String> = vec![sql_like];
   if let Some(ctx) = context {
@@ -96,4 +107,38 @@ pub fn search_in_library(
     .map_err(|e| e.to_string())?;
 
   Ok(data)
+}
+
+#[tauri::command]
+pub fn get_search_in_library_count(
+  state: tauri::State<'_, DbState>,
+  search_query: String,
+  context: Option<MediaType>,
+) -> Result<u32, String> {
+  let connection = state
+    .connection
+    .lock()
+    .map_err(|_| "Failed to lock database")?;
+
+  let sql_like = if search_query.is_empty() {
+    "%".to_string()
+  } else {
+    format!("%{}%", remove_accents(&search_query))
+  };
+
+  let base_query = build_query(context.clone(), None);
+  let count_query = format!("SELECT COUNT(*) FROM ({})", base_query);
+
+  let mut params: Vec<String> = vec![sql_like];
+  if let Some(ctx) = context {
+    params.push(ctx.to_string());
+  }
+
+  let count: u32 = connection
+    .query_row(&count_query, rusqlite::params_from_iter(params), |row| {
+      row.get(0)
+    })
+    .map_err(|e| e.to_string())?;
+
+  Ok(count)
 }

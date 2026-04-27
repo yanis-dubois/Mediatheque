@@ -4,8 +4,8 @@ use crate::{
   api::provider::MediaProvider,
   models::{
     api::{
-      IgdbArtwork, IgdbGame, IgdbGameType, IgdbImage, IgdbInvolvedCompany, IgdbTag, IgdbTimeToBeat,
-      MultiQueryResponse,
+      ApiSearchResultCount, IgdbArtwork, IgdbCount, IgdbGame, IgdbGameType, IgdbImage,
+      IgdbInvolvedCompany, IgdbTag, IgdbTimeToBeat, MultiQueryResponse,
     },
     enums::{Language, MediaSource, MediaType, TagType},
     image::{ImageConfiguration, ImageSize, ImageType},
@@ -211,35 +211,57 @@ impl MediaProvider for IgdbProvider {
     query: &str,
     _language: Language,
     page: u32,
-  ) -> Result<Vec<ApiSearchResult>, String> {
+  ) -> Result<ApiSearchResultCount, String> {
     // build request
     let url = format!("{}/games", self.base_media_url);
-    let body = format!(
+    let search_body = format!(
       "search \"{}\"; 
       fields name, summary, involved_companies.company.name, involved_companies.developer, involved_companies.publisher, involved_companies.porting, involved_companies.supporting, first_release_date, cover.image_id, artworks.image_id, artworks.artwork_type, artworks.height, artworks.width, screenshots.image_id, game_type.type; 
       where game_type = (0, 8, 9);
       limit {}; offset {};",
       query, self.page_size, (page-1)*self.page_size
     );
+    let count_body = format!(
+      "search \"{}\";
+      where game_type = (0, 8, 9);",
+      query
+    );
 
     let client = reqwest::Client::new();
 
-    // get response
-    let response: Vec<IgdbGame> = client
+    let request_items = client
       .post(&url)
       .header("Client-ID", &self.client_id)
       .header("Authorization", format!("Bearer {}", &self.token))
       .header("Content-Type", "text/plain")
-      .body(body)
-      .send()
+      .body(search_body)
+      .send();
+
+    let request_count = client
+      .post(format!("{}/count", &url))
+      .header("Client-ID", &self.client_id)
+      .header("Authorization", format!("Bearer {}", &self.token))
+      .header("Content-Type", "text/plain")
+      .body(count_body)
+      .send();
+
+    let (res_items, res_count) = tokio::join!(request_items, request_count);
+
+    // get response
+    let items: Vec<IgdbGame> = res_items
+      .map_err(|e| e.to_string())?
+      .json()
       .await
+      .map_err(|e| e.to_string())?;
+
+    let count_data: IgdbCount = res_count
       .map_err(|e| e.to_string())?
       .json()
       .await
       .map_err(|e| e.to_string())?;
 
     // JSON -> ApiSearchResult
-    let results = response
+    let results = items
       .into_iter()
       .map(|game| {
         let release_date = from_timestamp_to_date(game.first_release_date);
@@ -280,7 +302,10 @@ impl MediaProvider for IgdbProvider {
       })
       .collect();
 
-    Ok(results)
+    Ok(ApiSearchResultCount {
+      results,
+      count: count_data.count,
+    })
   }
 
   async fn get_by_id(&self, external_id: u32, _language: Language) -> Result<ApiMedia, String> {

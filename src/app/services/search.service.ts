@@ -18,6 +18,8 @@ export class SearchService {
   apiSearchQuery = signal<string>('');
   libraryResults = signal<[string, EntityType][]>([]);
   apiResults = signal<ApiSearchResult[]>([]);
+  libraryResultsCount = signal<number>(0);
+  apiResultsCount = signal<number>(0);
 
   librarySearchPage = signal<number>(1);
   apiSearchPage = signal<number>(1);

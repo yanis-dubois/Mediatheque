@@ -38,6 +38,8 @@ export class SearchPageComponent {
   apiSearchPage = this.searchService.apiSearchPage;
   libraryCanLoadMore = this.searchService.libraryCanLoadMore;
   apiCanLoadMore = this.searchService.apiCanLoadMore;
+  libraryResultsCount = this.searchService.libraryResultsCount;
+  apiResultsCount = this.searchService.apiResultsCount;
 
   screenService = inject(ScreenService);
   isLoading = signal<boolean>(false);
@@ -118,6 +120,7 @@ export class SearchPageComponent {
       if (this.mediaType() !== ctx) {
         this.mediaType.set(ctx);
         this.resetApiResults();
+        this.apiResultsCount.set(0);
         reload = true;
       }
 
@@ -126,6 +129,7 @@ export class SearchPageComponent {
       if (hasEmptyQuery) {
         this.resetApiResults();
         this.apiResults.set([]);
+        this.apiResultsCount.set(0);
         return;
       } 
       // reload data if query has changed
@@ -163,6 +167,10 @@ export class SearchPageComponent {
 
     if (!isNextPage) {
       this.resetLibraryResults();
+
+      this.libraryResultsCount.set(
+        await this.entityService.getDataCount(this.librarySearchQuery(), this.mediaType())
+      );
     }
 
     try {
@@ -215,11 +223,15 @@ export class SearchPageComponent {
 
     try {
       let type = this.mediaType();
-      let newResults = await this.apiService.search(
+      const newRes = await this.apiService.search(
         this.apiSearchQuery(), 
         type.type === 'SPECIFIC' ? type.value : MediaType.MOVIE,
         this.apiSearchPage()
       );
+      let newResults = newRes.results;
+      if (newRes.count >= 0) {
+        this.apiResultsCount.set(newRes.count);
+      }
 
       if (newResults.length < 20) {
         this.apiCanLoadMore.set(false);

@@ -1,13 +1,28 @@
 use std::collections::HashMap;
 
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
+
+use crate::models::media::ApiSearchResult;
+
+#[derive(Debug, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct ApiSearchResultCount {
+  pub results: Vec<ApiSearchResult>,
+  pub count: i32,
+}
 
 #[derive(Deserialize, Debug)]
 pub struct ApiResponse {
   pub results: Vec<serde_json::Value>,
+  pub total_results: i32,
 }
 
 /* IGDB */
+
+#[derive(Deserialize)]
+pub struct IgdbCount {
+  pub count: i32,
+}
 
 #[derive(Deserialize)]
 pub struct MultiQueryResponse {
@@ -113,6 +128,7 @@ pub struct HardcoverSearch {
 #[derive(Deserialize)]
 pub struct HardcoverResults {
   pub hits: Vec<HardcoverDocument>,
+  pub found: i32,
 }
 
 #[derive(Deserialize)]
@@ -190,6 +206,14 @@ pub struct HardcoverTag {
 
 #[derive(Debug, Deserialize)]
 pub struct BggSearchResponse {
+  #[serde(rename = "item", default)]
+  pub items: Vec<BggSearchItem>,
+  #[serde(rename = "@total")]
+  pub total: i32,
+}
+
+#[derive(Debug, Deserialize)]
+pub struct BggThingResponse {
   #[serde(rename = "item", default)]
   pub items: Vec<BggSearchItem>,
 }

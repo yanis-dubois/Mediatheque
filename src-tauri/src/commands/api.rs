@@ -10,9 +10,10 @@ use crate::{
   },
   db::DbState,
   models::{
+    api::ApiSearchResultCount,
     enums::{Language, MediaSource, MediaType},
     image::ImageConfiguration,
-    media::{ApiMedia, ApiSearchResult},
+    media::ApiMedia,
   },
 };
 
@@ -39,26 +40,26 @@ pub async fn search_media_on_internet(
   media_type: MediaType,
   language: Language,
   page: u32,
-) -> Result<Vec<ApiSearchResult>, String> {
+) -> Result<ApiSearchResultCount, String> {
   println!("search_media_on_internet");
 
   // get API results
   let provider = provider_store
     .get_default(&media_type)
     .ok_or_else(|| "Failed to retrieve provider".to_string())?;
-  let mut results = provider.search(&query, language, page).await?;
+  let mut res = provider.search(&query, language, page).await?;
 
   // check if results are already in library
-  let ids: Vec<u32> = results.iter().map(|r| r.state.external_id).collect();
+  let ids: Vec<u32> = res.results.iter().map(|r| r.state.external_id).collect();
   let existing_media = get_local_id_batch_by_external(&db_state, &ids, media_type)?;
-  for item in &mut results {
+  for item in &mut res.results {
     if let Some(local_id) = existing_media.get(&item.state.external_id) {
       item.state.is_in_library = true;
       item.state.id = Some(local_id.clone());
     }
   }
 
-  Ok(results)
+  Ok(res)
 }
 
 async fn get_api_media(

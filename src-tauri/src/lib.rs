@@ -55,6 +55,7 @@ pub fn run() {
       commands::pin::unpin_collection,
       commands::pin::update_pinned_collections,
       commands::entity::search_in_library,
+      commands::entity::get_search_in_library_count,
       commands::metadata::get_person_batch,
       commands::metadata::get_person_by_id,
       commands::metadata::get_company_batch,

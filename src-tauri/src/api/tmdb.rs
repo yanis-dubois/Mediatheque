@@ -3,7 +3,7 @@ use std::collections::HashMap;
 use crate::{
   api::provider::MediaProvider,
   models::{
-    api::ApiResponse,
+    api::{ApiResponse, ApiSearchResultCount},
     enums::{Language, MediaSource, MediaType, TagType},
     image::{ImageConfiguration, ImageSize, ImageType},
     media::{
@@ -137,7 +137,7 @@ impl MediaProvider for TmdbProvider {
     query: &str,
     language: Language,
     page: u32,
-  ) -> Result<Vec<ApiSearchResult>, String> {
+  ) -> Result<ApiSearchResultCount, String> {
     // build url
     let endpoint = get_endpoint_from_media_type(self.media_type.clone());
     let formatted_language = format_language(language);
@@ -210,7 +210,10 @@ impl MediaProvider for TmdbProvider {
       })
       .collect();
 
-    Ok(results)
+    Ok(ApiSearchResultCount {
+      results,
+      count: full_data.total_results,
+    })
   }
 
   async fn get_by_id(&self, external_id: u32, language: Language) -> Result<ApiMedia, String> {

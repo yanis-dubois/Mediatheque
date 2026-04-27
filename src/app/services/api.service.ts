@@ -4,6 +4,7 @@ import { AnyApiMedia, ApiMedia, ApiSearchResult, MediaSource, MediaType } from '
 import { invoke } from '@tauri-apps/api/core';
 import { SettingsService } from './settings.service';
 import { ImageService } from './image.service';
+import { ApiSearchResultCount } from '@app/models/media-query.model';
 
 @Injectable({ providedIn: 'root' })
 export class ApiService {
@@ -60,8 +61,8 @@ export class ApiService {
 
   /* get */
 
-  async search(query: string, mediaType: MediaType, page: number): Promise<ApiSearchResult[]> {
-    return await invoke<ApiSearchResult[]>('search_media_on_internet', { 
+  async search(query: string, mediaType: MediaType, page: number): Promise<ApiSearchResultCount> {
+    return await invoke<ApiSearchResultCount>('search_media_on_internet', { 
       query, 
       mediaType, 
       language: this.settingsService.language(),

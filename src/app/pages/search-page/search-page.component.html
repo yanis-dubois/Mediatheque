@@ -1,16 +1,18 @@
 @if (mode(); as mode) {
+  @let isLibrary = mode === 'library';
+
   <app-action-bar [leftButtonType]="'home'">
     <div class="tool-bar menu-background">
       <div 
         class="tool-item" 
-        [class.is-active]="mode === 'library'"
+        [class.is-active]="isLibrary"
         (click)="onModeChange('library')"
       >
         Library
       </div>
       <div 
         class="tool-item" 
-        [class.is-active]="mode === 'api'"
+        [class.is-active]="!isLibrary"
         (click)="onModeChange('api')"
       >
         Internet
@@ -29,16 +31,20 @@
           #searchInput
           class="input-search"
           type="text"
-          [placeholder]="'Search '+(mode === 'library' ? 'in' : 'on')+' the '+(mode === 'library' ? 'library' : 'internet')+'...'"
+          [placeholder]="'Search '+(isLibrary ? 'in' : 'on')+' the '+(isLibrary ? 'library' : 'internet')+'...'"
           [value]="searchQuery()"
           (input)="searchQuery.set($any($event.target).value)"
           (keydown.enter)="searchInput.blur()"
           (keydown.escape)="searchQuery.set(''); searchInput.blur()"
         />
+
+        <div class="media-count">
+          {{ isLibrary ? libraryResultsCount() : apiResultsCount() }}
+        </div>
       </div>
     </div>
 
-    @if (mode === 'library') {
+    @if (isLibrary) {
       <app-search-list 
         class="virtual-host virtual-host-list"
         [layoutData]="layoutData()" 
