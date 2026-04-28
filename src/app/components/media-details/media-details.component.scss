@@ -12,7 +12,7 @@
   flex-direction: column;
   height: 100vh;
   width: 100vw;
-  color: white;
+  color: var(--color-light);
 
   .icon {
     width: 24px;
@@ -80,7 +80,7 @@
       "poster desc"
       "poster crew";
     gap: 0 48px;
-    padding: 56px var(--side-margin) 32px var(--side-margin);
+    padding: 54px var(--side-margin) 32px var(--side-margin);
 
     // Tablet
     @media (max-width: 1025px) {
@@ -233,7 +233,7 @@
       .description-text {
         max-width: 800px;
         line-height: 1.6;
-        color: #ccc;
+        color: var(--color-light-soft);
 
         &.skeleton-text {
           margin: 8px 0;
@@ -269,15 +269,31 @@
 
   .name { 
     font-weight: var(--font-bold);
-    color: #fff;
   }
   a .name {
     &:hover {
-      color: #ccc;
+      color: var(--color-light-deep);
     }
   }
-  .role { font-size: var(--text-sm); color: #aaa; }
-  .text { color: #aaa; }
+  .role { 
+    font-size: var(--text-sm); 
+    color: var(--color-light-deep); 
+  }
+  .text { 
+    color: var(--color-light-deep); 
+  }
+  .tag-list {
+    color: var(--color-light-dark);
+    &:hover {
+      color: var(--color-light-deep-dark);
+    }
+  }
+  .tag-top {
+    color: var(--color-light-bright);
+    &:hover {
+      color: var(--color-light-dark);
+    }
+  }
 
   // --- LOWER CONTENT ---
   .secondary-container {
@@ -314,6 +330,7 @@
 
         &.synopsis {
           max-width: none;
+          color: var(--color-light-soft);
         }
 
         h2, h3 {

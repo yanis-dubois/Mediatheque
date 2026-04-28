@@ -1,7 +1,13 @@
 .action {
+  top: 0;
+  margin-top: 8px;
   position: fixed;
-  z-index: 900;
-  top: 8px;
+  z-index: 1000;
+}
+@media (pointer: coarse) { 
+  .action {
+    margin-top: max(28px, env(safe-area-inset-top));
+  }
 }
 .action-left {
   left: 16px;

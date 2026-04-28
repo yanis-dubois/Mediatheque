@@ -7,8 +7,18 @@
   transform: translate3d(0, 0, 0);
 }
 
+body {
+  // avoid elastic bounce on page scroll
+  overscroll-behavior: none;
+}
+@media (pointer: coarse) { 
+  body {
+    padding-top: max(24px, env(safe-area-inset-top));
+  }
+}
+
 /* scrollbar */
-/* --- Standards Firefox --- */
+/* --- Firefox --- */
 * {
   scrollbar-width: thin;
   scrollbar-color: var(--scrollbar-thumb) var(--scrollbar-bg);
@@ -87,10 +97,12 @@
   --color-primary-dark: #5F61BB;
   --color-primary-deep: #343E92;
   /* light */
-  --color-light-bright: #ffffff;
-  --color-light: #f6f6f6; /* DEFAULT */
-  --color-light-soft: #D0D0D0;
-  --color-light-dark: #808080;
+  --color-light-bright: oklch(1 0 0);
+  --color-light: oklch(0.94 0 0); /* DEFAULT */
+  --color-light-soft: oklch(0.88 0 0);
+  --color-light-dark: oklch(0.82 0 0);
+  --color-light-deep: oklch(0.76 0 0);
+  --color-light-deep-dark: oklch(0.70 0 0);
   /* dark */
   --color-dark-lighter: oklch(0.36 0 0);
   --color-dark-light: oklch(0.3 0 0);
@@ -108,10 +120,10 @@
   --color-transparent-dark-soft: oklch(0.25 0 0 / 0.66);
   --color-transparent-dark: oklch(0.15 0 0 / 0.66);
   /* status */
-  --color-status-finished: oklch(42% 0.1 145);
-  --color-status-in-progress: oklch(42% 0.1 260);
-  --color-status-to-discover: oklch(42% 0 0);
-  --color-status-dropped: oklch(42% 0.1 20);
+  --color-status-finished: oklch(46% 0.1 145);
+  --color-status-in-progress: oklch(46% 0.1 260);
+  --color-status-to-discover: oklch(46% 0.1 305);
+  --color-status-dropped: oklch(46% 0.1 20);
 
   /* text */
   /* font size */
@@ -527,18 +539,19 @@ select {
 .page-header {
   margin: 0 var(--side-margin);
   flex-shrink: 0;
-  margin-top: 56px;
+  margin-top: 46px;
 
   h1 {
-    margin: 16px 0;
+    margin: 8px 0 16px 0;
     text-align: start;
   }
 
-  /* tablet */
+  /* tablet + desktop */
   @media (min-width: 600px) {
     margin-top: 0;
 
     h1 {
+      margin: 16px 0;
       text-align: center;
     }
   }

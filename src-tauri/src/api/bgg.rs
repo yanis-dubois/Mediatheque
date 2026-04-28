@@ -217,7 +217,7 @@ impl MediaProvider for BggProvider {
       .await
       .map_err(|e| e.to_string())?;
 
-    let response: BggSearchResponse =
+    let response: BggThingResponse =
       quick_xml::de::from_str(&xml_content).map_err(|e| format!("BGG Detail XML Error: {}", e))?;
     let item = response
       .items

@@ -147,7 +147,7 @@
               @for (category of media.tags | filterTags:tagFilter; track category.key; let lastCategory = $last) {
                 <div class="tag-group">
                   @for (tag of category.value.slice(0, 5); track tag.id; let lastTag = $last) {
-                    <a [routerLink]="['/metadata', category.key, tag.id]" [class.saga]="category.key === 'SAGA'">{{ tag.name }}</a>@if (!lastTag) {<span>, </span>}
+                    <a class="tag-top" [routerLink]="['/metadata', category.key, tag.id]" [class.saga]="category.key === 'SAGA'">{{ tag.name }}</a>@if (!lastTag) {<span>, </span>}
                   }
                   @if (category.value.length > 5) {<span>, ...</span>}
                 </div>
@@ -160,7 +160,7 @@
               @for (category of media.tags | filterTags:tagFilter; track category.key; let lastCategory = $last) {
                 <div class="tag-group">
                   @for (tag of category.value.slice(0, 5); track tag; let lastTag = $last) {
-                    <span [class.saga]="category.key === 'SAGA'">{{ tag }}@if (!lastTag) {<span>, </span>}</span>
+                    <span class="tag-top" [class.saga]="category.key === 'SAGA'">{{ tag }}@if (!lastTag) {<span>, </span>}</span>
                   }
                   @if (category.value.length > 5) {<span>, ...</span>}
                 </div>
@@ -276,14 +276,14 @@
                 @if (categoryTags && categoryTags.length > 0) {
                   <div class="secondary-section video-game">
                     <h3>{{ label }}</h3>
-                    <div class="cast-list">
+                    <div>
                       @if (isLibraryMedia(media)) {
                         @for (tag of media.tags[asTagType(type)]; track tag.id; let last = $last) {
-                          <a [routerLink]="['/metadata', type, tag.id]">{{ tag.name }}</a>@if (!last) {<span>, </span>}
+                          <a class="tag-list" [routerLink]="['/metadata', type, tag.id]">{{ tag.name }}</a>@if (!last) {<span>, </span>}
                         }
                       } @else {
                         @for (tag of media.tags[asTagType(type)]; track tag; let last = $last) {
-                          <span>{{ tag }}</span>@if (!last) {<span>, </span>}
+                          <span class="tag-list">{{ tag }}</span>@if (!last) {<span>, </span>}
                         }
                       }
                     </div>
