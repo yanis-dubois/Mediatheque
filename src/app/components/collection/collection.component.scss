@@ -1,0 +1,12 @@
+.collection-type { 
+  margin-right: 4px;
+  width: 18px;
+  height: 18px;
+  align-self: center;
+
+  opacity: 0;
+  transition: opacity 0.15s ease;
+}
+.page-header:hover .collection-type {
+  opacity: 0.6;
+}

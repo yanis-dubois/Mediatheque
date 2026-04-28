@@ -29,7 +29,7 @@ export class CollectionDetailedGridComponent {
 
   minColumnWidth = signal(0);
   containerWidth = signal(0);
-  cardHeight = signal(198);
+  // cardHeight = signal(198); 
   navHeight = signal<number>(50);
   gap = 12;
 
@@ -44,6 +44,11 @@ export class CollectionDetailedGridComponent {
     const totalWidth = this.containerWidth();
     const nbCols = this.columns();
     return (totalWidth - (this.gap * nbCols)) / nbCols;
+  });
+
+  // backdrop height (16:9) + infos height (72px)
+  cardHeight = computed(() => {
+    return 72 + ((this.columnWidth() * 9) / 16);
   });
 
   protected getMediaLayout(index: number) {

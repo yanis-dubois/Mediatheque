@@ -33,7 +33,7 @@ export class MediaCardDetailsComponent {
   width = input.required<number>();
 
   posterWidth = signal(0);
-  height = computed(() => (this.posterWidth() * 9) / 16);
+  height = computed(() => (this.width() * 9) / 16);
 
   protected readonly ImageType = ImageType;
   protected readonly ImageSize = ImageSize;

@@ -8,7 +8,7 @@
   <div class="page-content">
     <h2>Localisation</h2>
     <div class="setting-item">
-      <label>Language</label>
+      <label>Language :&nbsp;</label>
       <select [value]="settings.language()" (change)="onModeChange(SettingsKeys.LANGUAGE, $event)">
         @for (language of languages; track language) {
           <option [value]="language" [selected]="language === settings.language()">
@@ -20,7 +20,7 @@
 
     <h2>Display Preferences</h2>
     <div class="setting-item">
-      <label>Theme</label>
+      <label>Theme :&nbsp;</label>
       <select [value]="settings.theme()" (change)="onModeChange(SettingsKeys.THEME, $event)">
         @for (theme of themes; track theme) {
           <option [value]="theme" [selected]="theme === settings.theme()">
@@ -30,7 +30,7 @@
       </select>
     </div>
     <div class="setting-item">
-      <label>Score</label>
+      <label>Score :&nbsp;</label>
       <select [value]="settings.scoreDisplayMode()" (change)="onModeChange(SettingsKeys.SCORE_DISPLAY_MODE, $event)">
         @for (mode of scoreDisplayModes; track mode) {
           <option [value]="mode" [selected]="mode === settings.scoreDisplayMode()">
@@ -40,13 +40,23 @@
       </select>
     </div>
 
+    <hr class="separator">
+
     <h1>Credits</h1>
-    <p>This application uses external data that came from different API but is not endorsed, certified, or otherwise approved by those.</p>
+    <p class="bottom-text">This application uses external data that came from different API but is not endorsed, certified, or otherwise approved by those.</p>
     <div class="logos">
-      <img src="assets/logo/Hardcover_Darkmode.png" alt="Hardcover logo" class="api-logo">
-      <img src="assets/logo/TMDB.svg" alt="TMDB logo" class="api-logo">
-      <img src="assets/logo/IGDB_White.png" alt="IGDB logo" class="api-logo">
-      <img src="assets/logo/BGG.png" alt="BGG logo" class="api-logo">
+      <a href="https://hardcover.app" target="_blank">
+        <img src="assets/logo/Hardcover_Darkmode.png" alt="Hardcover logo" class="api-logo">
+      </a>
+      <a href="https://www.themoviedb.org" target="_blank">
+        <img src="assets/logo/TMDB.svg" alt="TMDB logo" class="api-logo">
+      </a>
+      <a href="https://www.igdb.com" target="_blank">
+        <img src="assets/logo/IGDB_White.png" alt="IGDB logo" class="api-logo">
+      </a>
+      <a href="https://boardgamegeek.com" target="_blank">
+        <img src="assets/logo/BGG.png" alt="BGG logo" class="api-logo">
+      </a>
     </div>
   </div>
 

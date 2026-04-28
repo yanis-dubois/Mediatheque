@@ -8,6 +8,13 @@
   text-overflow: ellipsis;
 }
 
+.collection-type {
+  opacity: 0.6;
+  margin-right: 2px;
+  width: 12px;
+  height: 12px;
+}
+
 .viewport-container {
   width: 100%;
   height: calc((var(--card-width-line) * 1.5) + 2px);
@@ -65,7 +72,6 @@
   padding-left: 4px;
   align-self: center;
   font-size: var(--text-xs);
-  color: var(--color-light-dark);
 }
 
 .menu-slot {

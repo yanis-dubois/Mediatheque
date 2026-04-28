@@ -103,6 +103,7 @@ body {
   --color-light-dark: oklch(0.82 0 0);
   --color-light-deep: oklch(0.76 0 0);
   --color-light-deep-dark: oklch(0.70 0 0);
+  --color-light-deep-deep: oklch(0.58 0 0);
   /* dark */
   --color-dark-lighter: oklch(0.36 0 0);
   --color-dark-light: oklch(0.3 0 0);
@@ -282,6 +283,8 @@ h1 {
   .layout-icon {
     width: 24px;
     height: 24px;
+    font-size: 24px;
+    text-align: center;
     pointer-events: none;
   }
 
@@ -497,9 +500,11 @@ button.tool-item {
     align-self: center;
     background: var(--color-dark-light);
     font-size: var(--text-sm);
-    color: var(--color-light-dark);
     pointer-events: none;
   }
+}
+.media-count {
+  color: var(--color-light-deep-deep);
 }
 select {
   background: var(--color-dark);
@@ -539,7 +544,7 @@ select {
 .page-header {
   margin: 0 var(--side-margin);
   flex-shrink: 0;
-  margin-top: 46px;
+  margin-top: 50px;
 
   h1 {
     margin: 8px 0 16px 0;

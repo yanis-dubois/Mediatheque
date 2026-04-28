@@ -5,6 +5,22 @@
   justify-content: center;
 
   img {
-    margin: 8px;
+    margin: 8px 24px;
   }
+}
+
+.setting-item {
+  margin-bottom: 8px;
+}
+
+.bottom-text {
+  text-align: center;
+}
+
+.separator {
+  border: none;
+  height: 1px;
+  background-color: var(--color-dark-light);
+
+  margin: 32px 0;
 }

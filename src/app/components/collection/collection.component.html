@@ -69,6 +69,14 @@
         <div class="page-header">
 
           <div style="display: flex; justify-content: center;">
+            @switch (collection.collectionType) {
+              @case (CollectionType.DYNAMIC) {
+                <img class="collection-type" title="Dynamic Collection" src="assets/icons/dynamic.svg"/>
+              }
+              @case (CollectionType.SYSTEM) {
+                <img class="collection-type" title="System Collection" src="assets/icons/system.svg"/>
+              }
+            }
             @if (collection.collectionType === CollectionType.SYSTEM) {
               <h1>
                 {{ name() }}

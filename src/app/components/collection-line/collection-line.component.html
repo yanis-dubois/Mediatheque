@@ -3,6 +3,15 @@
   <div class="line-header">
     <a [routerLink]="['/collection', collection.id]">
       <h3 class="title title-chevron">
+        @switch (collection.collectionType) {
+          @case (CollectionType.DYNAMIC) {
+            <img class="collection-type" title="Dynamic Collection" src="assets/icons/dynamic.svg"/>
+          }
+          @case (CollectionType.SYSTEM) {
+            <img class="collection-type" title="System Collection" src="assets/icons/system.svg"/>
+          }
+        }
+
         {{ collection.name }} 
         <img src="assets/icons/chevron.svg"/>
       </h3>

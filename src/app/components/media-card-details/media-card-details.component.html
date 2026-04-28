@@ -6,37 +6,40 @@
   @if (media(); as media) {
     <div class="media-card" @fadeIn>
 
-      <a [routerLink]="['/media', media.id]">
-        <div [style.width.px]="width()" [style.height.px]="height()" style="contain: strict;">
-          <app-media-image 
-            [source]="resolvedSrc()"
-            [title]="media.title" 
-            [type]="'backdrop'" 
-            [hasImage]="media.hasBackdrop || media.hasPoster"
-            [customStyle]="'width: 100%; height: 100%; object-fit: cover;'"
-            (onLoad)="onImageReady()"
-          >
-          </app-media-image>
-        </div>
-      </a>
+      <a class="media-link" [routerLink]="['/media', media.id]"></a>
 
-      <div class="menu-slot">
+      <div [style.width.px]="width()" [style.height.px]="height()" style="contain: strict;">
+        <app-media-image 
+          [source]="resolvedSrc()"
+          [title]="media.title" 
+          [type]="'backdrop'" 
+          [hasImage]="media.hasBackdrop || media.hasPoster"
+          [customStyle]="'width: 100%; height: 100%; object-fit: cover;'"
+          (onLoad)="onImageReady()"
+        >
+        </app-media-image>
+      </div>
+      
+
+      <div class="menu-slot interaction-zone">
         <ng-content select="[mediaMenu]"></ng-content>
       </div>
 
       <div class="info">
-        <h4 class="title" [attr.title]="media.title">{{ media.title }}</h4>
+        <h4 class="title" [attr.title]="media.title">
+          {{ media.title }}
+        </h4>
 
         <div class="action">
-          <div class="fav-slot">
+          <div class="fav-slot interaction-zone">
             <app-media-favorite-action [mediaId]="media.id"></app-media-favorite-action>
           </div>
     
-          <div class="status-container">
+          <div class="status-container interaction-zone">
             <app-media-status-action [mediaId]="media.id"></app-media-status-action>
           </div>
 
-          <div class="score-slot">
+          <div class="score-slot interaction-zone">
             <app-media-score-action [mediaId]="media.id"></app-media-score-action>
           </div>
         </div>
