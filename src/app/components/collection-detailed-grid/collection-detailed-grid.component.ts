@@ -8,6 +8,9 @@ import { injectVirtualizer, VirtualItem } from '@tanstack/angular-virtual';
 import { EntityService } from '@app/services/entity.service';
 import { EntityType } from '@app/models/entity.model';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { SettingsService } from '@app/services/settings.service';
+import { ScoreDisplayMode } from '@app/models/score.model';
+import { MediaOwnership } from '@app/models/settings.model';
 
 @Component({
   selector: 'app-collection-detailed-grid',
@@ -27,11 +30,17 @@ export class CollectionDetailedGridComponent {
   private scrollSubject = new Subject<string[]>();
   private el = inject(ElementRef);
 
+  private settingsService = inject(SettingsService);
+  showScore = this.settingsService.scoreDisplayMode() !== ScoreDisplayMode.HIDDEN;
+  showMediaOwnership = this.settingsService.mediaOwnership() !== MediaOwnership.HIDDEN;
+
   minColumnWidth = signal(0);
   containerWidth = signal(0);
   // cardHeight = signal(198); 
   navHeight = signal<number>(50);
   gap = 12;
+  infoHeight = (!this.showScore || !this.showMediaOwnership) 
+    ? 72 : 94;
 
   columns = computed(() => {
     const width = this.containerWidth();
@@ -48,7 +57,7 @@ export class CollectionDetailedGridComponent {
 
   // backdrop height (16:9) + infos height (72px)
   cardHeight = computed(() => {
-    return 72 + ((this.columnWidth() * 9) / 16);
+    return this.infoHeight + ((this.columnWidth() * 9) / 16);
   });
 
   protected getMediaLayout(index: number) {

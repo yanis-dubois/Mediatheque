@@ -30,10 +30,20 @@
       </select>
     </div>
     <div class="setting-item">
-      <label>Score :&nbsp;</label>
+      <label>Media Score :&nbsp;</label>
       <select [value]="settings.scoreDisplayMode()" (change)="onModeChange(SettingsKeys.SCORE_DISPLAY_MODE, $event)">
         @for (mode of scoreDisplayModes; track mode) {
           <option [value]="mode" [selected]="mode === settings.scoreDisplayMode()">
+            {{ mode | humanize }}
+          </option>
+        }
+      </select>
+    </div>
+    <div class="setting-item">
+      <label>Media Ownership :&nbsp;</label>
+      <select [value]="settings.mediaOwnership()" (change)="onModeChange(SettingsKeys.MEDIA_OWNERSHIP, $event)">
+        @for (mode of mediaOwnership; track mode) {
+          <option [value]="mode" [selected]="mode === settings.mediaOwnership()">
             {{ mode | humanize }}
           </option>
         }

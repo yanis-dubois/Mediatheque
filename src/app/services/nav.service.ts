@@ -70,7 +70,11 @@ export class NavService {
         this._page.set(PageType.HOME);
       }
 
-      if (url.includes('media') || (url.includes('collection') && !url.includes('collections')) || url.includes('settings')) {
+      if (
+        url.includes('media') || 
+        (url.includes('collection') && !url.includes('collections')) || 
+        url.includes('settings')
+      ) {
         this._canSwitchContext.set(false);
       } else {
         this._canSwitchContext.set(true);

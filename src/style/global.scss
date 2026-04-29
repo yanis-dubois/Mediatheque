@@ -80,7 +80,7 @@ body {
   --card-width-grid: 80px;
   --card-width-line: 80px;
   --card-width-list: 32px;
-  --card-width-detailed: 224px;
+  --card-width-detailed: 228px;
   /* margin & gap */
   --side-margin: 16px;
   --list-padding: 4px;
@@ -121,10 +121,16 @@ body {
   --color-transparent-dark-soft: oklch(0.25 0 0 / 0.66);
   --color-transparent-dark: oklch(0.15 0 0 / 0.66);
   /* status */
+  // progression
   --color-status-finished: oklch(46% 0.1 145);
   --color-status-in-progress: oklch(46% 0.1 260);
   --color-status-to-discover: oklch(46% 0.1 305);
   --color-status-dropped: oklch(46% 0.1 20);
+  // ownership
+  --color-status-owned: oklch(58% 0.1 95);
+  --color-status-borrowed: oklch(46% 0.1 175);
+  --color-status-wanted: oklch(46% 0.1 350);
+  --color-status-not-owned: oklch(46% 0.1 50);
 
   /* text */
   /* font size */
@@ -196,6 +202,22 @@ body {
   }
 }
 
+.no-select,
+button,
+a,
+select,
+.layout-selector,
+.tool-item {
+  user-select: none;
+  -webkit-user-drag: none;
+  -webkit-user-select: none;
+  -webkit-tap-highlight-color: transparent;
+
+  &:focus, &:active {
+    outline: none;
+    background-color: transparent; 
+  }
+}
 
 .hidden {
   display: none;

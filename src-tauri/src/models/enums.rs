@@ -11,6 +11,7 @@ pub enum SettingsKey {
   Language,
   ScoreDisplayMode,
   Theme,
+  MediaOwnership,
 }
 
 #[derive(Debug, Serialize, Deserialize, PartialEq, Clone)]
@@ -21,6 +22,7 @@ pub enum SettingValue {
   Language(Language),
   ScoreMode(ScoreDisplayMode),
   Theme(Theme),
+  MediaOwnership(MediaOwnershipMode),
 }
 
 impl SettingValue {
@@ -29,6 +31,7 @@ impl SettingValue {
       SettingValue::Language(mode) => mode.to_string(),
       SettingValue::ScoreMode(mode) => mode.to_string(),
       SettingValue::Theme(mode) => mode.to_string(),
+      SettingValue::MediaOwnership(mode) => mode.to_string(),
     }
   }
 }
@@ -62,6 +65,15 @@ pub enum ScoreDisplayMode {
   Stars,
   ThreeStep,
   FiveStep,
+}
+
+#[derive(Debug, Serialize, Deserialize, PartialEq, Clone, EnumIter)]
+#[serde(rename_all = "SCREAMING_SNAKE_CASE")]
+#[derive(strum::Display, strum::EnumString)]
+#[strum(serialize_all = "SCREAMING_SNAKE_CASE")]
+pub enum MediaOwnershipMode {
+  Hidden,
+  Shown,
 }
 
 /* Media */
@@ -103,6 +115,19 @@ pub enum MediaStatus {
   InProgress,
   Finished,
   Dropped,
+}
+
+#[derive(Debug, Serialize, Deserialize, PartialEq, Clone)]
+#[serde(rename_all = "SCREAMING_SNAKE_CASE")]
+#[derive(strum::Display, strum::EnumString)]
+#[strum(serialize_all = "SCREAMING_SNAKE_CASE")]
+#[derive(Default)]
+pub enum MediaPossessionStatus {
+  #[default]
+  Wanted,
+  Borrowed,
+  Owned,
+  NotOwned,
 }
 
 #[derive(Debug, Serialize, Deserialize, PartialEq, Clone, Eq, Hash)]
@@ -277,6 +302,14 @@ pub fn match_media_status(s: &str) -> MediaStatus {
     "FINISHED" => MediaStatus::Finished,
     "DROPPED" => MediaStatus::Dropped,
     _ => MediaStatus::ToDiscover, // default
+  }
+}
+pub fn match_media_possession_status(s: &str) -> MediaPossessionStatus {
+  match s {
+    "OWNED" => MediaPossessionStatus::Owned,
+    "BORROWED" => MediaPossessionStatus::Borrowed,
+    "WANTED" => MediaPossessionStatus::Wanted,
+    _ => MediaPossessionStatus::NotOwned, // default
   }
 }
 pub fn match_tag_type(s: &str) -> TagType {

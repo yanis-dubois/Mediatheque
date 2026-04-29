@@ -2,7 +2,7 @@ import { inject, Injectable } from '@angular/core';
 
 import { invoke } from '@tauri-apps/api/core';
 
-import { LibraryMedia, ApiMedia, MediaStatus, MediaType, MediaSource } from '@models/media.model';
+import { LibraryMedia, ApiMedia, MediaStatus, MediaType, MediaSource, MediaPossessionStatus } from '@models/media.model';
 import { EntityService } from './entity.service';
 import { EntityType } from '@app/models/entity.model';
 import { ImageService } from './image.service';
@@ -47,6 +47,11 @@ export class MediaService {
   async updateStatus(id: string, status: MediaStatus): Promise<void> {
     await invoke('update_media_status', { id, status });
     this.updateCache(id, { status: status } );
+  }
+
+  async updatePossessionStatus(id: string, status: MediaPossessionStatus): Promise<void> {
+    await invoke('update_media_possession_status', { id, status });
+    this.updateCache(id, { possessionStatus: status } );
   }
 
   async updateNotes(id: string, notes: string): Promise<void> {

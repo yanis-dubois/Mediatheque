@@ -15,11 +15,13 @@ import { NavService, PageType } from '@app/services/nav.service';
 import { MediaScoreActionComponent } from "../media-score-action/media-score-action.component";
 import { SettingsService } from '@app/services/settings.service';
 import { ScoreDisplayMode } from '@app/models/score.model';
+import { MediaPossessionStatusActionComponent } from "../media-possession-status-action/media-possession-status-action.component";
+import { MediaOwnership } from '@app/models/settings.model';
 
 @Component({
   selector: 'app-media-action',
   standalone: true,
-  imports: [CollectionPickerComponent, MediaStatusActionComponent, MediaFavoriteActionComponent, MediaScoreActionComponent],
+  imports: [CollectionPickerComponent, MediaStatusActionComponent, MediaFavoriteActionComponent, MediaScoreActionComponent, MediaPossessionStatusActionComponent],
   templateUrl: './media-action.component.html'
 })
 export class MediaActionComponent {
@@ -42,6 +44,7 @@ export class MediaActionComponent {
   private navService = inject(NavService);
   private settingsService = inject(SettingsService);
   showScore = this.settingsService.scoreDisplayMode() !== ScoreDisplayMode.HIDDEN;
+  showMediaOwnership = this.settingsService.mediaOwnership() !== MediaOwnership.HIDDEN;
 
   media = computed(() => {
     return this.entityService.getMedia(this.mediaId());

@@ -3,7 +3,7 @@ use std::collections::HashMap;
 
 use super::enums::{MediaStatus, MediaType};
 use crate::models::{
-  enums::{MediaSource, TagType},
+  enums::{MediaPossessionStatus, MediaSource, TagType},
   metadata::Tag,
 };
 
@@ -107,6 +107,7 @@ pub struct LibraryState {
   pub external_id: Option<u32>,
   pub added_date: String,
   pub status: MediaStatus,
+  pub possession_status: MediaPossessionStatus,
   pub favorite: bool,
   pub notes: String,
   pub score: Option<u32>,

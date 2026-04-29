@@ -26,12 +26,28 @@ export enum MediaStatus {
   DROPPED = "DROPPED"
 }
 
+export enum MediaPossessionStatus {
+  OWNED = "OWNED", 
+  BORROWED = "BORROWED", 
+  WANTED = "WANTED", 
+  NOT_OWNED = "NOT_OWNED"
+}
+
 export const getStatusColor = (status: MediaStatus): string => {
   switch (status) {
     case MediaStatus.FINISHED: return "var(--color-status-finished)";
     case MediaStatus.IN_PROGRESS: return "var(--color-status-in-progress)";
     case MediaStatus.TO_DISCOVER: return "var(--color-status-to-discover)";
     case MediaStatus.DROPPED: return "var(--color-status-dropped)";
+  }
+};
+
+export const getPossessionStatusColor = (status: MediaPossessionStatus): string => {
+  switch (status) {
+    case MediaPossessionStatus.OWNED: return "var(--color-status-owned)";
+    case MediaPossessionStatus.BORROWED: return "var(--color-status-borrowed)";
+    case MediaPossessionStatus.WANTED: return "var(--color-status-wanted)";
+    case MediaPossessionStatus.NOT_OWNED: return "var(--color-status-not-owned)";
   }
 };
 
@@ -145,6 +161,7 @@ export interface LibraryState {
   externalId?: number;
   addedDate: string;
   status: MediaStatus;
+  possessionStatus: MediaPossessionStatus;
   favorite: boolean;
   notes: string;
   score?: number;

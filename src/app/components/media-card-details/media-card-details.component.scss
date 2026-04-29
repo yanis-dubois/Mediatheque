@@ -63,7 +63,11 @@
 .action {
   display: flex;
   align-items: center;
-  gap: 2px;
+  gap: 4px;
+
+  &.action-top {
+    margin-bottom: 2px;
+  }
 }
 
 .fav-slot {

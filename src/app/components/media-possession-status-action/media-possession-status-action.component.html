@@ -1,0 +1,20 @@
+@if (media(); as media) {
+  <div class="select-container">
+    <div 
+      class="select-wrapper" 
+      [style.background-color]="getPossessionStatusColor(media.possessionStatus)"
+      (click)="$event.preventDefault(); $event.stopPropagation()"
+    >
+      <span class="shadow-text">{{ media.possessionStatus | humanize }}</span>
+
+      <select 
+        (change)="onStatusChange($any($event.target).value)"
+        class="status-select"
+      >
+        @for (opt of statusOptions; track opt) {
+          <option [value]="opt" [selected]="opt === media.possessionStatus">{{ opt | humanize }}</option>
+        }
+      </select>
+    </div>  
+  </div>
+}

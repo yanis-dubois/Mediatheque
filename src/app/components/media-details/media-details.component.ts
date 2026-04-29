@@ -19,13 +19,15 @@ import { ImageSize, ImageType } from '@app/models/image.model';
 import { ImageService } from '@app/services/image.service';
 import { FilterTagsPipe } from "../../pipe/filter-tag.pipe";
 import { MediaScoreActionComponent } from "../media-score-action/media-score-action.component";
+import { MediaPossessionStatusActionComponent } from "../media-possession-status-action/media-possession-status-action.component";
+import { MediaOwnership } from '@app/models/settings.model';
 
 const MAX_LENGTH_NOTES = 5000;
 
 @Component({
   selector: 'app-media-details',
   standalone: true,
-  imports: [CommonModule, RouterModule, PosterLightboxComponent, MediaStatusActionComponent, DurationPipe, MediaImageComponent, MediaFavoriteActionComponent, FilterTagsPipe, MediaScoreActionComponent],
+  imports: [CommonModule, RouterModule, PosterLightboxComponent, MediaStatusActionComponent, DurationPipe, MediaImageComponent, MediaFavoriteActionComponent, FilterTagsPipe, MediaScoreActionComponent, MediaPossessionStatusActionComponent],
   providers: [ExternalImagePathPipe, LocalImagePathPipe],
   templateUrl: './media-details.component.html',
   styleUrl: './media-details.component.scss'
@@ -50,8 +52,8 @@ export class MediaDetailsComponent {
   backdropUrl = signal<string | null>(null);
 
   settingsService = inject(SettingsService);
-  displayMode = computed(() => this.settingsService.scoreDisplayMode());
-  ScoreDisplayModes = ScoreDisplayMode;
+  showScore = this.settingsService.scoreDisplayMode() !== ScoreDisplayMode.HIDDEN;
+  showMediaOwnership = this.settingsService.mediaOwnership() !== MediaOwnership.HIDDEN;
 
   media = input.required<DetailedMedia>();
 

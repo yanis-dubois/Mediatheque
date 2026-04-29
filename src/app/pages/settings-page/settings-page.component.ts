@@ -6,7 +6,7 @@ import { SettingsKeys, SettingsService } from '@app/services/settings.service';
 import { ScoreDisplayMode } from '@app/models/score.model';
 import { ActionBarComponent } from "@app/components/action-bar/action-bar.component";
 import { HumanizePipe } from "@pipe/humanize";
-import { Language, Theme } from '@app/models/settings.model';
+import { Language, MediaOwnership, Theme } from '@app/models/settings.model';
 
 @Component({
   selector: 'app-settings-page',
@@ -20,6 +20,7 @@ export class SettingsPageComponent {
   settings = inject(SettingsService);
   protected readonly SettingsKeys = SettingsKeys;
   scoreDisplayModes = Object.values(ScoreDisplayMode);
+  mediaOwnership = Object.values(MediaOwnership);
   themes = Object.values(Theme);
   languages = Object.values(Language);
 

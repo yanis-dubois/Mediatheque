@@ -11,11 +11,15 @@ import { ImageSize, ImageType } from '@app/models/image.model';
 import { ImageService } from '@app/services/image.service';
 import { MediaScoreActionComponent } from "../media-score-action/media-score-action.component";
 import { animate, style, transition, trigger } from '@angular/animations';
+import { MediaPossessionStatusActionComponent } from "../media-possession-status-action/media-possession-status-action.component";
+import { SettingsService } from '@app/services/settings.service';
+import { ScoreDisplayMode } from '@app/models/score.model';
+import { MediaOwnership } from '@app/models/settings.model';
 
 @Component({
   selector: 'app-media-card-details',
   standalone: true,
-  imports: [CommonModule, RouterModule, MediaStatusActionComponent, MediaFavoriteActionComponent, MediaImageComponent, MediaScoreActionComponent],
+  imports: [CommonModule, RouterModule, MediaStatusActionComponent, MediaFavoriteActionComponent, MediaImageComponent, MediaScoreActionComponent, MediaPossessionStatusActionComponent],
   templateUrl: './media-card-details.component.html',
   styleUrls: ['./media-card-details.component.scss'],
   animations: [
@@ -42,6 +46,9 @@ export class MediaCardDetailsComponent {
   private entityService = inject(EntityService);
   private imageService = inject(ImageService);
   getStatusColor = getStatusColor;
+  private settingsService = inject(SettingsService);
+  showScore = this.settingsService.scoreDisplayMode() !== ScoreDisplayMode.HIDDEN;
+  showMediaOwnership = this.settingsService.mediaOwnership() !== MediaOwnership.HIDDEN;
 
   media = computed(() => this.entityService.getMedia(this.mediaId()));
 

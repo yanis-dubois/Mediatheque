@@ -6,8 +6,9 @@ use tauri::{Emitter, Manager};
 use crate::api::provider::ProviderStore;
 use crate::db::DbState;
 use crate::models::enums::{
-  match_media_source, match_media_status, match_media_type, match_tag_type, CollectionMediaType,
-  CollectionType, MediaOrderField, MediaStatus, MediaType, TagType,
+  match_media_possession_status, match_media_source, match_media_status, match_media_type,
+  match_tag_type, CollectionMediaType, CollectionType, MediaOrderField, MediaPossessionStatus,
+  MediaStatus, MediaType, TagType,
 };
 use crate::models::media::{
   ApiEntityRelation, ApiMedia, LibraryEntityRelation, LibraryMedia, LibraryMediaRelations,
@@ -24,7 +25,7 @@ pub fn map_row_to_media(row: &rusqlite::Row) -> rusqlite::Result<LibraryMedia> {
   let media_type = match_media_type(&type_str);
   let source_str: String = row.get(3)?;
   let media_source = match_media_source(&source_str);
-  let creators_raw: String = row.get(17)?;
+  let creators_raw: String = row.get(18)?;
   let creators: Vec<String> = serde_json::from_str(&creators_raw).unwrap_or_default();
 
   // build base
@@ -43,11 +44,12 @@ pub fn map_row_to_media(row: &rusqlite::Row) -> rusqlite::Result<LibraryMedia> {
     external_id: row.get(1)?,
     added_date: row.get(10)?,
     status: match_media_status(&row.get::<_, String>(11)?),
-    favorite: row.get::<_, i32>(12)? == 1,
-    notes: row.get(13)?,
-    score: row.get(14)?,
-    has_poster: row.get::<_, i32>(15)? == 1,
-    has_backdrop: row.get::<_, i32>(16)? == 1,
+    possession_status: match_media_possession_status(&row.get::<_, String>(12)?),
+    favorite: row.get::<_, i32>(13)? == 1,
+    notes: row.get(14)?,
+    score: row.get(15)?,
+    has_poster: row.get::<_, i32>(16)? == 1,
+    has_backdrop: row.get::<_, i32>(17)? == 1,
     poster_width: row.get(4)?,
     poster_height: row.get(5)?,
   };
@@ -796,6 +798,27 @@ pub fn update_media_status(
 }
 
 #[tauri::command]
+pub fn update_media_possession_status(
+  state: tauri::State<'_, DbState>,
+  id: String,
+  status: MediaPossessionStatus,
+) -> Result<(), String> {
+  let connection = state
+    .connection
+    .lock()
+    .map_err(|_| "Failed to lock database")?;
+
+  connection
+    .execute(
+      "UPDATE media SET possession_status = ?1 WHERE id = ?2",
+      [status.to_string(), id],
+    )
+    .map_err(|e| e.to_string())?;
+
+  Ok(())
+}
+
+#[tauri::command]
 pub fn update_media_notes(
   state: tauri::State<'_, DbState>,
   id: String,
@@ -974,8 +997,8 @@ pub fn insert_external_media(
 
   // insert in parent media table
   tx.execute(
-    "INSERT INTO media (id, external_id, media_type, source, poster_width, poster_height, title, normalized_name, description, release_date, added_date, status, favorite, notes, has_poster, has_backdrop, creators)
-      VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12, ?13, ?14, ?15, ?16, ?17)",
+    "INSERT INTO media (id, external_id, media_type, source, poster_width, poster_height, title, normalized_name, description, release_date, added_date, status, possession_status, favorite, notes, has_poster, has_backdrop, creators)
+      VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12, ?13, ?14, ?15, ?16, ?17, ?18)",
     params![
       media_uuid,
       external_id,
@@ -989,6 +1012,7 @@ pub fn insert_external_media(
       base.release_date,
       added_date,
       "TO_DISCOVER",
+      "NOT_OWNED",
       false,
       "",
       has_poster,

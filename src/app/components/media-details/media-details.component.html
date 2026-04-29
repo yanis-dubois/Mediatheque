@@ -174,13 +174,21 @@
           <!-- action -->
           @if (isLibraryMedia(media)) {
             <div class="meta-line action">
-              <app-media-favorite-action [mediaId]="media.id"></app-media-favorite-action>
-  
-              <app-media-status-action [mediaId]="media.id"></app-media-status-action>
+              <div class="meta-block marged">
+                <app-media-favorite-action [mediaId]="media.id"></app-media-favorite-action>
 
-              @if (displayMode() !== ScoreDisplayModes.HIDDEN) {
-                <app-media-score-action [mediaId]="media.id"/>
-              }
+                @if (showScore) {
+                  <app-media-score-action [mediaId]="media.id"/>
+                }
+              </div>
+  
+              <div class="meta-block marged">
+                <app-media-status-action [mediaId]="media.id"></app-media-status-action>
+
+                @if (showMediaOwnership) {
+                  <app-media-possession-status-action [mediaId]="media.id"></app-media-possession-status-action>
+                }
+              </div>
             </div>
           }
   

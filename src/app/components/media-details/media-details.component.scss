@@ -215,6 +215,13 @@
       .meta-block {
         display: flex;
         align-items: center;
+
+        &.marged {
+          gap: 16px;
+          @media (max-width: 1025px) {
+            gap: 8px;
+          }
+        }
       }
 
     }

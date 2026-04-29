@@ -7,7 +7,6 @@ import { EntityType } from '@app/models/entity.model';
 import { LibraryMedia } from '@app/models/media.model';
 import { EntityRow } from '@app/directive/entity-row.directive';
 import { EntityRowLayoutComponent } from "../entity-row-layout/entity-row-layout.component";
-import { getStatusColor } from '@app/models/media.model';
 import { MediaStatusActionComponent } from "../media-status-action/media-status-action.component";
 import { MediaFavoriteActionComponent } from "../media-favorite-action/media-favorite-action.component";
 import { MediaImageComponent } from "../media-image/media-image.component";
@@ -31,8 +30,6 @@ export class MediaRowComponent extends EntityRow<LibraryMedia & {type: EntityTyp
   protected readonly ImageSize = ImageSize;
 
   private humanizePipe = inject(HumanizePipe);
-
-  getStatusColor = getStatusColor;
 
   formattedRoles = computed(() => {
     const rolesList = this.roles();

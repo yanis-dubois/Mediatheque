@@ -105,7 +105,7 @@ export class DropdownTriggerDirective {
     this.renderer.setStyle(container, 'width', `auto`);
     this.renderer.setStyle(container, 'top', `${y}px`);
     this.renderer.setStyle(container, 'left', `${x}px`);
-    this.renderer.setStyle(container, 'z-index', '1000');
+    this.renderer.setStyle(container, 'z-index', '9999');
     // add style
     this.renderer.addClass(container, 'dropdown-menu');
 
@@ -123,7 +123,7 @@ export class DropdownTriggerDirective {
     this.renderer.setStyle(this.backdropElement, 'left', '0');
     this.renderer.setStyle(this.backdropElement, 'width', '100vw');
     this.renderer.setStyle(this.backdropElement, 'height', '100vh');
-    this.renderer.setStyle(this.backdropElement, 'z-index', '999');
+    this.renderer.setStyle(this.backdropElement, 'z-index', '9998');
 
     // close at click
     this.renderer.listen(this.backdropElement, 'click', (e: MouseEvent) => {

@@ -48,18 +48,11 @@ export class NavigationComponent {
   }
 
   onPageChange(page: 'home' | 'search') {
-    const currentPage = this.currentPage();
     this.navService.isBackward.set(true);
 
     if (page === 'home') {
-      if (currentPage === PageType.HOME) {
-        this.navService.switchContext({type: 'ALL'});
-      }
       this.router.navigate(['/home'], { replaceUrl: true });
     } else {
-      if (currentPage === PageType.SEARCH) {
-        this.navService.switchContext({type: 'ALL'});
-      }
       this.router.navigate(['/search'], { replaceUrl: true });
     }
   }

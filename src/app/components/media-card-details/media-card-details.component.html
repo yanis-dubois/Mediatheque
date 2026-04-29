@@ -19,7 +19,6 @@
         >
         </app-media-image>
       </div>
-      
 
       <div class="menu-slot interaction-zone">
         <ng-content select="[mediaMenu]"></ng-content>
@@ -30,19 +29,50 @@
           {{ media.title }}
         </h4>
 
-        <div class="action">
-          <div class="fav-slot interaction-zone">
-            <app-media-favorite-action [mediaId]="media.id"></app-media-favorite-action>
+        @if (!showScore || !showMediaOwnership) {
+          <div class="action">
+            <div class="fav-slot interaction-zone">
+              <app-media-favorite-action [mediaId]="media.id"></app-media-favorite-action>
+            </div>
+
+            @if (showScore) {
+              <div class="score-slot interaction-zone">
+                <app-media-score-action [mediaId]="media.id"></app-media-score-action>
+              </div>
+            }
+
+            <div class="status-container interaction-zone">
+              <app-media-status-action [mediaId]="media.id"></app-media-status-action>
+            </div>
+
+            @if (showMediaOwnership) {
+              <div class="status-container interaction-zone">
+                <app-media-possession-status-action [mediaId]="media.id"></app-media-possession-status-action>
+              </div>
+            }
           </div>
-    
-          <div class="status-container interaction-zone">
-            <app-media-status-action [mediaId]="media.id"></app-media-status-action>
+        }
+        @else {
+          <div class="action action-top">
+            <div class="fav-slot interaction-zone">
+              <app-media-favorite-action [mediaId]="media.id"></app-media-favorite-action>
+            </div>
+
+            <div class="score-slot interaction-zone">
+              <app-media-score-action [mediaId]="media.id"></app-media-score-action>
+            </div>
           </div>
 
-          <div class="score-slot interaction-zone">
-            <app-media-score-action [mediaId]="media.id"></app-media-score-action>
+          <div class="action">
+            <div class="status-container interaction-zone">
+              <app-media-status-action [mediaId]="media.id"></app-media-status-action>
+            </div>
+
+            <div class="status-container interaction-zone">
+              <app-media-possession-status-action [mediaId]="media.id"></app-media-possession-status-action>
+            </div>
           </div>
-        </div>
+        }
       </div>
 
     </div>

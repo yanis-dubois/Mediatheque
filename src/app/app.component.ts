@@ -1,4 +1,4 @@
-import { Component, inject, signal } from '@angular/core';
+import { Component, inject, Renderer2, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, RouterOutlet } from '@angular/router';
 
@@ -20,6 +20,18 @@ export class AppComponent {
   private router = inject(Router);
   private navService = inject(NavService);
   private screenService = inject(ScreenService);
+  private renderer = inject(Renderer2);
+
+  constructor() {
+    this.detectHoverCapability();
+  }
+
+  private detectHoverCapability() {
+    // check if app is run on a touchscreen device
+    const isTouch = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+    const hostClass = isTouch ? 'is-touch' : 'has-hover';
+    this.renderer.addClass(document.body, hostClass);
+  }
 
   prepareRoute(outlet: RouterOutlet) {
     if (!this.screenService.isMobile()) return null;
