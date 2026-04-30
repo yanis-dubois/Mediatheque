@@ -108,6 +108,8 @@ pub struct LibraryState {
   pub added_date: String,
   pub status: MediaStatus,
   pub possession_status: MediaPossessionStatus,
+  pub status_update: String,
+  pub possession_status_update: String,
   pub favorite: bool,
   pub notes: String,
   pub score: Option<u32>,

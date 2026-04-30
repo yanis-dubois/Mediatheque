@@ -161,6 +161,9 @@ pub enum MediaOrderField {
   MediaType,
   Favorite,
   Status,
+  PossessionStatus,
+  StatusUpdate,
+  PossessionStatusUpdate,
   Score,
 
   // person

@@ -25,7 +25,7 @@ pub fn map_row_to_media(row: &rusqlite::Row) -> rusqlite::Result<LibraryMedia> {
   let media_type = match_media_type(&type_str);
   let source_str: String = row.get(3)?;
   let media_source = match_media_source(&source_str);
-  let creators_raw: String = row.get(18)?;
+  let creators_raw: String = row.get(20)?;
   let creators: Vec<String> = serde_json::from_str(&creators_raw).unwrap_or_default();
 
   // build base
@@ -45,11 +45,13 @@ pub fn map_row_to_media(row: &rusqlite::Row) -> rusqlite::Result<LibraryMedia> {
     added_date: row.get(10)?,
     status: match_media_status(&row.get::<_, String>(11)?),
     possession_status: match_media_possession_status(&row.get::<_, String>(12)?),
-    favorite: row.get::<_, i32>(13)? == 1,
-    notes: row.get(14)?,
-    score: row.get(15)?,
-    has_poster: row.get::<_, i32>(16)? == 1,
-    has_backdrop: row.get::<_, i32>(17)? == 1,
+    status_update: row.get(13)?,
+    possession_status_update: row.get(14)?,
+    favorite: row.get::<_, i32>(15)? == 1,
+    notes: row.get(16)?,
+    score: row.get(17)?,
+    has_poster: row.get::<_, i32>(18)? == 1,
+    has_backdrop: row.get::<_, i32>(19)? == 1,
     poster_width: row.get(4)?,
     poster_height: row.get(5)?,
   };
@@ -614,12 +616,20 @@ fn build_media_query_parts(
 
     for o in order {
       let mapped_field: String = match o.field {
-        // status : custom order
+        // custom orders
         MediaOrderField::Status => "CASE m.status 
             WHEN 'FINISHED' THEN 1 
             WHEN 'IN_PROGRESS' THEN 2 
             WHEN 'TO_DISCOVER' THEN 3 
             WHEN 'DROPPED' THEN 4 
+            ELSE 5 
+            END"
+          .to_string(),
+        MediaOrderField::PossessionStatus => "CASE m.possession_status 
+            WHEN 'OWNED' THEN 1 
+            WHEN 'BORROWED' THEN 2 
+            WHEN 'WANTED' THEN 3 
+            WHEN 'NOT_OWNED' THEN 4 
             ELSE 5 
             END"
           .to_string(),
@@ -787,10 +797,12 @@ pub fn update_media_status(
     .lock()
     .map_err(|_| "Failed to lock database")?;
 
+  let date = chrono::Utc::now().to_rfc3339();
+
   connection
     .execute(
-      "UPDATE media SET status = ?1 WHERE id = ?2",
-      [status.to_string(), id],
+      "UPDATE media SET status = ?2, status_update = ?3 WHERE id = ?1",
+      [id, status.to_string(), date],
     )
     .map_err(|e| e.to_string())?;
 
@@ -808,10 +820,12 @@ pub fn update_media_possession_status(
     .lock()
     .map_err(|_| "Failed to lock database")?;
 
+  let date = chrono::Utc::now().to_rfc3339();
+
   connection
     .execute(
-      "UPDATE media SET possession_status = ?1 WHERE id = ?2",
-      [status.to_string(), id],
+      "UPDATE media SET possession_status = ?2, possession_status_update = ?3 WHERE id = ?1",
+      [id, status.to_string(), date],
     )
     .map_err(|e| e.to_string())?;
 
@@ -997,8 +1011,8 @@ pub fn insert_external_media(
 
   // insert in parent media table
   tx.execute(
-    "INSERT INTO media (id, external_id, media_type, source, poster_width, poster_height, title, normalized_name, description, release_date, added_date, status, possession_status, favorite, notes, has_poster, has_backdrop, creators)
-      VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12, ?13, ?14, ?15, ?16, ?17, ?18)",
+    "INSERT INTO media (id, external_id, media_type, source, poster_width, poster_height, title, normalized_name, description, release_date, added_date, status, possession_status, status_update, possession_status_update, favorite, notes, has_poster, has_backdrop, creators)
+      VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12, ?13, ?14, ?15, ?16, ?17, ?18, ?19, ?20)",
     params![
       media_uuid,
       external_id,
@@ -1013,6 +1027,8 @@ pub fn insert_external_media(
       added_date,
       "TO_DISCOVER",
       "NOT_OWNED",
+      added_date,
+      added_date,
       false,
       "",
       has_poster,

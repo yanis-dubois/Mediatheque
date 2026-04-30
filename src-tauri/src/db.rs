@@ -182,6 +182,8 @@ pub fn init_db(connection: &mut Connection) -> Result<()> {
       possession_status TEXT NOT NULL CHECK(
         possession_status IN ('OWNED', 'BORROWED', 'WANTED', 'NOT_OWNED')
       ),
+      status_update TEXT NOT NULL,
+      possession_status_update TEXT NOT NULL,
       favorite INTEGER NOT NULL DEFAULT 0 CHECK(favorite IN (0, 1)),
       notes TEXT NOT NULL DEFAULT '',
       score INTEGER CHECK(score BETWEEN 0 AND 100),
@@ -536,8 +538,8 @@ pub fn seed_data(connection: &mut Connection) -> Result<()> {
 
     // insert in parent table Media
     tx.execute(
-      "INSERT INTO media (id, external_id, media_type, source, poster_width, poster_height, title, normalized_name, description, release_date, added_date, status, possession_status, favorite, notes, score, has_poster, has_backdrop)
-        VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12, ?13, ?14, ?15, ?16, ?17, ?18)",
+      "INSERT INTO media (id, external_id, media_type, source, poster_width, poster_height, title, normalized_name, description, release_date, added_date, status, possession_status, status_update, possession_status_update, favorite, notes, score, has_poster, has_backdrop)
+        VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12, ?13, ?14, ?15, ?16, ?17, ?18, ?19, ?20)",
       params![
         m.id,
         m.external_id,
@@ -552,6 +554,8 @@ pub fn seed_data(connection: &mut Connection) -> Result<()> {
         m.added_date,
         status_str,
         possession_status_str,
+        m.added_date,
+        m.added_date,
         m.favorite,
         m.notes,
         m.score,
@@ -1997,6 +2001,10 @@ fn seed_system_collection_data() -> Vec<SeedCollection<'static>> {
       name: "Finished",
       collection_type: CollectionType::System,
       prefered_view: CollectionLayout::Row,
+      sort_order: vec![MediaOrder {
+        field: MediaOrderField::StatusUpdate,
+        direction: MediaOrderDirection::Desc,
+      }],
       collection_dynamic: Some(SeedCollectionDynamic {
         filter: Some(MediaFilter {
           status: Some(MediaStatus::Finished),
@@ -2010,6 +2018,10 @@ fn seed_system_collection_data() -> Vec<SeedCollection<'static>> {
       name: "In Progress",
       collection_type: CollectionType::System,
       prefered_view: CollectionLayout::Row,
+      sort_order: vec![MediaOrder {
+        field: MediaOrderField::StatusUpdate,
+        direction: MediaOrderDirection::Asc,
+      }],
       collection_dynamic: Some(SeedCollectionDynamic {
         filter: Some(MediaFilter {
           status: Some(MediaStatus::InProgress),

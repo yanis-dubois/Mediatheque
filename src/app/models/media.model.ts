@@ -162,6 +162,8 @@ export interface LibraryState {
   addedDate: string;
   status: MediaStatus;
   possessionStatus: MediaPossessionStatus;
+  statusUpdate: String;
+  possessionStatusUpdate: String;
   favorite: boolean;
   notes: string;
   score?: number;
