@@ -3,7 +3,7 @@ import { Location } from '@angular/common';
 
 import { ask } from '@tauri-apps/plugin-dialog';
 
-import { MediaStatus } from '@app/models/media.model';
+import { LibraryMedia, MediaDto, MediaStatus } from '@app/models/media.model';
 import { CollectionPickerComponent } from "../collection-picker/collection-picker.component";
 import { CollectionService } from '@app/services/collection.service';
 import { EntityService } from '@app/services/entity.service';
@@ -17,16 +17,19 @@ import { SettingsService } from '@app/services/settings.service';
 import { ScoreDisplayMode } from '@app/models/score.model';
 import { MediaPossessionStatusActionComponent } from "../media-possession-status-action/media-possession-status-action.component";
 import { MediaOwnership } from '@app/models/settings.model';
+import { MediaEditingComponent } from "../media-editing/media-editing.component";
 
 @Component({
   selector: 'app-media-action',
   standalone: true,
-  imports: [CollectionPickerComponent, MediaStatusActionComponent, MediaFavoriteActionComponent, MediaScoreActionComponent, MediaPossessionStatusActionComponent],
+  imports: [CollectionPickerComponent, MediaStatusActionComponent, MediaFavoriteActionComponent, MediaScoreActionComponent, MediaPossessionStatusActionComponent, MediaEditingComponent],
   templateUrl: './media-action.component.html'
 })
 export class MediaActionComponent {
   @ViewChild('pickerPopover') pickerPopover!: ElementRef<HTMLElement>;
   isPickerVisible = signal(false);
+  @ViewChild('editorPopover') editorPopover!: ElementRef<HTMLElement>;
+  isEditorVisible = signal(false);
 
   mediaId = input.required<string>();
   canDeleteFromCollection = input<boolean>(false);
@@ -75,6 +78,32 @@ export class MediaActionComponent {
       console.error("Error while adding media to collection", e);
     }
   }
+
+  openEditor(event: MouseEvent) {
+    event.stopPropagation();
+    this.isEditorVisible.set(true);
+    setTimeout(() => this.editorPopover.nativeElement.showPopover());
+  }
+
+  async closeEditor() {
+    this.editorPopover.nativeElement.classList.add('closing');
+    await new Promise(resolve => setTimeout(resolve, 300));
+
+    this.editorPopover.nativeElement.hidePopover();
+    this.editorPopover.nativeElement.classList.remove('closing');
+    this.isEditorVisible.set(false);
+    this.closeMenu.emit();
+  }
+
+  async editMedia(media: MediaDto | null) {
+    if (!media) return;
+
+    try {
+      await this.mediaService.editMedia(this.mediaId(), media);
+    } catch (e) {
+      console.error("Error while editing media", e);
+    }
+  }  
 
   onDeleteFromCollection() {
     this.deleteFromCollectionRequest.emit(this.mediaId());

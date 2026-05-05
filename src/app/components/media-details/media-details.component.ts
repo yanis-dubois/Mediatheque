@@ -21,6 +21,7 @@ import { FilterTagsPipe } from "../../pipe/filter-tag.pipe";
 import { MediaScoreActionComponent } from "../media-score-action/media-score-action.component";
 import { MediaPossessionStatusActionComponent } from "../media-possession-status-action/media-possession-status-action.component";
 import { MediaOwnership } from '@app/models/settings.model';
+import { ScreenService } from '@app/services/screen.service';
 
 const MAX_LENGTH_NOTES = 5000;
 
@@ -51,6 +52,8 @@ export class MediaDetailsComponent {
   posterUrl = signal<string | null>(null);
   backdropUrl = signal<string | null>(null);
 
+  screenService = inject(ScreenService);
+  isMobile = this.screenService.isMobile;
   settingsService = inject(SettingsService);
   showScore = this.settingsService.scoreDisplayMode() !== ScoreDisplayMode.HIDDEN;
   showMediaOwnership = this.settingsService.mediaOwnership() !== MediaOwnership.HIDDEN;

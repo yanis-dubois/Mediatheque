@@ -159,6 +159,10 @@
           margin: 12px 0;
         }
 
+        .genre-separator {
+          margin: 0 8px;
+        }
+
         // Tablet
         @media (max-width: 1025px) {
           gap: 8px;
@@ -172,6 +176,9 @@
         @media (max-width: 600px) {
           .separator {
             display: none;
+          }
+          .genre-separator {
+            margin: 0 4px;
           }
         }
 
@@ -203,6 +210,16 @@
 
         .tag-group {
           font-weight: var(--font-medium);
+
+          display: -webkit-box;           /* Nécessaire pour le line-clamp */
+          -webkit-line-clamp: 2;          /* Nombre de lignes maximum */
+          line-clamp: 2;
+          -webkit-box-orient: vertical;   /* Définit l'orientation du bloc */
+          overflow: hidden;               /* Coupe le texte qui dépasse */
+          text-overflow: ellipsis;        /* Ajoute les "..." */
+          
+          /* Sécurité pour les navigateurs très anciens ou spécifiques */
+          word-break: break-word;
         }
 
         .specific-info {

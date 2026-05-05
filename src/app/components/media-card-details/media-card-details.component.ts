@@ -101,8 +101,6 @@ export class MediaCardDetailsComponent {
     if (cssWidth) {
       this.posterWidth.set(parseInt(cssWidth, 10));
     }
-
-    console.log('blap', this.width(), this.posterWidth(), this.height());
   }
 
 }

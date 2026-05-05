@@ -44,25 +44,32 @@
             </app-media-image>
           </div>
         </div>
-  
+
         <!-- main info -->
         <div class="primary-info">
           <h1 class="title">{{ media.title }}</h1>
-  
+
           <div class="meta-line">
             <span class="badge">{{ media.mediaType.replace('_', ' ') }}</span>
-            <span class="date">{{ media.releaseDate | date:'mediumDate' }}</span>
+            <span class="date">{{ isMobile() ? (media.releaseDate | date:'yyyy') : (media.releaseDate | date:'mediumDate') }}</span>
             <span class="separator">–</span>
             <span class="specific-info">
               @switch (media.mediaType) {
                 @case (MediaType.MOVIE) { 
-                  <div class="meta-block">
-                    <img class="icon" src="assets/icons/time.svg"/>
-                    <span>&nbsp;{{asMovie(media).duration | duration}}</span> 
-                  </div>
+                  @let time = asMovie(media).duration;
+                  @if (time) {
+                    <div class="meta-block">
+                      <img class="icon" src="assets/icons/time.svg"/>
+                      <span>&nbsp;{{ time | duration }}</span> 
+                    </div>
+                  }
                 }
                 @case (MediaType.SERIES) { 
-                  <span>{{asSerie(media).seasons}} Seasons, {{asSerie(media).episodes}} Episodes</span> 
+                  @let seasons = asSerie(media).seasons;
+                  @let episodes = asSerie(media).episodes;
+                  <span>
+                    @if (seasons) {{{seasons}} Seasons}@if (seasons && episodes){, }@if (episodes) {{{asSerie(media).episodes}} Episodes}
+                  </span> 
                 }
                 @case (MediaType.VIDEO_GAME) {
                   <div class="meta-block">
@@ -111,7 +118,9 @@
                   @if (book.category !== "Book") {
                     {{book.category}}
                   }
-                  <span>{{book.pages}} pages</span>
+                  @if (book.pages) {
+                    <span>{{book.pages}} pages</span>
+                  }
                 }
               }
             </span>
@@ -137,24 +146,24 @@
               }
             }
           </div>
-  
+
           <!-- tags -->
           <div class="meta-line">
             @let tagFilter = isGame
               ? [TagType.SAGA, TagType.GAME_MECHANIC] 
               : [TagType.SAGA, TagType.GENRE];
             @if (isLibraryMedia(media)) {
+              <div class="tag-group">
               @for (category of media.tags | filterTags:tagFilter; track category.key; let lastCategory = $last) {
-                <div class="tag-group">
-                  @for (tag of category.value.slice(0, 5); track tag.id; let lastTag = $last) {
-                    <a class="tag-top" [routerLink]="['/metadata', category.key, tag.id]" [class.saga]="category.key === 'SAGA'">{{ tag.name }}</a>@if (!lastTag) {<span>, </span>}
-                  }
-                  @if (category.value.length > 5) {<span>, ...</span>}
-                </div>
+                @for (tag of category.value.slice(0, 5); track tag.id; let lastTag = $last) {
+                  <a class="tag-top" [routerLink]="['/metadata', category.key, tag.id]" [class.saga]="category.key === 'SAGA'">{{ tag.name }}</a>@if (!lastTag) {<span>, </span>}
+                }
+                @if (category.value.length > 5) {<span>, ...</span>}
                 @if (!lastCategory) {
-                  <span class="separator">–</span>
+                  <span class="genre-separator">–</span>
                 }
               }
+              </div>
             } 
             @else {
               @for (category of media.tags | filterTags:tagFilter; track category.key; let lastCategory = $last) {
@@ -165,12 +174,12 @@
                   @if (category.value.length > 5) {<span>, ...</span>}
                 </div>
                 @if (!lastCategory) {
-                  <span class="separator">–</span>
+                  <span class="genre-separator">–</span>
                 }
               }
             }
           </div>
-  
+
           <!-- action -->
           @if (isLibraryMedia(media)) {
             <div class="meta-line action">
@@ -191,12 +200,16 @@
               </div>
             </div>
           }
-  
-          @if (media.mediaType === MediaType.BOOK || media.mediaType === MediaType.TABLETOP_GAME) {
+
+          @if (!isMobile() && (media.mediaType === MediaType.BOOK || media.mediaType === MediaType.TABLETOP_GAME)) {
             <div class="crew-grid">
               @if (isLibraryMedia(media)) {
                 @for (person of media.persons | keyvalue: sortEntityByOrder; track person.key) {
-                  @if (person.value.values.includes("DESIGNER")) {
+                  <!-- keep only designers for tabletop games -->
+                  @if (
+                    media.mediaType !== MediaType.TABLETOP_GAME ||
+                    (media.mediaType === MediaType.TABLETOP_GAME && person.value.values.includes("DESIGNER"))
+                  ) {
                     <div class="crew-item">
                       <a [routerLink]="['/metadata', MetadataType.PERSON, person.value.id]">
                         <span class="name">{{ person.key }}</span>
@@ -207,7 +220,10 @@
                 }
               } @else {
                 @for (person of media.persons | keyvalue: sortEntityByOrder; track person.key) {
-                  @if (person.value.values.includes("DESIGNER")) {
+                  @if (
+                    media.mediaType !== MediaType.TABLETOP_GAME ||
+                    (media.mediaType === MediaType.TABLETOP_GAME && person.value.values.includes("DESIGNER"))
+                  ) {
                     <div class="crew-item">
                       <span class="name">{{ person.key }}</span>
                       <span class="role"> {{ person.value.values.join(', ') }}</span>
@@ -218,15 +234,20 @@
             </div>
           }
         </div>
-  
+
+        <!-- description -->
         @if (media.mediaType !== MediaType.BOOK && media.mediaType !== MediaType.TABLETOP_GAME) {
-          <!-- description -->
           <div class="description">
             <h2>@if (isGame) {Description} @else {Synopsis}</h2>
             <p class="description-text">{{ media.description }}</p> 
           </div>
-  
-          <!-- creators -->
+        }
+
+        <!-- creators -->
+        @if (
+          (media.mediaType !== MediaType.BOOK && media.mediaType !== MediaType.TABLETOP_GAME)
+          || isMobile()
+        ) {
           <div class="crew-grid">
             @switch (media.mediaType) {
               @case (MediaType.VIDEO_GAME) {
@@ -251,19 +272,29 @@
               @default {
                 @if (isLibraryMedia(media)) {
                   @for (person of media.persons | keyvalue: sortEntityByOrder; track person.key) {
-                    <div class="crew-item">
-                      <a [routerLink]="['/metadata', MetadataType.PERSON, person.value.id]">
-                        <span class="name">{{ person.key }}</span>
-                      </a>
-                      <span class="role">{{ person.value.values.join(', ') }}</span>
-                    </div>
+                    @if (
+                      media.mediaType !== MediaType.TABLETOP_GAME ||
+                      (media.mediaType === MediaType.TABLETOP_GAME && person.value.values.includes("DESIGNER"))
+                    ) {
+                      <div class="crew-item">
+                        <a [routerLink]="['/metadata', MetadataType.PERSON, person.value.id]">
+                          <span class="name">{{ person.key }}</span>
+                        </a>
+                        <span class="role">{{ person.value.values.join(', ') }}</span>
+                      </div>
+                    }
                   }
                 } @else {
                   @for (person of media.persons | keyvalue: sortEntityByOrder; track person.key) {
-                    <div class="crew-item">
-                      <span class="name">{{ person.key }}</span>
-                      <span class="role">{{ person.value.values.join(', ') }}</span>
-                    </div>
+                    @if (
+                        media.mediaType !== MediaType.TABLETOP_GAME ||
+                        (media.mediaType === MediaType.TABLETOP_GAME && person.value.values.includes("DESIGNER"))
+                      ) {
+                      <div class="crew-item">
+                        <span class="name">{{ person.key }}</span>
+                        <span class="role">{{ person.value.values.join(', ') }}</span>
+                      </div>
+                    }
                   }
                 }
               }
@@ -271,7 +302,7 @@
           </div>
         }
       </div>
-  
+
       <!-- secondary info -->
       <div class="secondary-container">
         @switch (media.mediaType) {
@@ -280,7 +311,7 @@
             <div class="secondary-content">
               <ng-template #tagSection let-type="type" let-label="label">
                 @let categoryTags = media.tags[asTagType(type)];
-  
+
                 @if (categoryTags && categoryTags.length > 0) {
                   <div class="secondary-section video-game">
                     <h3>{{ label }}</h3>
@@ -298,7 +329,7 @@
                   </div>
                 }
               </ng-template>
-              
+
               <ng-container 
                 *ngTemplateOutlet="tagSection; 
                 context: { 
@@ -328,7 +359,7 @@
                 }"
               ></ng-container>
             </div>
-  
+
             @let videoGame = asVideoGame(media);
             @if (videoGame.synopsis && videoGame.synopsis !== "") {
               <div class="secondary-separator-container">
@@ -357,15 +388,15 @@
                 <p>{{ media.description }}</p>
               </div>
             </div>
-  
+
             @let hasArtists = media.persons && (media.persons | keyvalue).length > 0 && hasArtist(media);
             @let hasCompanies = media.companies && (media.companies | keyvalue).length > 0;
-  
+
             @if (hasArtists || hasCompanies) {
               <div class="secondary-separator-container">
                 <hr class="secondary-separator">
               </div>
-    
+
               <div class="secondary-content">
                 @if (hasArtists) {
                   <div class="secondary-section">
@@ -399,7 +430,7 @@
                     </div>
                   </div>
                 }
-  
+
                 @if (hasCompanies) {
                   <div class="secondary-section">
                     <h3>Companies</h3>
@@ -436,7 +467,7 @@
             @let hasCompanies = media.companies && (media.companies | keyvalue).length > 0;
             @if (hasCast || hasCompanies) {
               <div class="secondary-content">
-  
+
                 <!-- cast (Movie & Series) -->
                 @if (media.mediaType === MediaType.MOVIE || media.mediaType === MediaType.SERIES) {
                   @if (hasCast) {
@@ -468,7 +499,7 @@
                     </div>
                   }
                 }
-  
+
                 <!-- companies -->
                 @if (hasCompanies) {
                   <div class="secondary-section">
@@ -511,7 +542,7 @@
           </div>
         }
       </div>
-  
+
       <!-- notes -->
       @if (isLibraryMedia(media)) {
         <div class="notes-section">
@@ -534,7 +565,7 @@
           </div>
         </div>
       }
-  
+
       <!-- tertiary info -->
       <ng-template #footer>
         @if (isLibraryMedia(media)) {
@@ -552,7 +583,7 @@
           <ng-container *ngTemplateOutlet="footer;"></ng-container>
         </div>
       }
-  
+
       @if (hasPoster() && isLightboxOpen()) {
         <app-poster-lightbox 
           [source]="originalPosterUrl()"

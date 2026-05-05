@@ -59,11 +59,11 @@ pub struct MediaBase {
 #[serde(untagged)]
 pub enum MediaExtension {
   Movie {
-    duration: i32,
+    duration: Option<u32>,
   },
   Series {
-    seasons: i32,
-    episodes: i32,
+    seasons: Option<u32>,
+    episodes: Option<u32>,
   },
   TabletopGame {
     #[serde(rename = "minPlayers")]
@@ -136,7 +136,7 @@ pub struct ApiState {
 #[serde(rename_all = "camelCase")]
 pub struct ApiSearchResult {
   #[serde(flatten)]
-  pub core: MediaBase,
+  pub base: MediaBase,
   #[serde(flatten)]
   pub state: ApiState,
 }
@@ -163,4 +163,58 @@ pub struct LibraryMedia {
   pub relations: LibraryMediaRelations,
   #[serde(flatten)]
   pub state: LibraryState,
+}
+
+// used to recieve data from frontend while editing a media
+#[derive(Debug, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct MediaDto {
+  #[serde(flatten)]
+  pub base: MediaBase,
+  #[serde(flatten)]
+  pub relations: ApiMediaRelations,
+
+  // flatten extension fields
+  pub duration: Option<u32>,              // Movie
+  pub seasons: Option<u32>,               // Series
+  pub episodes: Option<u32>,              // Series
+  pub synopsis: Option<String>,           // VideoGame
+  pub normal_playing_time: Option<u32>,   // VideoGame
+  pub complete_playing_time: Option<u32>, // VideoGame
+  pub min_players: Option<u32>,           // Tabletop
+  pub max_players: Option<u32>,           // Tabletop
+  pub min_playing_time: Option<u32>,      // Tabletop
+  pub max_playing_time: Option<u32>,      // Tabletop
+  pub pages: Option<u32>,                 // Book
+  pub category: Option<String>,           // Book
+}
+
+impl MediaDto {
+  // build structured extension from flat data
+  pub fn build_extension(self) -> MediaExtension {
+    match self.base.media_type {
+      MediaType::Movie => MediaExtension::Movie {
+        duration: self.duration,
+      },
+      MediaType::Series => MediaExtension::Series {
+        seasons: self.seasons,
+        episodes: self.episodes,
+      },
+      MediaType::VideoGame => MediaExtension::VideoGame {
+        synopsis: self.synopsis,
+        normal_playing_time: self.normal_playing_time,
+        complete_playing_time: self.complete_playing_time,
+      },
+      MediaType::Book => MediaExtension::Book {
+        pages: self.pages,
+        category: self.category,
+      },
+      MediaType::TabletopGame => MediaExtension::TabletopGame {
+        min_players: self.min_players,
+        max_players: self.max_players,
+        min_playing_time: self.min_playing_time,
+        max_playing_time: self.max_playing_time,
+      },
+    }
+  }
 }

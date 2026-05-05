@@ -283,7 +283,7 @@ impl MediaProvider for IgdbProvider {
         }
 
         ApiSearchResult {
-          core: MediaBase {
+          base: MediaBase {
             media_type: MediaType::VideoGame,
             source: self.source.clone(),
             title: title,

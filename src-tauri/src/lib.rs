@@ -27,6 +27,7 @@ pub fn run() {
       commands::media::update_media_possession_status,
       commands::media::update_media_notes,
       commands::media::update_media_score,
+      commands::media::edit_media_data,
       commands::media::add_media_to_library,
       commands::media::delete_media,
       commands::collection::search_layout_data,

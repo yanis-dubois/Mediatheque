@@ -8,6 +8,7 @@ import { FileService } from "@services/file.services";
 import { SettingsService } from "@services/settings.service";
 import { PinService } from "@services/pin.service";
 import { ImageService } from "./services/image.service";
+import { provideAnimationsAsync } from '@angular/platform-browser/animations/async';
 
 function initializeApp(fileService: FileService, settingsService: SettingsService, pinService: PinService, imageService: ImageService) {
   return () => {
@@ -33,6 +34,6 @@ export const appConfig: ApplicationConfig = {
       deps: [FileService, SettingsService, PinService, ImageService],
       multi: true
     },
-    provideAnimations(),
+    provideAnimations(), provideAnimationsAsync(),
   ],
 };

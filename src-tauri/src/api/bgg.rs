@@ -178,7 +178,7 @@ impl MediaProvider for BggProvider {
           .collect::<Vec<String>>();
 
         ApiSearchResult {
-          core: MediaBase {
+          base: MediaBase {
             media_type: MediaType::TabletopGame,
             source: self.source.clone(),
             title,

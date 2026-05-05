@@ -22,6 +22,12 @@
     Add to collection
   </button>
 
+  <hr class="dropdown-separator">
+
+  <button class="dropdown-button" (click)="openEditor($event)">
+    Edit media
+  </button>
+
   @if (media.externalId) {
     <button class="dropdown-button" (click)="refreshMediaData()">
       Refresh data
@@ -46,6 +52,16 @@
         [media]="media"
         (onCancel)="closePicker()"
         (onConfirm)="addToSelectedCollection($event); closePicker()"
+      />
+    }
+  </div>
+
+  <div #editorPopover popover="manual" class="picker-popover-wrapper">
+    @if (isEditorVisible()) {
+      <app-media-editing
+        [mediaId]="mediaId()"
+        (onCancel)="closeEditor()"
+        (onConfirm)="editMedia($event); closeEditor()"
       />
     }
   </div>

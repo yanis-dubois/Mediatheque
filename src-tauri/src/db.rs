@@ -208,7 +208,7 @@ pub fn init_db(connection: &mut Connection) -> Result<()> {
     CREATE TABLE IF NOT EXISTS movie (
       media_id TEXT PRIMARY KEY,
 
-      duration INTEGER NOT NULL,
+      duration INTEGER,
 
       FOREIGN KEY (media_id) REFERENCES media(id) ON DELETE CASCADE
     );
@@ -216,8 +216,8 @@ pub fn init_db(connection: &mut Connection) -> Result<()> {
     CREATE TABLE IF NOT EXISTS series (
       media_id TEXT PRIMARY KEY,
 
-      seasons INTEGER NOT NULL,
-      episodes INTEGER NOT NULL,
+      seasons INTEGER,
+      episodes INTEGER,
 
       FOREIGN KEY (media_id) REFERENCES media(id) ON DELETE CASCADE
     );

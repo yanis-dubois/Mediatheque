@@ -156,7 +156,7 @@ impl MediaProvider for HardcoverProvider {
         }
 
         ApiSearchResult {
-          core: MediaBase {
+          base: MediaBase {
             media_type: MediaType::Book,
             source: self.source.clone(),
             title: book.title,

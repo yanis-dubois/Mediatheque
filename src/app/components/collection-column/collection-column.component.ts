@@ -148,7 +148,6 @@ export class CollectionColumnComponent {
     const ro = new ResizeObserver((entries) => {
       const width = entries[0].contentRect.width;
       this.containerWidth.set(width);
-      
       this.virtualizer.measure();
     });
 

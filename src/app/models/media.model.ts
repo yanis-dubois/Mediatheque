@@ -52,13 +52,13 @@ export const getPossessionStatusColor = (status: MediaPossessionStatus): string 
 };
 
 export enum TagType {
-  GENRE = "GENRE", 
-  SAGA = "SAGA", 
-  GAME_MECHANIC = "GAME_MECHANIC",
-  RELEASE_STATUS = "RELEASE_STATUS",
-  FRANCHISE = "FRANCHISE",
-  GAME_MODE = "GAME_MODE",
-  CAMERA_PERSPECTIVE = "CAMERA_PERSPECTIVE",
+  GENRE = "GENRE", // all
+  SAGA = "SAGA", // all
+  GAME_MECHANIC = "GAME_MECHANIC", // videoGame + tabletopGame
+  RELEASE_STATUS = "RELEASE_STATUS", // videoGame
+  FRANCHISE = "FRANCHISE", // videoGame
+  GAME_MODE = "GAME_MODE", // videoGame
+  CAMERA_PERSPECTIVE = "CAMERA_PERSPECTIVE", // videoGame
 }
 
 export const TAG_ORDER: Record<TagType, number> = {
@@ -113,7 +113,7 @@ export interface LibraryMediaRelations {
 }
 
 export interface ApiMediaRelations {
-  // // { name: relation }
+  // { name: relation }
   persons: Record<string, ApiEntityRelation>;
   cast: Record<string, ApiEntityRelation>;
   companies: Record<string, ApiEntityRelation>;
@@ -123,11 +123,11 @@ export interface ApiMediaRelations {
 
 // extension
 export interface MovieExtension { 
-  duration: number; 
+  duration?: number; 
 }
 export interface SeriesExtension { 
-  seasons: number; 
-  episodes: number; 
+  seasons?: number; 
+  episodes?: number; 
 }
 export interface VideoGameExtension { 
   synopsis?: string; 
@@ -204,6 +204,16 @@ export type ApiMedia =
   ApiState &
   ApiMediaRelations;
 
+// used to send data to backend while editing a media
+export type MediaDto = 
+  MediaBase &
+  ApiMediaRelations &
+  Partial<MovieExtension> &
+  Partial<SeriesExtension> &
+  Partial<VideoGameExtension> &
+  Partial<TabletopGameExtension> &
+  Partial<BookExtension>;
+
 /* ********** Generic Type ********** */
 
 export type AnyApiMedia =
@@ -221,6 +231,8 @@ export type AnyMedia =
   ApiSearchResult | 
   ApiMedia;
 
+/* ********** Utils ********** */
+
 // type guard
 export const isLibraryMedia = (media: AnyMedia): media is LibraryMedia  => {
   return 'favorite' in media;
@@ -228,3 +240,86 @@ export const isLibraryMedia = (media: AnyMedia): media is LibraryMedia  => {
 export const isDetailedMedia = (media: AnyMedia): media is ApiMedia | LibraryMedia => {
   return 'persons' in media;
 };
+
+// convert from LibraryMedia to MediaDto
+export function LibraryMediaToDto(libraryMedia: LibraryMedia | null): MediaDto | null {
+  if (!libraryMedia) return null;
+
+  // init data
+  const dto: MediaDto = {
+    title: libraryMedia.title,
+    mediaType: libraryMedia.mediaType,
+    releaseDate: libraryMedia.releaseDate,
+    description: libraryMedia.description,
+    creators: [...libraryMedia.creators],
+    source: libraryMedia.source,
+
+    // simplify relations (from LibraryMediaRelations to ApiMediaRelations)
+    persons: mapToApiEntityRelation(libraryMedia.persons),
+    cast: mapToApiEntityRelation(libraryMedia.cast),
+    companies: mapToApiEntityRelation(libraryMedia.companies),
+    tags: mapTagsToNames(libraryMedia.tags),
+  };
+
+  // fill the extension fields
+  switch (libraryMedia.mediaType) {
+    case MediaType.MOVIE:
+      const movie = libraryMedia as MovieExtension;
+      dto.duration = movie.duration;
+      break;
+
+    case MediaType.SERIES:
+      const serie = libraryMedia as SeriesExtension;
+      dto.seasons = serie.seasons;
+      dto.episodes = serie.episodes;
+      break;
+
+    case MediaType.VIDEO_GAME:
+      const videoGame = libraryMedia as VideoGameExtension;
+      dto.synopsis = videoGame.synopsis;
+      dto.normalPlayingTime = videoGame.normalPlayingTime;
+      dto.completePlayingTime = videoGame.completePlayingTime;
+      break;
+
+    case MediaType.TABLETOP_GAME:
+      const tabletopGame = libraryMedia as TabletopGameExtension;
+      dto.minPlayers = tabletopGame.minPlayers;
+      dto.maxPlayers = tabletopGame.maxPlayers;
+      dto.minPlayingTime = tabletopGame.minPlayingTime;
+      dto.maxPlayingTime = tabletopGame.maxPlayingTime;
+      break;
+
+    case MediaType.BOOK:
+      const book = libraryMedia as BookExtension;
+      dto.pages = book.pages;
+      dto.category = book.category;
+      break;
+  }
+
+  return dto;
+}
+function mapToApiEntityRelation(
+  source: Record<string, LibraryEntityRelation>
+): Record<string, ApiEntityRelation> {
+  const target: Record<string, ApiEntityRelation> = {};
+
+  for (const [key, relation] of Object.entries(source)) {
+    target[key] = {
+      order: relation.order,
+      values: [...relation.values]
+    };
+  }
+
+  return target;
+}
+function mapTagsToNames(
+  source: Record<TagType, Tag[]>
+): Record<TagType, string[]> {
+  const target: Partial<Record<TagType, string[]>> = {};
+
+  for (const [type, tags] of Object.entries(source)) {
+    target[type as TagType] = tags.map(tag => tag.name);
+  }
+
+  return target as Record<TagType, string[]>;
+}

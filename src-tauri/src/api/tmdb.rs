@@ -183,7 +183,7 @@ impl MediaProvider for TmdbProvider {
       .into_iter()
       .filter_map(|item| {
         Some(ApiSearchResult {
-          core: MediaBase {
+          base: MediaBase {
             media_type: self.media_type.clone(),
             source: self.source.clone(),
             title: item["title"]
@@ -362,11 +362,11 @@ impl MediaProvider for TmdbProvider {
     // add detailed infos
     let extension = match self.media_type {
       MediaType::Movie => MediaExtension::Movie {
-        duration: data["runtime"].as_i64().unwrap_or(0) as i32,
+        duration: data["runtime"].as_i64().map(|v| v as u32),
       },
       MediaType::Series => MediaExtension::Series {
-        seasons: data["number_of_seasons"].as_i64().unwrap_or(0) as i32,
-        episodes: data["number_of_episodes"].as_i64().unwrap_or(0) as i32,
+        seasons: data["number_of_seasons"].as_i64().map(|v| v as u32),
+        episodes: data["number_of_episodes"].as_i64().map(|v| v as u32),
       },
       _ => MediaExtension::None,
     };

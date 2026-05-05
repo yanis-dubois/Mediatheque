@@ -96,6 +96,24 @@ export class EntityService {
     return this.entityCache.get(key)!;
   }
 
+  async loadMedia(id: string): Promise<LibraryMedia | null> {
+    return (await this.loadEntitySignal(EntityType.MEDIA, id))() as LibraryMedia | null; 
+  }
+  async loadEntitySignal(
+    type: EntityType, 
+    id: string
+  ): Promise<WritableSignal<DetailedEntity | null>> {
+    const key = this.buildKey(type, id);
+    if (!this.entityCache.has(key)) {
+      this.entityCache.set(key, signal<DetailedEntity | null>(null));
+    }
+
+    await this.loadById(type, id);
+    this.updateCacheOrder(key);
+
+    return this.entityCache.get(key)!;
+  }
+
   setEntity(entity: DetailedEntity) {
     const key = this.buildKey(entity.type, entity.id);
     this.getEntitySignal(entity.type, entity.id).set(entity);

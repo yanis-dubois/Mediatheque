@@ -1,0 +1,255 @@
+<section class="page-container">
+
+  <div class="picker-header">
+    <h1>Editing</h1>
+
+    <button class="action-button menu-background left-buton" (click)="onCancel.emit()">
+      <img class="chevron" src="assets/icons/plus.svg" style="transform: rotate(45deg);"/>
+    </button>
+
+    <button class="action-button menu-background right-buton" (click)="onConfirmClick()">
+      <img class="chevron" src="assets/icons/valid.svg"/>
+    </button>
+  </div>
+
+  <!-- images -->
+  <div class="images">
+    @if (media(); as media) {
+
+      <!-- poster -->
+      <div class="poster-container">
+        <app-media-image
+          [source]="posterUrl()"
+          [title]="media.title" 
+          [type]="'poster'" 
+          [hasImage]="media.hasPoster"
+          [customStyle]="'width: 100%; height: 100%; overflow: hidden; border-radius: 8px; object-fit: contain'"
+        >
+        </app-media-image>
+      </div>
+
+      <!-- backdrop -->
+      <div class="backdrop-container">
+        <app-media-image
+          [source]="backdropUrl()"
+          [title]="media.title" 
+          [type]="'background'" 
+          [hasImage]="media.hasBackdrop"
+          [customStyle]="'width: 100%; height: 100%; overflow: hidden; border-radius: 8px; object-fit: contain'"
+        ></app-media-image>
+      </div>
+
+    }
+  </div>
+
+  @if (initialMediaDto(); as initialMedia) {
+    @if (form) {
+      <div [formGroup]="form">
+        <div class="main-fields">
+          <mat-form-field>
+            <mat-label>Titre</mat-label>
+            <input matInput formControlName="title">
+          </mat-form-field>
+
+          @if (initialMedia.source === MediaSource.MANUAL) {
+            <mat-form-field>
+              <mat-label>Media Type</mat-label>
+              <select matNativeControl formControlName="mediaType">
+                @for (type of mediaTypeValues; track type) {
+                  <option [value]="type">{{ type | humanize }}</option>
+                }
+              </select>
+            </mat-form-field>
+          }
+
+          <mat-form-field>
+            <mat-label>Release Date</mat-label>
+            <input matInput type="date" formControlName="releaseDate">
+          </mat-form-field>
+
+          <mat-form-field class="full-width">
+            <mat-label>Description</mat-label>
+            <textarea matInput formControlName="description"
+              cdkTextareaAutosize
+              #autosize="cdkTextareaAutosize"
+              cdkAutosizeMinRows="5"
+              cdkAutosizeMaxRows="15"
+              #descriptionInput
+            ></textarea>
+
+            @let control = form.get('description');
+            @let tooLong = control?.hasError('maxlength');
+            @let maxLength = control?.errors?.['maxlength']?.requiredLength || 5000;
+            <mat-hint align="end" class="text-field-count">
+              {{ descriptionInput.value.length }} / {{ maxLength }}
+            </mat-hint>
+            @if (tooLong) {
+              <mat-error class="error-msg">
+                  <span>Description is too long</span>
+                  <span [class.count-error]="tooLong">{{ descriptionInput.value.length }} / {{ maxLength }}</span>
+              </mat-error>
+            }
+          </mat-form-field>
+
+          <!-- 
+            liste d'éléments : pour chaque éléments on peut ajouter ou retirer des tags (ex: des rôles pour un acteur), et on peut ajouter ou retirer les éléments eux-même
+            {{ media.persons }} 
+            {{ media.cast }}
+            {{ media.companies }}
+
+            liste de tag prédéfinis en fonction du mediaType : pour chaque tag on peut ajouter ou retirer des entrées
+            {{ media.tags }} 
+          -->
+
+          <div class="relations-section" formArrayName="persons">
+            <div class="section-header">
+              <h3>Persons</h3>
+              <button mat-icon-button (click)="addRelation('persons')"><mat-icon>add</mat-icon></button>
+            </div>
+
+            @for (personGroup of relationFormArray('persons').controls; track personGroup; let i = $index) {
+              <div [formGroupName]="i" class="relation-row">
+
+                <mat-form-field>
+                  <mat-label>Name</mat-label>
+                  <input matInput formControlName="name">
+                </mat-form-field>
+
+                <div formArrayName="values" class="value-container">
+                  @for (role of getValuesArray('persons', i).controls; track role; let j = $index) {
+                    <div class="value-chip">
+                      <input [formControlName]="j" placeholder="Role...">
+                      <button (click)="removeValue('persons', i, j)">x</button>
+                    </div>
+                  }
+                  <button (click)="addValue('persons', i)">+ Role</button>
+                </div>
+
+                <button mat-icon-button color="warn" (click)="removeRelation('persons', i)">
+                  <mat-icon>delete</mat-icon>
+                </button>
+              </div>
+            }
+          </div>
+        </div>
+
+        <div formGroupName="extension" class="specific-fields">
+          @switch (selectedType()) {
+            @case (MediaType.MOVIE) {
+              <mat-form-field>
+                <mat-label>Duration (min)</mat-label>
+                <input matInput type="number" formControlName="duration">
+                @if (form.get('extension.duration')?.hasError('min')) {
+                  <mat-error>Must be positive</mat-error>
+                }
+              </mat-form-field>
+            }
+            @case (MediaType.SERIES) {
+              <mat-form-field>
+                <mat-label>Seasons</mat-label>
+                <input matInput type="number" formControlName="seasons">
+                @if (form.get('extension.seasons')?.hasError('min')) {
+                  <mat-error>Must be positive</mat-error>
+                }
+              </mat-form-field>
+              <mat-form-field>
+                <mat-label>Episodes</mat-label>
+                <input matInput type="number" formControlName="episodes">
+                @if (form.get('extension.episodes')?.hasError('min')) {
+                  <mat-error>Must be positive</mat-error>
+                }
+              </mat-form-field>
+            }
+            @case (MediaType.VIDEO_GAME) {
+              <mat-form-field class="full-width">
+                <mat-label>Synopsis</mat-label>
+                <textarea matInput formControlName="synopsis" 
+                  cdkTextareaAutosize 
+                  cdkAutosizeMinRows="5"
+                  cdkAutosizeMaxRows="15"
+                  #synopsisInput
+                ></textarea>
+
+                @let control = form.get('extension.synopsis');
+                @let tooLong = control?.hasError('maxlength');
+                @let maxLength = control?.errors?.['maxlength']?.requiredLength || 5000;
+                <mat-hint align="end" class="text-field-count">
+                  {{ synopsisInput.value.length }} / {{ maxLength }}
+                </mat-hint>
+                @if (tooLong) {
+                  <mat-error class="error-msg">
+                      <span>Synopsis is too long</span>
+                      <span [class.count-error]="tooLong">{{ synopsisInput.value.length }} / {{ maxLength }}</span>
+                  </mat-error>
+                }
+              </mat-form-field>
+              <mat-form-field>
+                <mat-label>Playing Time (normal)</mat-label>
+                <input matInput type="number" formControlName="normalPlayingTime">
+                @if (form.get('extension.normalPlayingTime')?.hasError('min')) {
+                  <mat-error>Must be positive</mat-error>
+                }
+              </mat-form-field>
+              <mat-form-field>
+                <mat-label>Playing Time (100%)</mat-label>
+                <input matInput type="number" formControlName="completePlayingTime" [errorStateMatcher]="videoGameMatcher">
+                @if (form.get('extension.completePlayingTime')?.hasError('min')) {
+                  <mat-error>Must be positive</mat-error>
+                }
+                @if (form.get('extension')?.hasError('completePlayingTime_rangeError')) {
+                  <mat-error>Must be greater than Min Playing Time</mat-error>
+                }
+              </mat-form-field>
+            }
+            @case (MediaType.TABLETOP_GAME) {
+              <mat-form-field>
+                <mat-label>Min Player</mat-label>
+                <input matInput type="number" formControlName="minPlayers">
+                @if (form.get('extension.minPlayers')?.hasError('min')) {
+                  <mat-error>Must be positive</mat-error>
+                }
+              </mat-form-field>
+              <mat-form-field>
+                <mat-label>Max Player</mat-label>
+                <input matInput type="number" formControlName="maxPlayers" [errorStateMatcher]="playersMatcher">
+                <!-- Gestion des erreurs -->
+                @if (form.get('extension.maxPlayers')?.hasError('min')) {
+                  <mat-error>Must be positive</mat-error>
+                }
+                @if (form.get('extension')?.hasError('maxPlayers_rangeError')) {
+                  <mat-error>Must be greater than Min Players</mat-error>
+                }
+              </mat-form-field>
+              <mat-form-field>
+                <mat-label>Min Playing Time (min)</mat-label>
+                <input matInput type="number" formControlName="minPlayingTime">
+                @if (form.get('extension.minPlayingTime')?.hasError('min')) {
+                  <mat-error>Must be positive</mat-error>
+                }
+              </mat-form-field>
+              <mat-form-field>
+                <mat-label>Max Playing Time (min)</mat-label>
+                <input matInput type="number" formControlName="maxPlayingTime" [errorStateMatcher]="playingTimeMatcher">
+                @if (form.get('extension.maxPlayingTime')?.hasError('min')) {
+                  <mat-error>Must be positive</mat-error>
+                }
+                @if (form.get('extension')?.hasError('maxPlayingTime_rangeError')) {
+                  <mat-error>Must be greater than Min Playing Time</mat-error>
+                }
+              </mat-form-field>
+            }
+            @case (MediaType.BOOK) {
+              <mat-form-field>
+                <mat-label>Number of Pages</mat-label>
+                <input matInput type="number" formControlName="pages">
+                @if (form.get('extension.pages')?.hasError('min')) {
+                  <mat-error>Must be positive</mat-error>
+                }
+              </mat-form-field>
+            }
+          }
+        </div>
+      </div>
+    }
+  }
+</section>

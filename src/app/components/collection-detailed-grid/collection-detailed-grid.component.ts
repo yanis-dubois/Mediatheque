@@ -154,12 +154,10 @@ export class CollectionDetailedGridComponent {
     const ro = new ResizeObserver((entries) => {
       const width = entries[0].contentRect.width;
       this.containerWidth.set(width);
-      // this.virtualizer.measure();
+      this.virtualizer.measure();
     });
 
     ro.observe(this.scrollElement.nativeElement);
-
-    console.log('grid', this.mediaLayoutData().length, this.minColumnWidth(), this.columnWidth(), this.columns());
   }
 
   @HostListener('window:resize')

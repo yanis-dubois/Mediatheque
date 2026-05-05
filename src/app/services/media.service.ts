@@ -2,7 +2,7 @@ import { inject, Injectable } from '@angular/core';
 
 import { invoke } from '@tauri-apps/api/core';
 
-import { LibraryMedia, ApiMedia, MediaStatus, MediaType, MediaSource, MediaPossessionStatus } from '@models/media.model';
+import { LibraryMedia, ApiMedia, MediaStatus, MediaType, MediaSource, MediaPossessionStatus, ApiMediaRelations, MediaData, MediaDto } from '@models/media.model';
 import { EntityService } from './entity.service';
 import { EntityType } from '@app/models/entity.model';
 import { ImageService } from './image.service';
@@ -62,6 +62,12 @@ export class MediaService {
   async updateScore(id: string, score?: number): Promise<void> {
     await invoke('update_media_score', { id, score });
     this.updateCache(id, { score: score } );
+  }
+
+  async editMedia(id: string, media: MediaDto): Promise<void> {
+    console.log("extension : ", media);
+    await invoke<LibraryMedia>('edit_media_data', { id, media });
+    await this.getById(id); // reload edited data in cache
   }
 
   async refreshMediaData(id: string, externalId: number, mediaType: MediaType, mediaSource: MediaSource): Promise<void> {

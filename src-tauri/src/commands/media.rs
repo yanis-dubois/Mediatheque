@@ -11,12 +11,12 @@ use crate::models::enums::{
   MediaStatus, MediaType, TagType,
 };
 use crate::models::media::{
-  ApiEntityRelation, ApiMedia, LibraryEntityRelation, LibraryMedia, LibraryMediaRelations,
-  LibraryState, MediaBase, MediaData, MediaExtension,
+  ApiEntityRelation, ApiMedia, ApiMediaRelations, LibraryEntityRelation, LibraryMedia,
+  LibraryMediaRelations, LibraryState, MediaBase, MediaData, MediaDto, MediaExtension,
 };
 use crate::models::metadata::Tag;
 use crate::models::query::{AddPayload, DeletePayload, MediaFilter, MediaOrder, Pagination};
-use crate::utils::image::{delete_media_files, download_assets};
+use crate::utils::image::{delete_media_files, download_assets, DownloadedMediaAssets};
 use crate::utils::unicode::remove_accents;
 
 // convert SQL -> Media
@@ -201,23 +201,23 @@ pub fn fill_media_extension(
 
   match media.data.base.media_type {
     MediaType::Movie => {
-      let duration: i32 = connection
+      let duration: Option<u32> = connection
         .query_row(
           "SELECT duration FROM movie WHERE media_id = ?1",
           [media_id],
           |row| row.get(0),
         )
-        .unwrap_or(0);
+        .unwrap_or(None);
       media.data.extension = MediaExtension::Movie { duration };
     }
     MediaType::Series => {
-      let (seasons, episodes): (i32, i32) = connection
+      let (seasons, episodes): (Option<u32>, Option<u32>) = connection
         .query_row(
           "SELECT seasons, episodes FROM series WHERE media_id = ?1",
           [media_id],
           |row| Ok((row.get(0)?, row.get(1)?)),
         )
-        .unwrap_or((0, 0));
+        .unwrap_or((None, None));
       media.data.extension = MediaExtension::Series { seasons, episodes };
     }
     MediaType::VideoGame => {
@@ -875,44 +875,24 @@ pub fn update_media_score(
   Ok(())
 }
 
-pub async fn update_media_data(
-  app: tauri::AppHandle,
-  id: String,
-  api_media: ApiMedia,
+fn update_media_base(
+  tx: &Transaction,
+  id: &str,
+  base: &MediaBase,
+  assets: &DownloadedMediaAssets,
 ) -> Result<(), String> {
-  let provider_store = app.state::<ProviderStore>();
-  let provider = provider_store
-    .get(&api_media.data.base.media_type, &api_media.data.base.source)
-    .ok_or_else(|| "Failed to retrieve provider".to_string())?;
-
-  let assets = download_assets(
-    &app,
-    provider,
-    &id,
-    api_media.state.poster_path.clone(),
-    api_media.state.backdrop_path.clone(),
-  )
-  .await?;
-
-  // get db access
-  let state = app.state::<DbState>();
-  let mut connection = state.connection.lock().unwrap();
-  let tx = connection.transaction().map_err(|e| e.to_string())?;
-
-  let base = &api_media.data.base;
-  let relations = &api_media.relations;
   let creators_json = serde_json::to_string(&base.creators).unwrap_or_else(|_| "[]".to_string());
+  let media_type_str = base.media_type.to_string();
 
-  // update parent media table
   tx.execute(
     "UPDATE media 
-        SET poster_width = ?2, poster_height = ?3, title = ?4, normalized_name = ?5, description = ?6, 
-            release_date = ?7, has_poster = ?8, has_backdrop = ?9, creators = ?10
+        SET poster_width = ?2, poster_height = ?3, media_type = ?4, title = ?5, normalized_name = ?6, description = ?7, release_date = ?8, has_poster = ?9, has_backdrop = ?10, creators = ?11
         WHERE id = ?1",
     params![
       id,
       assets.poster_width,
       assets.poster_height,
+      media_type_str,
       base.title,
       remove_accents(&base.title),
       base.description,
@@ -924,20 +904,15 @@ pub async fn update_media_data(
   )
   .map_err(|e| e.to_string())?;
 
-  // reset media relation
-  tx.execute("DELETE FROM media_person WHERE media_id = ?1", params![id])
-    .map_err(|e| e.to_string())?;
-  insert_relations_person(&tx, &id, &"crew", &relations.persons).map_err(|e| e.to_string())?;
-  insert_relations_person(&tx, &id, &"cast", &relations.cast).map_err(|e| e.to_string())?;
-  tx.execute("DELETE FROM media_company WHERE media_id = ?1", params![id])
-    .map_err(|e| e.to_string())?;
-  insert_relations_company(&tx, &id, &relations.companies).map_err(|e| e.to_string())?;
-  tx.execute("DELETE FROM media_tag WHERE media_id = ?1", params![id])
-    .map_err(|e| e.to_string())?;
-  insert_media_tags(&tx, &id, &relations.tags).map_err(|e| e.to_string())?;
+  Ok(())
+}
 
-  // update details
-  match &api_media.data.extension {
+fn update_media_details(
+  tx: &Transaction,
+  id: &str,
+  extension: &MediaExtension,
+) -> Result<(), String> {
+  match extension {
     MediaExtension::Movie { duration } => {
       tx.execute(
         "REPLACE INTO movie (media_id, duration) VALUES (?1, ?2)",
@@ -984,6 +959,86 @@ pub async fn update_media_data(
     }
     MediaExtension::None => {}
   }
+
+  Ok(())
+}
+
+fn update_media_relations(
+  tx: &Transaction,
+  id: &str,
+  relations: &ApiMediaRelations,
+) -> Result<(), String> {
+  // reset media relation
+  tx.execute("DELETE FROM media_person WHERE media_id = ?1", params![id])
+    .map_err(|e| e.to_string())?;
+  insert_relations_person(&tx, &id, &"crew", &relations.persons).map_err(|e| e.to_string())?;
+  insert_relations_person(&tx, &id, &"cast", &relations.cast).map_err(|e| e.to_string())?;
+  tx.execute("DELETE FROM media_company WHERE media_id = ?1", params![id])
+    .map_err(|e| e.to_string())?;
+  insert_relations_company(&tx, &id, &relations.companies).map_err(|e| e.to_string())?;
+  tx.execute("DELETE FROM media_tag WHERE media_id = ?1", params![id])
+    .map_err(|e| e.to_string())?;
+  insert_media_tags(&tx, &id, &relations.tags).map_err(|e| e.to_string())?;
+
+  Ok(())
+}
+
+pub async fn update_media_data(
+  app: tauri::AppHandle,
+  id: String,
+  api_media: ApiMedia,
+) -> Result<(), String> {
+  let provider_store = app.state::<ProviderStore>();
+  let provider = provider_store
+    .get(&api_media.data.base.media_type, &api_media.data.base.source)
+    .ok_or_else(|| "Failed to retrieve provider".to_string())?;
+
+  let assets = download_assets(
+    &app,
+    provider,
+    &id,
+    api_media.state.poster_path.clone(),
+    api_media.state.backdrop_path.clone(),
+  )
+  .await?;
+
+  // get db access
+  let state = app.state::<DbState>();
+  let mut connection = state.connection.lock().unwrap();
+  let tx = connection.transaction().map_err(|e| e.to_string())?;
+
+  update_media_base(&tx, &id, &api_media.data.base, &assets)?;
+  update_media_relations(&tx, &id, &api_media.relations)?;
+  update_media_details(&tx, &id, &api_media.data.extension)?;
+
+  tx.commit().map_err(|e| e.to_string())?;
+
+  Ok(())
+}
+
+#[tauri::command]
+pub async fn edit_media_data(
+  app: tauri::AppHandle,
+  id: String,
+  media: MediaDto,
+) -> Result<(), String> {
+  let assets = DownloadedMediaAssets {
+    poster_width: 2,
+    poster_height: 3,
+    has_poster: false,
+    has_backdrop: false,
+  };
+
+  // get db access
+  let state = app.state::<DbState>();
+  let mut connection = state.connection.lock().unwrap();
+  let tx = connection.transaction().map_err(|e| e.to_string())?;
+
+  update_media_base(&tx, &id, &media.base, &assets)?;
+  update_media_relations(&tx, &id, &media.relations)?;
+
+  let structured_extension = media.build_extension();
+  update_media_details(&tx, &id, &structured_extension)?;
 
   tx.commit().map_err(|e| e.to_string())?;
 
