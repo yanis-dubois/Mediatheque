@@ -90,47 +90,6 @@
               </mat-error>
             }
           </mat-form-field>
-
-          <!-- 
-            liste d'éléments : pour chaque éléments on peut ajouter ou retirer des tags (ex: des rôles pour un acteur), et on peut ajouter ou retirer les éléments eux-même
-            {{ media.persons }} 
-            {{ media.cast }}
-            {{ media.companies }}
-
-            liste de tag prédéfinis en fonction du mediaType : pour chaque tag on peut ajouter ou retirer des entrées
-            {{ media.tags }} 
-          -->
-
-          <div class="relations-section" formArrayName="persons">
-            <div class="section-header">
-              <h3>Persons</h3>
-              <button mat-icon-button (click)="addRelation('persons')"><mat-icon>add</mat-icon></button>
-            </div>
-
-            @for (personGroup of relationFormArray('persons').controls; track personGroup; let i = $index) {
-              <div [formGroupName]="i" class="relation-row">
-
-                <mat-form-field>
-                  <mat-label>Name</mat-label>
-                  <input matInput formControlName="name">
-                </mat-form-field>
-
-                <div formArrayName="values" class="value-container">
-                  @for (role of getValuesArray('persons', i).controls; track role; let j = $index) {
-                    <div class="value-chip">
-                      <input [formControlName]="j" placeholder="Role...">
-                      <button (click)="removeValue('persons', i, j)">x</button>
-                    </div>
-                  }
-                  <button (click)="addValue('persons', i)">+ Role</button>
-                </div>
-
-                <button mat-icon-button color="warn" (click)="removeRelation('persons', i)">
-                  <mat-icon>delete</mat-icon>
-                </button>
-              </div>
-            }
-          </div>
         </div>
 
         <div formGroupName="extension" class="specific-fields">
@@ -249,6 +208,123 @@
             }
           }
         </div>
+
+        <div class="relations-section">
+          <ng-template 
+            #relationTemplate 
+            let-relationKey="relationKey" 
+            let-title="title" 
+            let-valuePlaceholder="valuePlaceholder" 
+            let-addValueText="addValueText"
+          >
+            <div class="relations-section" [formArrayName]="relationKey">
+              <div class="section-header">
+                <h3>{{ title }}</h3>
+                <button type="button" mat-icon-button (click)="addRelation(relationKey)">
+                  <mat-icon>add</mat-icon>
+                </button>
+              </div>
+
+              @for (group of relationFormArray(relationKey).controls; track group; let i = $index) {
+                <div [formGroupName]="i" class="relation-row">
+
+                  <mat-form-field>
+                    <mat-label>Name</mat-label>
+                    <input matInput formControlName="name">
+                  </mat-form-field>
+
+                  <div formArrayName="values" class="value-container">
+                    @for (val of getValuesArray(relationKey, i).controls; track val; let j = $index) {
+                      <div class="value-chip">
+                        <input [formControlName]="j" [placeholder]="valuePlaceholder">
+                        <button type="button" (click)="removeValue(relationKey, i, j)">x</button>
+                      </div>
+                    }
+                    <button type="button" (click)="addValue(relationKey, i)">{{ addValueText }}</button>
+                  </div>
+
+                  <button type="button" mat-icon-button color="warn" (click)="removeRelation(relationKey, i)">
+                    <mat-icon>delete</mat-icon>
+                  </button>
+                </div>
+              }
+            </div>
+          </ng-template>
+
+          <!-- persons -->
+          <ng-container *ngTemplateOutlet="relationTemplate; context: { 
+            relationKey: 'persons', 
+            title: 'Persons', 
+            valuePlaceholder: 'Role...', 
+            addValueText: '+ Role' 
+          }"></ng-container>
+
+          <!-- cast -->
+          @if (selectedType() === MediaType.MOVIE || selectedType() === MediaType.SERIES) {
+            <ng-container *ngTemplateOutlet="relationTemplate; context: { 
+              relationKey: 'cast', 
+              title: 'Cast', 
+              valuePlaceholder: 'Role...', 
+              addValueText: '+ Role' 
+            }"></ng-container>
+          }
+
+          <!-- companies -->
+          <ng-container *ngTemplateOutlet="relationTemplate; context: { 
+            relationKey: 'companies', 
+            title: 'Companies', 
+            valuePlaceholder: 'Role...', 
+            addValueText: '+ Role' 
+          }"></ng-container>
+        </div>
+
+        <!-- tags -->
+        <div class="relations-section">
+          <ng-template #tagListTemplate let-type="type" let-label="label">
+            @let currentArray = getTagsArray(type);
+
+            <div formGroupName="tags" class="tag-group">
+              <h4>{{ label }}</h4>
+              <div [formArrayName]="type" class="tags-container">
+                @for (tagCtrl of currentArray.controls; track tagCtrl; let i = $index) {
+                  <div class="tag-input-row">
+                    <input [formControlName]="i" placeholder="Tag ID or Name...">
+                    <button type="button" (click)="removeTag(type, i)">x</button>
+                  </div>
+                }
+                <button type="button" (click)="addTag(type)">+ Add {{ label }}</button>
+              </div>
+            </div>
+          </ng-template>
+
+          <div class="tags-section">
+            <h3>Tags</h3>
+
+            <!-- tags for all media type -->
+            <ng-container *ngTemplateOutlet="tagListTemplate; 
+              context: { type: TagType.GENRE, label: 'Genres' }"
+            ></ng-container>
+            <ng-container *ngTemplateOutlet="tagListTemplate; 
+              context: { type: TagType.SAGA, label: 'Sagas' }"
+            ></ng-container>
+
+            <!-- conditionnal tags -->
+            @if (selectedType() === MediaType.VIDEO_GAME || selectedType() === MediaType.TABLETOP_GAME) {
+              <ng-container *ngTemplateOutlet="tagListTemplate; 
+                context: { type: TagType.GAME_MECHANIC, label: 'Mechanics' }"
+              ></ng-container>
+            }
+            @if (selectedType() === MediaType.VIDEO_GAME) {
+              <ng-container *ngTemplateOutlet="tagListTemplate; 
+                context: { type: TagType.GAME_MODE, label: 'Modes' }"
+              ></ng-container>
+              <ng-container *ngTemplateOutlet="tagListTemplate; 
+                context: { type: TagType.RELEASE_STATUS, label: 'Status' }"
+              ></ng-container>
+            }
+          </div>
+        </div>
+
       </div>
     }
   }
