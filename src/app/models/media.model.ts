@@ -179,6 +179,16 @@ export interface ApiState {
   posterPath?: string;
   backdropPath?: string;
 }
+export interface DtoState {
+  hasPoster: boolean;
+  hasBackdrop: boolean;
+  posterWidth: number;
+  posterHeight: number;
+  posterDeleted: boolean;
+  backdropDeleted: boolean;
+  newPosterPath?: string;
+  newBackdropPath?: string;
+}
 
 /* ********** Type ********** */
 
@@ -208,6 +218,7 @@ export type ApiMedia =
 export type MediaDto = 
   MediaBase &
   ApiMediaRelations &
+  DtoState &
   Partial<MovieExtension> &
   Partial<SeriesExtension> &
   Partial<VideoGameExtension> &
@@ -259,6 +270,14 @@ export function LibraryMediaToDto(libraryMedia: LibraryMedia | null): MediaDto |
     cast: mapToApiEntityRelation(libraryMedia.cast),
     companies: mapToApiEntityRelation(libraryMedia.companies),
     tags: mapTagsToNames(libraryMedia.tags),
+
+    // image data
+    hasPoster: libraryMedia.hasPoster,
+    hasBackdrop: libraryMedia.hasBackdrop,
+    posterWidth: libraryMedia.posterWidth,
+    posterHeight: libraryMedia.posterHeight,
+    posterDeleted: false,
+    backdropDeleted: false,
   };
 
   // fill the extension fields

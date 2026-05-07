@@ -1,4 +1,4 @@
-import { Component, ElementRef, input, output, ViewChild } from '@angular/core';
+import { Component, input, output } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { DefaultImageComponent } from "@components/default-image/default-image.component";
 

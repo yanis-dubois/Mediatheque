@@ -1,4 +1,4 @@
-import { computed, inject, Injectable } from "@angular/core";
+import { computed, inject, Injectable, signal } from "@angular/core";
 
 import { join } from "@tauri-apps/api/path";
 import { exists } from '@tauri-apps/plugin-fs';
@@ -13,6 +13,23 @@ import { ScreenService, ScreenSize } from "./screen.service";
 export class ImageService {
 
   /* image cache */
+
+  lastUpdate = signal<number>(Date.now());
+  update(id: string) {
+    this.lastUpdate.set(Date.now());
+
+    for (let type of Object.values(ImageType)) {
+      for (let size of Object.values(ImageSize)) {
+        const cacheKey = `${id}-${type}-${size}`;
+        if (this.pathCache.has(cacheKey)) {
+          const value = this.pathCache.get(cacheKey);
+          if (value) {
+            this.pathCache.delete(cacheKey);
+          }
+        }
+      }
+    }
+  }
 
   private decodeCache = new Map<string, Promise<void>>();
   private readonly MAX_IMAGE_CACHE_SIZE = 200;
@@ -135,7 +152,7 @@ export class ImageService {
         const fullPath = await join(appDataPath, category, get_image_size_file_name(targetSize), fileName);
 
         if (await exists(fullPath)) {
-          resolvedUrl = convertFileSrc(fullPath);
+          resolvedUrl = convertFileSrc(fullPath) + '?v=' + this.lastUpdate();
           break;
         }
       } catch (err) {

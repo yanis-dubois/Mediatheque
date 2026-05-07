@@ -16,7 +16,9 @@ use crate::models::media::{
 };
 use crate::models::metadata::Tag;
 use crate::models::query::{AddPayload, DeletePayload, MediaFilter, MediaOrder, Pagination};
-use crate::utils::image::{delete_media_files, download_assets, DownloadedMediaAssets};
+use crate::utils::image::{
+  delete_media_files, download_assets_from_api, download_assets_from_local, DownloadedMediaAssets,
+};
 use crate::utils::unicode::remove_accents;
 
 // convert SQL -> Media
@@ -879,30 +881,42 @@ fn update_media_base(
   tx: &Transaction,
   id: &str,
   base: &MediaBase,
-  assets: &DownloadedMediaAssets,
+  assets: &Option<DownloadedMediaAssets>,
 ) -> Result<(), String> {
   let creators_json = serde_json::to_string(&base.creators).unwrap_or_else(|_| "[]".to_string());
   let media_type_str = base.media_type.to_string();
 
   tx.execute(
     "UPDATE media 
-        SET poster_width = ?2, poster_height = ?3, media_type = ?4, title = ?5, normalized_name = ?6, description = ?7, release_date = ?8, has_poster = ?9, has_backdrop = ?10, creators = ?11
+        SET media_type = ?2, title = ?3, normalized_name = ?4, description = ?5, release_date = ?6, creators = ?7
         WHERE id = ?1",
     params![
       id,
-      assets.poster_width,
-      assets.poster_height,
       media_type_str,
       base.title,
       remove_accents(&base.title),
       base.description,
       base.release_date,
-      assets.has_poster,
-      assets.has_backdrop,
       creators_json
     ],
   )
   .map_err(|e| e.to_string())?;
+
+  if let Some(image_data) = assets {
+    tx.execute(
+      "UPDATE media 
+          SET poster_width = ?2, poster_height = ?3, has_poster = ?4, has_backdrop = ?5
+          WHERE id = ?1",
+      params![
+        id,
+        image_data.poster_width,
+        image_data.poster_height,
+        image_data.has_poster,
+        image_data.has_backdrop,
+      ],
+    )
+    .map_err(|e| e.to_string())?;
+  }
 
   Ok(())
 }
@@ -993,7 +1007,7 @@ pub async fn update_media_data(
     .get(&api_media.data.base.media_type, &api_media.data.base.source)
     .ok_or_else(|| "Failed to retrieve provider".to_string())?;
 
-  let assets = download_assets(
+  let assets = download_assets_from_api(
     &app,
     provider,
     &id,
@@ -1007,7 +1021,7 @@ pub async fn update_media_data(
   let mut connection = state.connection.lock().unwrap();
   let tx = connection.transaction().map_err(|e| e.to_string())?;
 
-  update_media_base(&tx, &id, &api_media.data.base, &assets)?;
+  update_media_base(&tx, &id, &api_media.data.base, &Some(assets))?;
   update_media_relations(&tx, &id, &api_media.relations)?;
   update_media_details(&tx, &id, &api_media.data.extension)?;
 
@@ -1022,19 +1036,30 @@ pub async fn edit_media_data(
   id: String,
   media: MediaDto,
 ) -> Result<(), String> {
-  let assets = DownloadedMediaAssets {
-    poster_width: 2,
-    poster_height: 3,
-    has_poster: false,
-    has_backdrop: false,
+  // todo : download images
+  let previous_assets = DownloadedMediaAssets {
+    poster_width: media.poster_width.clone(),
+    poster_height: media.poster_height.clone(),
+    has_poster: media.has_poster.clone(),
+    has_backdrop: media.has_backdrop.clone(),
   };
+  let assets = download_assets_from_local(
+    &app,
+    &id,
+    &previous_assets,
+    media.new_poster_path.clone(),
+    media.new_backdrop_path.clone(),
+    media.poster_deleted.clone(),
+    media.backdrop_deleted.clone(),
+  )
+  .await?;
 
   // get db access
   let state = app.state::<DbState>();
   let mut connection = state.connection.lock().unwrap();
   let tx = connection.transaction().map_err(|e| e.to_string())?;
 
-  update_media_base(&tx, &id, &media.base, &assets)?;
+  update_media_base(&tx, &id, &media.base, &Some(assets))?;
   update_media_relations(&tx, &id, &media.relations)?;
 
   let structured_extension = media.build_extension();
@@ -1219,7 +1244,7 @@ pub async fn add_media_to_library(
 
   let media_uuid = uuid::Uuid::new_v4().to_string();
 
-  let assets = download_assets(
+  let assets = download_assets_from_api(
     &app,
     provider,
     &media_uuid,

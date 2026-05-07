@@ -1,9 +1,9 @@
-import { Component, computed, ElementRef, inject, input, output, signal, ViewChild } from '@angular/core';
+import { Component, computed, DestroyRef, ElementRef, inject, input, output, signal, ViewChild } from '@angular/core';
 import { Location } from '@angular/common';
 
 import { ask } from '@tauri-apps/plugin-dialog';
 
-import { LibraryMedia, MediaDto, MediaStatus } from '@app/models/media.model';
+import { MediaDto, MediaStatus } from '@app/models/media.model';
 import { CollectionPickerComponent } from "../collection-picker/collection-picker.component";
 import { CollectionService } from '@app/services/collection.service';
 import { EntityService } from '@app/services/entity.service';
@@ -31,6 +31,9 @@ export class MediaActionComponent {
   @ViewChild('editorPopover') editorPopover!: ElementRef<HTMLElement>;
   isEditorVisible = signal(false);
 
+  private destroyRef = inject(DestroyRef);
+  private isDestroyed = false;
+
   mediaId = input.required<string>();
   canDeleteFromCollection = input<boolean>(false);
 
@@ -57,6 +60,10 @@ export class MediaActionComponent {
     event.stopPropagation();
     this.isPickerVisible.set(true);
     setTimeout(() => this.pickerPopover.nativeElement.showPopover());
+  }
+
+  constructor() {
+    this.destroyRef.onDestroy(() => (this.isDestroyed = true));
   }
 
   async closePicker() {
@@ -92,7 +99,10 @@ export class MediaActionComponent {
     this.editorPopover.nativeElement.hidePopover();
     this.editorPopover.nativeElement.classList.remove('closing');
     this.isEditorVisible.set(false);
-    this.closeMenu.emit();
+
+    if (!this.isDestroyed) {
+      this.closeMenu.emit();
+    }
   }
 
   async editMedia(media: MediaDto | null) {
@@ -103,7 +113,7 @@ export class MediaActionComponent {
     } catch (e) {
       console.error("Error while editing media", e);
     }
-  }  
+  }
 
   onDeleteFromCollection() {
     this.deleteFromCollectionRequest.emit(this.mediaId());

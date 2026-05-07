@@ -10,6 +10,9 @@ import { MatIconModule } from '@angular/material/icon';
 import { ErrorStateMatcher } from '@angular/material/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 
+import { open } from '@tauri-apps/plugin-dialog';
+import { convertFileSrc } from '@tauri-apps/api/core';
+
 import { ApiEntityRelation, LibraryMediaToDto, MediaDto, MediaSource, MediaType, sortEntityByOrder, TagType } from '@models/media.model'
 import { MediaImageComponent } from "../media-image/media-image.component";
 import { ExternalImagePathPipe } from '@app/pipe/external-image.pipe';
@@ -56,14 +59,20 @@ export class MediaEditingComponent {
 
   protected readonly MediaSource = MediaSource;
   protected readonly MediaType = MediaType;
-  protected readonly ImageType = ImageType;
-  protected readonly ImageSize = ImageSize;
   protected readonly TagType = TagType;
   mediaTypeValues = Object.values(MediaType);
   sortEntityByOrder = sortEntityByOrder;
 
   posterUrl = signal<string | null>(null);
   backdropUrl = signal<string | null>(null);
+
+  newPosterPath = signal<string | null>(null);
+  newPosterPreview = signal<string | null>(null);
+  posterDeleted = signal<boolean>(false);
+
+  newBackdropPath = signal<string | null>(null);
+  newBackdropPreview = signal<string | null>(null);
+  backdropDeleted = signal<boolean>(false);
 
   screenService = inject(ScreenService);
   isMobile = this.screenService.isMobile;
@@ -279,6 +288,41 @@ export class MediaEditingComponent {
     return group;
   }
 
+  async onSelectImage(type: 'poster' | 'backdrop') {
+    const selectedPath = await open({
+      multiple: false,
+      filters: [{ name: 'Images', extensions: ['png', 'jpg', 'jpeg', 'webp'] }]
+    });
+
+    if (selectedPath && typeof selectedPath === 'string') {
+      const previewUrl = convertFileSrc(selectedPath);
+
+      if (type === 'poster') {
+        this.newPosterPath.set(selectedPath);
+        this.newPosterPreview.set(previewUrl);
+        this.posterDeleted.set(false);
+      } else {
+        this.newBackdropPath.set(selectedPath);
+        this.newBackdropPreview.set(previewUrl);
+        this.backdropDeleted.set(false);
+      }
+    }
+  }
+
+  removeExistingImage(type: 'poster' | 'backdrop') {
+    if (type === 'poster') {
+      this.posterUrl.set(null);
+      this.newPosterPath.set(null);
+      this.newPosterPreview.set(null);
+      this.posterDeleted.set(true);
+    } else {
+      this.backdropUrl.set(null);
+      this.newBackdropPath.set(null);
+      this.newBackdropPreview.set(null);
+      this.backdropDeleted.set(true);
+    }
+  }
+
   onConfirmClick() {
     const initialDto = this.initialMediaDto();
     if (this.form.invalid || !initialDto) return;
@@ -301,6 +345,10 @@ export class MediaEditingComponent {
       persons: this.formatRelationForSave(persons),
       companies: this.formatRelationForSave(companies),
       tags: formattedTags,
+      newPosterPath: this.newPosterPath(),
+      newBackdropPath: this.newBackdropPath(),
+      posterDeleted: this.posterDeleted(),
+      backdropDeleted: this.backdropDeleted()
     };
     if (cast !== undefined) {
       finalDto.cast = this.formatRelationForSave(cast);

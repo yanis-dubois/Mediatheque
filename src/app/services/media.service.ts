@@ -65,9 +65,12 @@ export class MediaService {
   }
 
   async editMedia(id: string, media: MediaDto): Promise<void> {
-    console.log("extension : ", media);
-    await invoke<LibraryMedia>('edit_media_data', { id, media });
-    await this.getById(id); // reload edited data in cache
+    this.entityService.removeEntity(EntityType.MEDIA, id);
+    await invoke<void>('edit_media_data', { id, media });
+    // update image url cache
+    this.imageService.update(id);
+    // reload edited data in cache (with details)
+    await this.getById(id);
   }
 
   async refreshMediaData(id: string, externalId: number, mediaType: MediaType, mediaSource: MediaSource): Promise<void> {
@@ -79,6 +82,9 @@ export class MediaService {
       mediaSource,
       language: this.settingsService.language(),
     });
+    // update image url cache
+    this.imageService.update(id);
+    // reload edited data in cache
     this.entityService.getMedia(id, true);
   }
 
@@ -98,4 +104,5 @@ export class MediaService {
     this.entityService.update();
     this.imageService.clearCache(id);
   }
+
 }

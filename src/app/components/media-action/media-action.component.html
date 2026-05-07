@@ -55,14 +55,14 @@
       />
     }
   </div>
-
-  <div #editorPopover popover="manual" class="picker-popover-wrapper">
-    @if (isEditorVisible()) {
-      <app-media-editing
-        [mediaId]="mediaId()"
-        (onCancel)="closeEditor()"
-        (onConfirm)="editMedia($event); closeEditor()"
-      />
-    }
-  </div>
 }
+
+<div #editorPopover popover="manual" class="picker-popover-wrapper">
+  @if (isEditorVisible()) {
+    <app-media-editing
+      [mediaId]="mediaId()"
+      (onCancel)="closeEditor()"
+      (onConfirm)="closeEditor(); editMedia($event);"
+    />
+  }
+</div>

@@ -174,6 +174,16 @@ pub struct MediaDto {
   #[serde(flatten)]
   pub relations: ApiMediaRelations,
 
+  // image data
+  pub has_poster: bool,
+  pub has_backdrop: bool,
+  pub poster_width: u32,
+  pub poster_height: u32,
+  pub new_poster_path: Option<String>,
+  pub new_backdrop_path: Option<String>,
+  pub poster_deleted: bool,
+  pub backdrop_deleted: bool,
+
   // flatten extension fields
   pub duration: Option<u32>,              // Movie
   pub seasons: Option<u32>,               // Series

@@ -10,10 +10,12 @@
       [customClass]="'action-button action-button-right menu-background'" 
       [class.hidden]="isLoading()"
       [isOpenExternal]="isMenuOpen()"
+      (opened)="isMenuOpen.set(true)"
     >
-      <app-media-action [mediaId]="media.id"></app-media-action>
+      <app-media-action [mediaId]="media.id" (closeMenu)="isMenuOpen.set(false);"></app-media-action>
     </app-dropdown>
-  } @else {
+  } 
+  @else {
     @if (apiMedia(); as media) {
       <app-api-search-action 
         [customClass]="'action-button action-button-right menu-background'" 
