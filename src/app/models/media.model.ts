@@ -153,7 +153,11 @@ export type MediaExtension =
 
 export type MediaData = 
   MediaBase & 
-  Partial<MediaExtension>;
+  Partial<MovieExtension> &
+  Partial<SeriesExtension> &
+  Partial<VideoGameExtension> &
+  Partial<TabletopGameExtension> &
+  Partial<BookExtension>;
 
 // state
 export interface LibraryState {

@@ -8,10 +8,10 @@ use crate::db::DbState;
 use crate::models::enums::{
   match_media_possession_status, match_media_source, match_media_status, match_media_type,
   match_tag_type, CollectionMediaType, CollectionType, MediaOrderField, MediaPossessionStatus,
-  MediaStatus, MediaType, TagType,
+  MediaSource, MediaStatus, MediaType, TagType,
 };
 use crate::models::media::{
-  ApiEntityRelation, ApiMedia, ApiMediaRelations, LibraryEntityRelation, LibraryMedia,
+  ApiEntityRelation, ApiMedia, ApiMediaDto, ApiMediaRelations, LibraryEntityRelation, LibraryMedia,
   LibraryMediaRelations, LibraryState, MediaBase, MediaData, MediaDto, MediaExtension,
 };
 use crate::models::metadata::Tag;
@@ -1122,14 +1122,17 @@ pub fn insert_external_media(
   insert_media_tags(tx, media_uuid, &relations.tags)?;
 
   // insert details
+  println!("DEBUG: Extension type is: {:?}", api_media.data.extension);
   match &api_media.data.extension {
     MediaExtension::Movie { duration } => {
+      println!("movie");
       tx.execute(
         "INSERT INTO movie (media_id, duration) VALUES (?1, ?2)",
         params![media_uuid, duration],
       )?;
     }
     MediaExtension::Series { seasons, episodes } => {
+      println!("series");
       tx.execute(
         "INSERT INTO series (media_id, seasons, episodes) VALUES (?1, ?2, ?3)",
         params![media_uuid, seasons, episodes],
@@ -1140,6 +1143,7 @@ pub fn insert_external_media(
       normal_playing_time,
       complete_playing_time,
     } => {
+      println!("video game");
       tx.execute(
         "INSERT INTO video_game (media_id, synopsis, normal_playing_time, complete_playing_time) VALUES (?1, ?2, ?3, ?4)",
         params![media_uuid, synopsis, normal_playing_time, complete_playing_time],
@@ -1151,18 +1155,22 @@ pub fn insert_external_media(
       min_playing_time,
       max_playing_time,
     } => {
+      println!("tabletop game");
       tx.execute(
         "INSERT INTO tabletop_game (media_id, min_players, max_players, min_playing_time, max_playing_time) VALUES (?1, ?2, ?3, ?4, ?5)",
         params![media_uuid, min_players, max_players, min_playing_time, max_playing_time],
       )?;
     }
     MediaExtension::Book { pages, category } => {
+      println!("book");
       tx.execute(
         "INSERT INTO book (media_id, pages, category) VALUES (?1, ?2, ?3)",
         params![media_uuid, pages, category],
       )?;
     }
-    MediaExtension::None => {}
+    MediaExtension::None => {
+      println!("none");
+    }
   }
 
   Ok(())
@@ -1233,6 +1241,24 @@ fn insert_media_tags(
 }
 
 #[tauri::command]
+pub async fn add_media_to_library_from_front(
+  app: tauri::AppHandle,
+  media: ApiMediaDto,
+) -> Result<String, String> {
+  let api_media = ApiMedia {
+    data: MediaData {
+      base: media.base.clone(),
+      extension: media.clone().build_extension(),
+    },
+    relations: media.relations,
+    state: media.state,
+  };
+
+  let id = add_media_to_library(app, api_media).await?;
+
+  Ok(id)
+}
+
 pub async fn add_media_to_library(
   app: tauri::AppHandle,
   api_media: ApiMedia,
@@ -1275,6 +1301,57 @@ pub async fn add_media_to_library(
   app
     .emit(
       "media-inserted",
+      AddPayload {
+        id: media_uuid.clone(),
+      },
+    )
+    .unwrap();
+
+  Ok(media_uuid)
+}
+
+#[tauri::command]
+pub async fn add_empty_media(app: tauri::AppHandle) -> Result<String, String> {
+  println!("add_empty_media");
+  let media_uuid = uuid::Uuid::new_v4().to_string();
+  let date = chrono::Utc::now().to_rfc3339();
+
+  // get db access
+  let state = app.state::<DbState>();
+  let connection = state.connection.lock().unwrap();
+
+  connection
+    .execute(
+      "INSERT INTO media (id, media_type, source, poster_width, poster_height, title, normalized_name, description, release_date, added_date, status, possession_status, status_update, possession_status_update, favorite, notes, has_poster, has_backdrop, creators)
+        VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12, ?13, ?14, ?15, ?16, ?17, ?18, ?19)",
+      params![
+        media_uuid,
+        MediaType::Movie.to_string(),
+        MediaSource::Manual.to_string(),
+        2,
+        3,
+        "New Media",
+        remove_accents("New Media"),
+        "",
+        date,
+        date,
+        "TO_DISCOVER",
+        "NOT_OWNED",
+        date,
+        date,
+        false,
+        "",
+        false,
+        false,
+        "[]"
+      ],
+    )
+    .map_err(|e| e.to_string())?;
+
+  // send signal to frontend when media insertion has ended
+  app
+    .emit(
+      "media-created",
       AddPayload {
         id: media_uuid.clone(),
       },

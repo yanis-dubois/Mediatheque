@@ -155,14 +155,14 @@
                 }
               </mat-form-field>
               <mat-form-field>
-                <mat-label>Playing Time (normal)</mat-label>
+                <mat-label>Playing Time to Beat (min)</mat-label>
                 <input matInput type="number" formControlName="normalPlayingTime">
                 @if (form.get('extension.normalPlayingTime')?.hasError('min')) {
                   <mat-error>Must be positive</mat-error>
                 }
               </mat-form-field>
               <mat-form-field>
-                <mat-label>Playing Time (100%)</mat-label>
+                <mat-label>Playing Time to 100% (min)</mat-label>
                 <input matInput type="number" formControlName="completePlayingTime" [errorStateMatcher]="videoGameMatcher">
                 @if (form.get('extension.completePlayingTime')?.hasError('min')) {
                   <mat-error>Must be positive</mat-error>

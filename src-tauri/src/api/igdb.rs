@@ -414,8 +414,8 @@ impl MediaProvider for IgdbProvider {
     let extension = {
       MediaExtension::VideoGame {
         synopsis: game.storyline,
-        normal_playing_time: playing_time.normally,
-        complete_playing_time: playing_time.completely,
+        normal_playing_time: playing_time.normally.map(|time| time / 60), // seconds to minutes
+        complete_playing_time: playing_time.completely.map(|time| time / 60), // seconds to minutes
       }
     };
 

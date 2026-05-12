@@ -1365,8 +1365,8 @@ fn seed_media_data() -> Vec<SeedMedia<'static>> {
         themes: vec!["Action", "Fantasy"],
         series: vec!["Hollow Knight"],
         synopsis: "Beneath the fading town of Dirtmouth sleeps a vast, ancient kingdom. Many are drawn beneath the surface, searching for riches, or glory, or answers to old secrets. As the enigmatic Knight, you’ll traverse the depths, unravel its mysteries and conquer its evils.",
-        normal_time: 2220*60,
-        complete_time: 4200*60
+        normal_time: 2220,
+        complete_time: 4200
       }),
       ..Default::default()
     },
@@ -1386,8 +1386,8 @@ fn seed_media_data() -> Vec<SeedMedia<'static>> {
         themes: vec!["Action", "Fantasy", "Science Fiction", "Horror", "Survival", "Mystery"],
         series: vec!["Rain World"],
         synopsis: "\"You are a nomadic slugcat, both predator and prey in a broken ecosystem. Intense, bone-crushing rains pound the surface and make life almost impossible for most of the year, but the dry season has just arrived. Grab your spear and brave the industrial wastes, hunting enough food to survive another hibernation cycle, but be wary— other, bigger creatures have the same plan... and slugcats look delicious.\"",
-        normal_time: 900*60,
-        complete_time: 3480*60
+        normal_time: 900,
+        complete_time: 3480
       }),
       ..Default::default()
     },
@@ -1407,8 +1407,8 @@ fn seed_media_data() -> Vec<SeedMedia<'static>> {
         themes: vec!["Action", "Horror", "Survival", "Mystery"],
         series: vec![],
         synopsis: "It is dark. It is lonely. You don't belong in this world. It's not that it’s a hostile world... it's just... not yours. As you uncover its secrets, the world grows on you. It takes on a feel of familiarity, yet you know that you've only probed the surface. The more you discover, the more you realize how much more there is to discover. Secrets leading to more secrets. You recall the feeling of zooming closer and closer in on a very high-resolution photo. As you hone your focus, the world betrays its secrets.",
-        normal_time: 540*60,
-        complete_time: 1200*60
+        normal_time: 540,
+        complete_time: 1200
       }),
       ..Default::default()
     },

@@ -26,6 +26,7 @@ export class EntityService {
   mediaDeleted$ = this.mediaDeletedSource.asObservable();
 
   private async setupTauriListeners() {
+    // insert media from API
     await listen<{ id: string }>('media-inserted', async (event) => {
       const newId = event.payload.id;
 

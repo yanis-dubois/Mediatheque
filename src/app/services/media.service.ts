@@ -90,9 +90,15 @@ export class MediaService {
 
   /* add media */
 
+  async addEmptyMedia(): Promise<string> {
+    const id = await invoke<string>('add_empty_media', {});
+    this.entityService.update();
+    return id;
+  }
+
   async addToLibrary(media: ApiMedia): Promise<string> {
-    return await invoke<string>('add_media_to_library', { 
-      apiMedia: media,
+    return await invoke<string>('add_media_to_library_from_front', { 
+      media,
     });
   }
 

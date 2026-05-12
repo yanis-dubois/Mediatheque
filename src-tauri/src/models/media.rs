@@ -33,7 +33,7 @@ pub struct LibraryMediaRelations {
   pub tags: HashMap<TagType, Vec<Tag>>,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct ApiMediaRelations {
   pub persons: HashMap<String, ApiEntityRelation>,
@@ -44,7 +44,7 @@ pub struct ApiMediaRelations {
 
 /* ****** Data ****** */
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct MediaBase {
   pub media_type: MediaType,
@@ -89,6 +89,23 @@ pub enum MediaExtension {
   None,
 }
 
+#[derive(Debug, Deserialize, Clone)]
+#[serde(rename_all = "camelCase")]
+pub struct MediaExtensionFlat {
+  pub duration: Option<u32>,              // Movie
+  pub seasons: Option<u32>,               // Series
+  pub episodes: Option<u32>,              // Series
+  pub synopsis: Option<String>,           // VideoGame
+  pub normal_playing_time: Option<u32>,   // VideoGame
+  pub complete_playing_time: Option<u32>, // VideoGame
+  pub min_players: Option<u32>,           // Tabletop
+  pub max_players: Option<u32>,           // Tabletop
+  pub min_playing_time: Option<u32>,      // Tabletop
+  pub max_playing_time: Option<u32>,      // Tabletop
+  pub pages: Option<u32>,                 // Book
+  pub category: Option<String>,           // Book
+}
+
 #[derive(Debug, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct MediaData {
@@ -119,7 +136,7 @@ pub struct LibraryState {
   pub poster_height: u32,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct ApiState {
   pub external_id: u32,
@@ -165,6 +182,50 @@ pub struct LibraryMedia {
   pub state: LibraryState,
 }
 
+// obtained from detailed API call
+#[derive(Debug, Deserialize, Clone)]
+#[serde(rename_all = "camelCase")]
+pub struct ApiMediaDto {
+  #[serde(flatten)]
+  pub base: MediaBase,
+  #[serde(flatten)]
+  pub relations: ApiMediaRelations,
+  #[serde(flatten)]
+  pub state: ApiState,
+  #[serde(flatten)]
+  pub extension_flat: MediaExtensionFlat,
+}
+
+impl ApiMediaDto {
+  // build structured extension from flat data
+  pub fn build_extension(self) -> MediaExtension {
+    match self.base.media_type {
+      MediaType::Movie => MediaExtension::Movie {
+        duration: self.extension_flat.duration,
+      },
+      MediaType::Series => MediaExtension::Series {
+        seasons: self.extension_flat.seasons,
+        episodes: self.extension_flat.episodes,
+      },
+      MediaType::VideoGame => MediaExtension::VideoGame {
+        synopsis: self.extension_flat.synopsis,
+        normal_playing_time: self.extension_flat.normal_playing_time,
+        complete_playing_time: self.extension_flat.complete_playing_time,
+      },
+      MediaType::Book => MediaExtension::Book {
+        pages: self.extension_flat.pages,
+        category: self.extension_flat.category,
+      },
+      MediaType::TabletopGame => MediaExtension::TabletopGame {
+        min_players: self.extension_flat.min_players,
+        max_players: self.extension_flat.max_players,
+        min_playing_time: self.extension_flat.min_playing_time,
+        max_playing_time: self.extension_flat.max_playing_time,
+      },
+    }
+  }
+}
+
 // used to recieve data from frontend while editing a media
 #[derive(Debug, Deserialize)]
 #[serde(rename_all = "camelCase")]
@@ -185,18 +246,8 @@ pub struct MediaDto {
   pub backdrop_deleted: bool,
 
   // flatten extension fields
-  pub duration: Option<u32>,              // Movie
-  pub seasons: Option<u32>,               // Series
-  pub episodes: Option<u32>,              // Series
-  pub synopsis: Option<String>,           // VideoGame
-  pub normal_playing_time: Option<u32>,   // VideoGame
-  pub complete_playing_time: Option<u32>, // VideoGame
-  pub min_players: Option<u32>,           // Tabletop
-  pub max_players: Option<u32>,           // Tabletop
-  pub min_playing_time: Option<u32>,      // Tabletop
-  pub max_playing_time: Option<u32>,      // Tabletop
-  pub pages: Option<u32>,                 // Book
-  pub category: Option<String>,           // Book
+  #[serde(flatten)]
+  pub extension_flat: MediaExtensionFlat,
 }
 
 impl MediaDto {
@@ -204,26 +255,26 @@ impl MediaDto {
   pub fn build_extension(self) -> MediaExtension {
     match self.base.media_type {
       MediaType::Movie => MediaExtension::Movie {
-        duration: self.duration,
+        duration: self.extension_flat.duration,
       },
       MediaType::Series => MediaExtension::Series {
-        seasons: self.seasons,
-        episodes: self.episodes,
+        seasons: self.extension_flat.seasons,
+        episodes: self.extension_flat.episodes,
       },
       MediaType::VideoGame => MediaExtension::VideoGame {
-        synopsis: self.synopsis,
-        normal_playing_time: self.normal_playing_time,
-        complete_playing_time: self.complete_playing_time,
+        synopsis: self.extension_flat.synopsis,
+        normal_playing_time: self.extension_flat.normal_playing_time,
+        complete_playing_time: self.extension_flat.complete_playing_time,
       },
       MediaType::Book => MediaExtension::Book {
-        pages: self.pages,
-        category: self.category,
+        pages: self.extension_flat.pages,
+        category: self.extension_flat.category,
       },
       MediaType::TabletopGame => MediaExtension::TabletopGame {
-        min_players: self.min_players,
-        max_players: self.max_players,
-        min_playing_time: self.min_playing_time,
-        max_playing_time: self.max_playing_time,
+        min_players: self.extension_flat.min_players,
+        max_players: self.extension_flat.max_players,
+        min_playing_time: self.extension_flat.min_playing_time,
+        max_playing_time: self.extension_flat.max_playing_time,
       },
     }
   }
