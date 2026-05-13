@@ -99,6 +99,29 @@
           </ng-template>
         </app-collection-column>
       }
+      @case (CollectionLayout.DETAILED) {
+        <app-collection-detailed-grid
+          class="virtual-host"
+          [mediaLayoutData]="mediaLayoutData()"
+          (endReached)="onScroll()"
+        >
+          <ng-template #itemRef let-mediaId="mediaId" let-width="width" let-height="height">
+            <app-media-card-details 
+              [mediaId]="mediaId" [width]="width"
+              [isMenuOpen]="isMenuOpen(mediaId)"
+            >
+              <div mediaMenu (click)="$event.preventDefault(); $event.stopPropagation()">
+                <ng-container *ngTemplateOutlet="itemMenu; 
+                  context: { 
+                    mediaId: mediaId, 
+                    customClass: 'dots-button menu-background' 
+                  }">
+                </ng-container>
+              </div>
+            </app-media-card-details>
+          </ng-template>
+        </app-collection-detailed-grid>
+      }
       @case (CollectionLayout.LIST) {
         <app-collection-list 
           class="virtual-host virtual-host-list"

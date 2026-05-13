@@ -22,11 +22,13 @@ import { MediaActionComponent } from "@app/components/media-action/media-action.
 import { debounceTime, Subject } from 'rxjs';
 import { LayoutManagerComponent } from "../../components/layout-manager/layout-manager.component";
 import { ScreenService } from '@app/services/screen.service';
+import { CollectionDetailedGridComponent } from "@app/components/collection-detailed-grid/collection-detailed-grid.component";
+import { MediaCardDetailsComponent } from "@app/components/media-card-details/media-card-details.component";
 
 @Component({
   selector: 'app-metadata-page',
   standalone: true,
-  imports: [CommonModule, RouterModule, ActionBarComponent, SortManagerComponent, FilterManagerComponent, CollectionGridComponent, CollectionRowComponent, MediaCardComponent, CollectionColumnComponent, CollectionListComponent, MediaRowComponent, DropdownComponent, MediaActionComponent, LayoutManagerComponent],
+  imports: [CommonModule, RouterModule, ActionBarComponent, SortManagerComponent, FilterManagerComponent, CollectionGridComponent, CollectionRowComponent, MediaCardComponent, CollectionColumnComponent, CollectionListComponent, MediaRowComponent, DropdownComponent, MediaActionComponent, LayoutManagerComponent, CollectionDetailedGridComponent, MediaCardDetailsComponent],
   templateUrl: './metadata-page.component.html',
 })
 export class MetadataPageComponent {
