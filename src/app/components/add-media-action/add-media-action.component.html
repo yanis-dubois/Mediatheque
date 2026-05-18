@@ -1,0 +1,13 @@
+<button class="dropdown-button" (click)="addMedia()">
+  + Add Media Manually
+</button>
+
+<div #editorPopover popover="manual" class="picker-popover-wrapper">
+  @if (isEditorVisible()) {
+    <app-media-editing
+      [mediaId]="mediaId()!"
+      (onCancel)="closeEditor(); deleteMedia();"
+      (onConfirm)="closeEditor(); editMedia($event);"
+    />
+  }
+</div>

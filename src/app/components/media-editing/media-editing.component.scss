@@ -2,6 +2,15 @@
   color: var(--color-light);
 }
 
+.content {
+  margin: 0 var(--side-margin);
+  margin-bottom: var(--nav-height);
+
+  h2 {
+    margin-top: 32px;
+  }
+}
+
 .picker-header {
   padding: 12px 0;
   border-bottom: 1px solid rgba(255, 255, 255, 0.1);
@@ -21,11 +30,80 @@
 }
 
 .images {
-  display: flex;
+  margin: 16px 0;
   justify-content: space-around;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
 
-  .image {
-    height: 256px;
+  .image-container {
+    display: flex; 
+    flex-direction: column; 
+    gap: 8px;
+    align-content: center;
+
+    .image {
+      height: 256px;
+    }
+
+    h2 {
+      margin: 0;
+      text-align: center;
+    }
+  }
+}
+
+.core-fields {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.relations {
+  .relations-section {
+    h2 {
+      margin-bottom: 0;
+    }
+
+    .relation{
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+
+      .value-container {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+        margin-bottom: 8px;
+
+        .value-chip input {
+          margin-right: 4px;
+        }
+      }
+    }
+  }
+}
+
+.tags-section {
+  h2 {
+    margin-bottom: 0;
+  }
+
+  .tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 64px;
+
+    .tags-container {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      margin-bottom: 8px;
+
+      .tag-input-row input {
+        margin-right: 4px;
+      }
+    }
   }
 }
 
@@ -43,4 +121,61 @@
 }
 .count-error {
   color: #ff4444 !important;
+}
+
+.separator {
+  border: none;
+  height: 1px;
+  background-color: var(--color-dark-light);
+
+  margin: 16px 0;
+}
+
+.content {
+  button {
+    cursor: pointer;
+    border: none;
+    border-radius: 16px;
+    padding: 4px 16px;
+    background-color: var(--color-dark-soft);
+    color: var(--color-light);
+    text-align: center;
+  
+    &:hover {
+      background-color: var(--color-dark-light);
+    }
+
+    &.round {
+      padding: 4px 8px;
+    }
+
+    &.add {
+      padding: 0;
+      height: 48px;
+      width: 48px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+  }
+
+  .delete {
+    color: #ff4444 !important;
+    &:hover { 
+      background: #412525 !important;
+    }
+  }
+}
+
+.input {
+  padding: 4px 16px;
+  border-radius: 16px;
+  border: none;
+  background: var(--color-dark-soft);
+  color: var(--color-light);
+  font-size: var(--text-base);
+
+  &:hover {
+    background: var(--color-dark-light);
+  }
 }

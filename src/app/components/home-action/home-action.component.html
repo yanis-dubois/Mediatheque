@@ -6,25 +6,13 @@
 
 <app-collections-action></app-collections-action>
 
-<button class="dropdown-button" (click)="addMedia()">
-  + Add Media Manually
-</button>
+<app-add-media-action (openMenu)="openMenu.emit()" (closeMenu)="closeMenu.emit()"></app-add-media-action>
 
 <div #pickerPopover popover="manual" class="picker-popover-wrapper">
   @if (isPickerVisible()) {
     <app-pin-organizer 
       (onCancel)="closePicker()" 
       (onSave)="closePicker()"
-    />
-  }
-</div>
-
-<div #editorPopover popover="manual" class="picker-popover-wrapper">
-  @if (isEditorVisible()) {
-    <app-media-editing
-      [mediaId]="mediaId()!"
-      (onCancel)="closeEditor()"
-      (onConfirm)="closeEditor(); editMedia($event);"
     />
   }
 </div>
