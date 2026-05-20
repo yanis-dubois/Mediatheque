@@ -2,6 +2,7 @@ use std::collections::HashMap;
 
 use rusqlite::{params, Connection, Transaction};
 use tauri::{Emitter, Manager};
+use tauri_plugin_log::log::debug;
 
 use crate::api::provider::ProviderStore;
 use crate::db::DbState;
@@ -271,7 +272,7 @@ pub fn get_media_by_id(
   state: tauri::State<'_, DbState>,
   id: &str,
 ) -> Result<Option<LibraryMedia>, String> {
-  println!("get_media_by_id for ID: {}", id);
+  debug!("get_media_by_id for ID: {}", id);
 
   let connection = state
     .connection
@@ -1081,7 +1082,7 @@ pub fn insert_external_media(
   has_poster: bool,
   has_backdrop: bool,
 ) -> Result<(), rusqlite::Error> {
-  println!("insert_external_media: {}", media_uuid);
+  debug!("insert_external_media: {}", media_uuid);
 
   let external_id = api_media.state.external_id;
   let base = &api_media.data.base;
@@ -1122,17 +1123,14 @@ pub fn insert_external_media(
   insert_media_tags(tx, media_uuid, &relations.tags)?;
 
   // insert details
-  println!("DEBUG: Extension type is: {:?}", api_media.data.extension);
   match &api_media.data.extension {
     MediaExtension::Movie { duration } => {
-      println!("movie");
       tx.execute(
         "INSERT INTO movie (media_id, duration) VALUES (?1, ?2)",
         params![media_uuid, duration],
       )?;
     }
     MediaExtension::Series { seasons, episodes } => {
-      println!("series");
       tx.execute(
         "INSERT INTO series (media_id, seasons, episodes) VALUES (?1, ?2, ?3)",
         params![media_uuid, seasons, episodes],
@@ -1143,7 +1141,6 @@ pub fn insert_external_media(
       normal_playing_time,
       complete_playing_time,
     } => {
-      println!("video game");
       tx.execute(
         "INSERT INTO video_game (media_id, synopsis, normal_playing_time, complete_playing_time) VALUES (?1, ?2, ?3, ?4)",
         params![media_uuid, synopsis, normal_playing_time, complete_playing_time],
@@ -1155,22 +1152,18 @@ pub fn insert_external_media(
       min_playing_time,
       max_playing_time,
     } => {
-      println!("tabletop game");
       tx.execute(
         "INSERT INTO tabletop_game (media_id, min_players, max_players, min_playing_time, max_playing_time) VALUES (?1, ?2, ?3, ?4, ?5)",
         params![media_uuid, min_players, max_players, min_playing_time, max_playing_time],
       )?;
     }
     MediaExtension::Book { pages, category } => {
-      println!("book");
       tx.execute(
         "INSERT INTO book (media_id, pages, category) VALUES (?1, ?2, ?3)",
         params![media_uuid, pages, category],
       )?;
     }
-    MediaExtension::None => {
-      println!("none");
-    }
+    MediaExtension::None => {}
   }
 
   Ok(())
@@ -1312,7 +1305,7 @@ pub async fn add_media_to_library(
 
 #[tauri::command]
 pub async fn add_empty_media(app: tauri::AppHandle) -> Result<String, String> {
-  println!("add_empty_media");
+  debug!("add_empty_media");
   let media_uuid = uuid::Uuid::new_v4().to_string();
   let date = chrono::Utc::now().to_rfc3339();
 
@@ -1370,7 +1363,7 @@ pub fn delete_media(
   id: String,
   external_id: Option<u32>,
 ) -> Result<(), String> {
-  println!("delete_media");
+  debug!("delete_media");
 
   let mut connection = state
     .connection

@@ -3,6 +3,7 @@ use std::sync::Mutex;
 use strum::IntoEnumIterator;
 use tauri::AppHandle;
 use tauri::Manager;
+use tauri_plugin_log::log::debug;
 
 use crate::models::enums::match_collection_media_type;
 use crate::models::enums::CollectionLayout;
@@ -53,7 +54,7 @@ pub fn get_connection(app: &AppHandle) -> Result<Connection> {
 }
 
 pub fn setup_db(app: &AppHandle) -> Result<()> {
-  println!(
+  debug!(
     "App Data Directory: {:?}",
     app.path().app_data_dir().unwrap()
   );
@@ -679,7 +680,7 @@ pub fn seed_data(connection: &mut Connection) -> Result<()> {
 
   // validate all operations
   tx.commit()?;
-  println!("Database initialized with success !");
+  debug!("Database initialized with success !");
   Ok(())
 }
 fn seed_persons(

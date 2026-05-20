@@ -1,6 +1,7 @@
 use std::collections::HashMap;
 
 use rusqlite::params;
+use tauri_plugin_log::log::debug;
 
 use crate::{
   db::DbState,
@@ -11,7 +12,7 @@ use crate::{
 pub fn get_all_settings(
   state: tauri::State<'_, DbState>,
 ) -> Result<HashMap<String, String>, String> {
-  println!("get_all_settings");
+  debug!("get_all_settings");
 
   let connection = state
     .connection
@@ -34,7 +35,7 @@ pub fn get_all_settings(
     map.insert(k, v);
   }
 
-  println!("settings : {:?}", map);
+  debug!("settings : {:?}", map);
 
   Ok(map)
 }
@@ -45,7 +46,7 @@ pub fn save_setting(
   key: SettingsKey,
   value: SettingValue,
 ) -> Result<(), String> {
-  println!("save_setting : {:?}", value);
+  debug!("save_setting : {:?}", value);
 
   let connection = state
     .connection

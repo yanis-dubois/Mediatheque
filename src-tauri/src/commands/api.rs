@@ -1,6 +1,7 @@
 use std::collections::HashMap;
 
 use tauri::Manager;
+use tauri_plugin_log::log::debug;
 
 use crate::{
   api::provider::ProviderStore,
@@ -41,7 +42,7 @@ pub async fn search_media_on_internet(
   language: Language,
   page: u32,
 ) -> Result<ApiSearchResultCount, String> {
-  println!("search_media_on_internet");
+  debug!("search_media_on_internet");
 
   // get API results
   let provider = provider_store

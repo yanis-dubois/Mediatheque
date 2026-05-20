@@ -53,7 +53,6 @@ fn map_category_id(id: u32) -> Option<String> {
 
 pub struct HardcoverProvider {
   pub source: MediaSource,
-  pub token: String,
   pub base_media_url: String,
   pub image_config: ImageConfiguration,
   pub page_size: u32,
@@ -61,18 +60,9 @@ pub struct HardcoverProvider {
 
 impl HardcoverProvider {
   pub fn new() -> Self {
-    let token = option_env!("HARDCOVER_API_TOKEN")
-      .unwrap_or("NOT_FOUND")
-      .to_string();
-
-    if token == "NOT_FOUND" {
-      eprintln!("CRITICAL: HARDCOVER_API_TOKEN not found");
-    }
-
     Self {
       source: MediaSource::Hardcover,
-      token,
-      base_media_url: "https://api.hardcover.app/v1/graphql".to_string(),
+      base_media_url: "https://mediatheque-proxy.ianis-dubois.workers.dev/hardcover".to_string(),
       image_config: Self::create_config(),
       page_size: 20,
     }
@@ -127,7 +117,6 @@ impl MediaProvider for HardcoverProvider {
     let client = reqwest::Client::new();
     let response: HardcoverResponse = client
       .post(&self.base_media_url)
-      .header("Authorization", format!("Bearer {}", &self.token))
       .header("Content-Type", "application/json")
       .json(&body)
       .send()
@@ -222,7 +211,6 @@ impl MediaProvider for HardcoverProvider {
     let client = reqwest::Client::new();
     let response: HardcoverByIdResponse = client
       .post(&self.base_media_url)
-      .header("Authorization", format!("Bearer {}", &self.token))
       .header("Content-Type", "application/json")
       .json(&body)
       .send()

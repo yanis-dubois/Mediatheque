@@ -124,8 +124,6 @@ fn extract_tags_names(
 
 pub struct IgdbProvider {
   pub source: MediaSource,
-  pub token: String,
-  pub client_id: String,
   pub base_media_url: String,
   pub image_config: ImageConfiguration,
   pub page_size: u32,
@@ -133,22 +131,9 @@ pub struct IgdbProvider {
 
 impl IgdbProvider {
   pub fn new() -> Self {
-    let token = option_env!("IGDB_API_TOKEN")
-      .unwrap_or("NOT_FOUND")
-      .to_string();
-    let client_id = option_env!("IGDB_CLIENT_ID")
-      .unwrap_or("NOT_FOUND")
-      .to_string();
-
-    if token == "NOT_FOUND" || client_id == "NOT_FOUND" {
-      eprintln!("CRITICAL: IGDB_API_TOKEN and IGDB_CLIENT_ID not found");
-    }
-
     Self {
       source: MediaSource::Igdb,
-      token,
-      client_id,
-      base_media_url: "https://api.igdb.com/v4".to_string(),
+      base_media_url: "https://mediatheque-proxy.ianis-dubois.workers.dev/igdb".to_string(),
       image_config: Self::create_config(),
       page_size: 20,
     }
@@ -231,16 +216,12 @@ impl MediaProvider for IgdbProvider {
 
     let request_items = client
       .post(&url)
-      .header("Client-ID", &self.client_id)
-      .header("Authorization", format!("Bearer {}", &self.token))
       .header("Content-Type", "text/plain")
       .body(search_body)
       .send();
 
     let request_count = client
       .post(format!("{}/count", &url))
-      .header("Client-ID", &self.client_id)
-      .header("Authorization", format!("Bearer {}", &self.token))
       .header("Content-Type", "text/plain")
       .body(count_body)
       .send();
@@ -330,8 +311,6 @@ impl MediaProvider for IgdbProvider {
     let client = reqwest::Client::new();
     let raw_responses: Vec<MultiQueryResponse> = client
       .post(&url)
-      .header("Client-ID", &self.client_id)
-      .header("Authorization", format!("Bearer {}", &self.token))
       .body(body)
       .send()
       .await

@@ -75,9 +75,18 @@ export class SearchPageComponent {
 
     effect(() => {
       const searchQuery = this.searchQuery();
+      const ctx = this.navService.context();
       const mode = this.mode();
-      if (mode === 'library') this.librarySearchQuery.set(searchQuery);
-      else this.apiSearchQuery.set(searchQuery);
+      if (mode === 'library') {
+        this.librarySearchQuery.set(searchQuery);
+      }
+      else {
+        this.apiSearchQuery.set(searchQuery);
+        // switch to MOVIE if needed
+        if (ctx.type === 'ALL') {
+          this.navService.switchContext({type: 'SPECIFIC', value: MediaType.MOVIE});
+        }
+      }
     }, { allowSignalWrites: true });
 
     effect(() => {

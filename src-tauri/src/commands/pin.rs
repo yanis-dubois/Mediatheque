@@ -1,4 +1,5 @@
 use rusqlite::params;
+use tauri_plugin_log::log::debug;
 
 use crate::{
   db::DbState,
@@ -24,7 +25,7 @@ pub fn map_row_to_pin_entry(row: &rusqlite::Row) -> rusqlite::Result<PinEntry> {
 
 #[tauri::command]
 pub fn get_all_pins(state: tauri::State<'_, DbState>) -> Result<Vec<PinEntry>, String> {
-  println!("get_all_pins");
+  debug!("get_all_pins");
 
   let connection = state
     .connection
@@ -132,7 +133,7 @@ pub fn update_pinned_collections(
 
   tx.commit().map_err(|e| e.to_string())?;
 
-  println!("Pinned collections updated for context: {}", context);
+  debug!("Pinned collections updated for context: {}", context);
   Ok(())
 }
 

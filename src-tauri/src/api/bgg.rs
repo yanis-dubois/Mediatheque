@@ -1,5 +1,7 @@
 use std::collections::HashMap;
 
+use tauri_plugin_log::log::debug;
+
 use crate::{
   api::provider::MediaProvider,
   models::{
@@ -22,7 +24,6 @@ struct SearchCache {
 
 pub struct BggProvider {
   pub source: MediaSource,
-  pub token: String,
   pub base_media_url: String,
   pub image_config: ImageConfiguration,
   pub page_size: u32,
@@ -31,18 +32,9 @@ pub struct BggProvider {
 
 impl BggProvider {
   pub fn new() -> Self {
-    let token = option_env!("BGG_API_TOKEN")
-      .unwrap_or("NOT_FOUND")
-      .to_string();
-
-    if token == "NOT_FOUND" {
-      eprintln!("CRITICAL: BGG_API_TOKEN not found");
-    }
-
     Self {
       source: MediaSource::Bgg,
-      token,
-      base_media_url: "https://boardgamegeek.com/xmlapi2".to_string(),
+      base_media_url: "https://mediatheque-proxy.ianis-dubois.workers.dev/bgg".to_string(),
       image_config: Self::create_config(),
       page_size: 20,
       cache: std::sync::Mutex::new(None),
@@ -89,7 +81,7 @@ impl MediaProvider for BggProvider {
 
     // get ids
     if needs_search {
-      println!("search : load ids cache");
+      debug!("search : load ids cache");
       let search_url = format!(
         "{}/search?query={}&type=boardgame,boardgameexpansion",
         self.base_media_url,
@@ -98,7 +90,6 @@ impl MediaProvider for BggProvider {
 
       let xml_search = client
         .get(search_url)
-        .header("Authorization", format!("Bearer {}", self.token))
         .send()
         .await
         .map_err(|e| e.to_string())?
@@ -142,11 +133,10 @@ impl MediaProvider for BggProvider {
       .join(",");
 
     // get infos
-    println!("search : load data");
+    debug!("search : load data");
     let thing_url = format!("{}/thing?id={}", self.base_media_url, ids_str);
     let xml_thing_content = client
       .get(thing_url)
-      .header("Authorization", format!("Bearer {}", self.token))
       .send()
       .await
       .map_err(|e| e.to_string())?
@@ -209,7 +199,6 @@ impl MediaProvider for BggProvider {
     let client = reqwest::Client::new();
     let xml_content = client
       .get(url)
-      .header("Authorization", format!("Bearer {}", self.token))
       .send()
       .await
       .map_err(|e| e.to_string())?

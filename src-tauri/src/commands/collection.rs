@@ -1,4 +1,5 @@
 use rusqlite::params;
+use tauri_plugin_log::log::debug;
 
 use crate::commands::media::{get_media_count, get_media_layout_list};
 use crate::db::DbState;
@@ -219,7 +220,7 @@ pub fn search_layout_data(
   media_type: CollectionMediaType,
   pagination: Pagination,
 ) -> Result<Vec<(String, u16, u16)>, String> {
-  println!("search_layout_data : {}", query);
+  debug!("search_layout_data : {}", query);
 
   let filter = MediaFilter {
     search_query: if query == "" { None } else { Some(query) },
@@ -248,7 +249,7 @@ pub fn get_media_count_from_search(
   search_query: String,
   media_type: CollectionMediaType,
 ) -> Result<u32, String> {
-  println!("get_media_count_from_search : {}", search_query);
+  debug!("get_media_count_from_search : {}", search_query);
 
   let filter = MediaFilter {
     search_query: if search_query == "" {
@@ -284,7 +285,7 @@ pub fn search_in_meta_data(
   media_type: CollectionMediaType,
   pagination: Pagination,
 ) -> Result<Vec<(String, u16, u16)>, String> {
-  println!("search_in_meta_data : {}", query);
+  debug!("search_in_meta_data : {}", query);
 
   filter.search_query = if query.is_empty() { None } else { Some(query) };
   if let CollectionMediaType::Specific(mt) = media_type {
@@ -320,7 +321,7 @@ pub fn get_media_count_from_meta_data(
   mut filter: MediaFilter,
   media_type: CollectionMediaType,
 ) -> Result<u32, String> {
-  println!("get_media_count_from_meta_data : {}", query);
+  debug!("get_media_count_from_meta_data : {}", query);
 
   filter.search_query = if query.is_empty() { None } else { Some(query) };
   if let CollectionMediaType::Specific(mt) = media_type {
@@ -352,7 +353,7 @@ pub fn search_in_collection(
   search_query: String,
   pagination: Pagination,
 ) -> Result<Vec<(String, u16, u16)>, String> {
-  println!("search_in_collection : {}", search_query);
+  debug!("search_in_collection : {}", search_query);
 
   let mut collection = get_collection_by_id(state.clone(), collection_id.clone())?;
 
@@ -381,7 +382,7 @@ pub fn get_media_count_from_collection(
   collection_id: String,
   search_query: String,
 ) -> Result<u32, String> {
-  println!("get_media_count_from_collection : {}", search_query);
+  debug!("get_media_count_from_collection : {}", search_query);
 
   let mut collection = get_collection_by_id(state.clone(), collection_id.clone())?;
 
@@ -494,7 +495,7 @@ pub fn update_collection_sort(
   id: String,
   sort: Vec<MediaOrder>,
 ) -> Result<(), String> {
-  println!("update_collection_sort");
+  debug!("update_collection_sort");
 
   let connection = state
     .connection
@@ -520,7 +521,7 @@ pub fn update_collection_filter(
   id: String,
   filter: MediaFilter,
 ) -> Result<(), String> {
-  println!("update_collection_filter");
+  debug!("update_collection_filter");
 
   let connection = state
     .connection
@@ -546,7 +547,7 @@ pub fn update_collection_media_type(
   id: String,
   media_type: CollectionMediaType,
 ) -> Result<(), String> {
-  println!("update_collection_media_type");
+  debug!("update_collection_media_type");
 
   let connection = state
     .connection
@@ -569,7 +570,7 @@ pub fn add_media_batch_to_collection(
   id: String,
   media_ids: Vec<String>,
 ) -> Result<(), String> {
-  println!("add_media_batch_to_collection");
+  debug!("add_media_batch_to_collection");
 
   let mut connection = state
     .connection
@@ -616,7 +617,7 @@ pub fn add_media_to_collection_batch(
   media_id: String,
   collection_ids: Vec<String>,
 ) -> Result<(), String> {
-  println!("add_media__to_collection_batch");
+  debug!("add_media__to_collection_batch");
 
   let mut connection = state.connection.lock().map_err(|_| "DB Lock failed")?;
 
@@ -652,7 +653,7 @@ pub fn remove_media_from_collection(
   id: String,
   media_id: String,
 ) -> Result<(), String> {
-  println!("remove_media_from_collection");
+  debug!("remove_media_from_collection");
 
   let connection = state.connection.lock().map_err(|_| "DB Lock failed")?;
 
@@ -673,7 +674,7 @@ pub fn create_collection(
   state: tauri::State<'_, DbState>,
   data: ExternalCollection,
 ) -> Result<String, String> {
-  println!("create_collection");
+  debug!("create_collection");
 
   let connection = state.connection.lock().map_err(|_| "DB Lock failed")?;
 
@@ -727,7 +728,7 @@ pub fn create_collection(
     ],
   ).map_err(|e| e.to_string())?;
 
-  println!("collection created !");
+  debug!("collection created !");
   Ok(collection_uuid)
 }
 
@@ -735,7 +736,7 @@ pub fn create_collection(
 
 #[tauri::command]
 pub fn delete_collection(state: tauri::State<'_, DbState>, id: String) -> Result<(), String> {
-  println!("delete_collection");
+  debug!("delete_collection");
 
   let connection = state.connection.lock().map_err(|_| "DB Lock failed")?;
 

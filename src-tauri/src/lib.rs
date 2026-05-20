@@ -10,6 +10,7 @@ pub fn run() {
     .plugin(tauri_plugin_fs::init())
     .plugin(tauri_plugin_dialog::init())
     .plugin(tauri_plugin_opener::init())
+    .plugin(tauri_plugin_log::Builder::default().build())
     // init local DB
     .setup(|app| {
       db::setup_db(&app.handle()).expect("failed to initialize database");

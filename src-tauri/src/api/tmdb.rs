@@ -1,5 +1,7 @@
 use std::collections::HashMap;
 
+use tauri_plugin_log::log::debug;
+
 use crate::{
   api::provider::MediaProvider,
   models::{
@@ -55,7 +57,6 @@ fn clean_image_path(path: &str) -> String {
 
 pub struct TmdbProvider {
   pub source: MediaSource,
-  pub token: String,
   pub base_media_url: String,
   pub image_config: ImageConfiguration,
   pub media_type: MediaType,
@@ -63,18 +64,9 @@ pub struct TmdbProvider {
 
 impl TmdbProvider {
   pub fn new(media_type: MediaType) -> Self {
-    let token = option_env!("TMDB_API_TOKEN")
-      .unwrap_or("NOT_FOUND")
-      .to_string();
-
-    if token == "NOT_FOUND" {
-      eprintln!("CRITICAL: TMDB_API_TOKEN not found");
-    }
-
     Self {
       source: MediaSource::Tmdb,
-      token,
-      base_media_url: "https://api.themoviedb.org/3".to_string(),
+      base_media_url: "https://mediatheque-proxy.ianis-dubois.workers.dev/tmdb".to_string(),
       image_config: Self::create_config(),
       media_type,
     }
@@ -155,7 +147,6 @@ impl MediaProvider for TmdbProvider {
 
     let response = client
       .get(url)
-      .header("Authorization", format!("Bearer {}", self.token))
       .header("accept", "application/json")
       .send()
       .await
@@ -166,14 +157,14 @@ impl MediaProvider for TmdbProvider {
     if !status.is_success() {
       let err_text = response.text().await.unwrap_or_default();
       let err_msg = format!("API Error {}: {}", status, err_text);
-      eprintln!("{}", err_msg);
+      debug!("{}", err_msg);
       return Err(err_msg);
     }
 
     // 2. Si c'est un succès, lire le JSON
     let full_data: ApiResponse = response.json().await.map_err(|e| {
       let err_msg = format!("JSON DESERIALIZATION ERROR: {:?}", e);
-      eprintln!("{}", err_msg);
+      debug!("{}", err_msg);
       err_msg
     })?;
 
@@ -228,7 +219,6 @@ impl MediaProvider for TmdbProvider {
     let client = reqwest::Client::new();
     let data: serde_json::Value = client
       .get(url)
-      .header("Authorization", format!("Bearer {}", self.token))
       .send()
       .await
       .map_err(|e| e.to_string())?
