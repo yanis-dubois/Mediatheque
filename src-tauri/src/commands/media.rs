@@ -1037,7 +1037,6 @@ pub async fn edit_media_data(
   id: String,
   media: MediaDto,
 ) -> Result<(), String> {
-  // todo : download images
   let previous_assets = DownloadedMediaAssets {
     poster_width: media.poster_width.clone(),
     poster_height: media.poster_height.clone(),

@@ -1,6 +1,6 @@
 import { Injectable, signal } from '@angular/core';
 
-import { appDataDir } from '@tauri-apps/api/path';
+import { invoke } from "@tauri-apps/api/core";
 
 @Injectable({ providedIn: 'root' })
 export class FileService {
@@ -15,7 +15,7 @@ export class FileService {
   public async initDirectory() {
     try {
       this._appDataPath.set(
-        await appDataDir()
+        await invoke<string>('get_custom_app_data_dir')
       );
     } catch (e) {
       console.error("Error while initializing directory", e);

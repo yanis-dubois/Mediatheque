@@ -1,4 +1,5 @@
 use rusqlite::{params, Connection, Result};
+use std::path::PathBuf;
 use std::sync::Mutex;
 use strum::IntoEnumIterator;
 use tauri::AppHandle;
@@ -17,17 +18,14 @@ use crate::models::enums::TagType;
 use crate::models::enums::{MediaStatus, MediaType};
 use crate::models::query::MediaFilter;
 use crate::models::query::MediaOrder;
+use crate::utils::file::get_app_data_dir;
 use crate::utils::unicode::remove_accents;
 
 pub struct DbState {
   pub connection: Mutex<Connection>,
 }
 
-pub fn reset_db(app: &AppHandle) -> Result<()> {
-  let app_dir = app
-    .path()
-    .app_data_dir()
-    .expect("failed to get app data dir");
+pub fn reset_db(app_dir: &PathBuf) -> Result<()> {
   let db_path = app_dir.join("mediatheque.db");
 
   if db_path.exists() {
@@ -36,13 +34,8 @@ pub fn reset_db(app: &AppHandle) -> Result<()> {
   Ok(())
 }
 
-pub fn get_connection(app: &AppHandle) -> Result<Connection> {
-  let app_dir = app
-    .path()
-    .app_data_dir()
-    .expect("failed to get app data dir");
-
-  std::fs::create_dir_all(&app_dir).ok();
+pub fn get_connection(app_dir: &PathBuf) -> Result<Connection> {
+  std::fs::create_dir_all(app_dir).ok();
 
   let db_path = app_dir.join("mediatheque.db");
   let connection = Connection::open(db_path)?;
@@ -54,23 +47,25 @@ pub fn get_connection(app: &AppHandle) -> Result<Connection> {
 }
 
 pub fn setup_db(app: &AppHandle) -> Result<()> {
-  debug!(
-    "App Data Directory: {:?}",
-    app.path().app_data_dir().unwrap()
-  );
+  let app_dir = get_app_data_dir(app);
+  debug!("App Data Directory: {:?}", app_dir);
 
-  // delete data base
-  reset_db(app).map_err(|e| e)?; // TMP
+  // delete data base (only in dev mode)
+  if cfg!(debug_assertions) {
+    reset_db(&app_dir).map_err(|e| e)?;
+  }
 
   // open connection with DB
-  let connection = get_connection(&app)?;
+  let connection = get_connection(&app_dir)?;
 
   // DB init
   let mut connection_wrapper = connection;
   init_db(&mut connection_wrapper)?;
 
-  // add test data in DB
-  seed_data(&mut connection_wrapper).map_err(|e| e)?; // TMP
+  // add test data in DB (only in dev mode)
+  if cfg!(debug_assertions) {
+    seed_data(&mut connection_wrapper).map_err(|e| e)?;
+  }
 
   // give connection to Tauri using Mutex
   app.manage(DbState {

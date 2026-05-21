@@ -324,7 +324,7 @@ pub fn match_tag_type(s: &str) -> TagType {
     "FRANCHISE" => TagType::Franchise,
     "GAME_MODE" => TagType::GameMode,
     "CAMERA_PERSPECTIVE" => TagType::CameraPerspective,
-    _ => todo!(), // default
+    _ => todo!(),
   }
 }
 pub fn match_collection_media_type(s: &str) -> CollectionMediaType {
@@ -348,7 +348,7 @@ pub fn match_collection_view(s: &str) -> CollectionLayout {
     "COLUMN" => CollectionLayout::Column,
     "LIST" => CollectionLayout::List,
     "DETAILED" => CollectionLayout::Detailed,
-    _ => todo!(), // default
+    _ => todo!(),
   }
 }
 pub fn match_entity_type(s: &str) -> EntityType {

@@ -1,6 +1,7 @@
 pub mod api;
 pub mod collection;
 pub mod entity;
+pub mod file;
 pub mod media;
 pub mod metadata;
 pub mod pin;

@@ -4,6 +4,9 @@ mod db;
 mod models;
 mod utils;
 
+use crate::utils::file::get_app_data_dir;
+use tauri::Manager;
+
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
   tauri::Builder::default()
@@ -13,12 +16,25 @@ pub fn run() {
     .plugin(tauri_plugin_log::Builder::default().build())
     // init local DB
     .setup(|app| {
+      // add authorization for debug app data access
+      #[cfg(debug_assertions)]
+      {
+        let dev_dir = get_app_data_dir(app.handle());
+        app
+          .asset_protocol_scope()
+          .allow_directory(&dev_dir, true)
+          .map_err(|e| e.to_string())?;
+      }
+
+      // setup DB
       db::setup_db(&app.handle()).expect("failed to initialize database");
+
       Ok(())
     })
     // init API providers
     .manage(api::provider::ProviderStore::new())
     .invoke_handler(tauri::generate_handler![
+      commands::file::get_custom_app_data_dir,
       commands::settings::get_all_settings,
       commands::settings::save_setting,
       commands::media::get_media_by_id,
