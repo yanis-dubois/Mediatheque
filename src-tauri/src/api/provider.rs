@@ -81,8 +81,4 @@ pub trait MediaProvider: Send + Sync {
     page: u32,
   ) -> Result<ApiSearchResultCount, String>;
   async fn get_by_id(&self, external_id: u32, language: Language) -> Result<ApiMedia, String>;
-
-  fn get_image_format(&self) -> &str {
-    &self.get_image_config().format
-  }
 }

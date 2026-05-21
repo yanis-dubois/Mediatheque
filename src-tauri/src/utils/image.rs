@@ -1,11 +1,11 @@
 use std::path::{Path, PathBuf};
 
 use image::ImageReader;
-use tauri::Manager;
 
 use crate::{
   api::provider::MediaProvider,
   models::image::{ImageSize, ImageType},
+  utils::file::get_app_data_dir,
 };
 
 pub struct DownloadedMediaAssets {
@@ -33,7 +33,18 @@ async fn download_file(url: &str, dest_path: PathBuf) -> Result<(), String> {
   }
 
   // write files
-  std::fs::write(dest_path, bytes).map_err(|e| e.to_string())?;
+  tokio::task::spawn_blocking(move || {
+    let img = image::load_from_memory(&bytes).map_err(|e| e.to_string())?;
+    // convert to rgb8 to delete alpha chanel
+    let rgb_img = img.into_rgb8();
+
+    // save as jpg
+    rgb_img
+      .save_with_format(dest_path, image::ImageFormat::Jpeg)
+      .map_err(|e| e.to_string())
+  })
+  .await
+  .map_err(|e| format!("Task panic: {}", e))??;
 
   Ok(())
 }
@@ -101,7 +112,7 @@ async fn process_local_image_lods(
       .unwrap()
       .map_err(|e| e.to_string())?;
 
-    // 2. Créer le Medium à partir de l'Original
+    // create medium from original
     let medium_img = original_dyn.resize(
       medium_width,
       medium_height,
@@ -110,7 +121,7 @@ async fn process_local_image_lods(
     let path_m = medium_dir.join(&filename);
     medium_img.save(&path_m).map_err(|e| e.to_string())?;
 
-    // 3. Créer le Small à partir du MEDIUM (Beaucoup plus rapide !)
+    // create small from medium
     let small_img = medium_img.resize(
       small_width,
       small_height,
@@ -135,7 +146,7 @@ async fn process_local_image_lods(
   }
   // image is low resolution
   else {
-    // save original as medium (converting in jpg)
+    // save original as small (converting in jpg)
     let path_s = small_dir.join(&filename);
     original_dyn.save(path_s).map_err(|e| e.to_string())?;
   }
@@ -169,10 +180,9 @@ async fn download_image_lods(
     let mut tasks = Vec::new();
     for (folder_name, size_type) in variants {
       let url = provider.get_image_url(api_path, image_type, size_type);
-      let dest =
-        base_target_dir
-          .join(folder_name)
-          .join(format!("{}.{}", id, provider.get_image_format()));
+      let dest = base_target_dir
+        .join(folder_name)
+        .join(format!("{}.jpg", id));
 
       tasks.push(async move {
         download_file(&url, dest.clone())
@@ -204,8 +214,7 @@ async fn download_image_lods(
   // generate lods if necessary
   else {
     // download in temp file
-    let format = provider.get_image_format();
-    let temp_path = base_target_dir.join(format!("temp_{}.{}", id, format));
+    let temp_path = base_target_dir.join(format!("temp_{}.jpg", id));
     let source_url = provider.get_image_url(api_path, image_type, ImageSize::Original);
     download_file(&source_url, temp_path.clone()).await?;
 
@@ -225,7 +234,7 @@ pub async fn download_assets_from_api(
   poster_path: Option<String>,
   backdrop_path: Option<String>,
 ) -> Result<DownloadedMediaAssets, String> {
-  let app_dir = app.path().app_data_dir().map_err(|e| e.to_string())?;
+  let app_dir = get_app_data_dir(app);
 
   // create 'future' for poster
   let poster_future = async {
@@ -286,7 +295,7 @@ pub async fn download_assets_from_local(
   poster_deleted: bool,
   backdrop_deleted: bool,
 ) -> Result<DownloadedMediaAssets, String> {
-  let app_dir = app.path().app_data_dir().map_err(|e| e.to_string())?;
+  let app_dir = get_app_data_dir(app);
 
   // POSTER
   let poster_base_dir = app_dir.join("posters");
@@ -354,7 +363,7 @@ pub async fn download_assets_from_local(
 /* DELETE */
 
 fn delete_images(app: &tauri::AppHandle, id: &str, category: ImageType) -> Result<(), String> {
-  let app_dir = app.path().app_data_dir().map_err(|e| e.to_string())?;
+  let app_dir = get_app_data_dir(app);
 
   let category_folder_name = match category {
     ImageType::Poster => "posters",
