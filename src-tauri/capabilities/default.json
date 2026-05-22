@@ -15,8 +15,8 @@
       "allow": [
         { "path": "$APPLOCALDATA" }, 
         { "path": "$APPLOCALDATA/**/*" },
-        { "path": "$APPDATA/com.mediatheque-dev.app/**" }, 
-        { "path": "$LOCALDATA/com.mediatheque-dev.app/**" }
+        { "path": "$APPDATA/com.mediatheque-dev.desktop/**" }, 
+        { "path": "$LOCALDATA/com.mediatheque-dev.desktop/**" }
       ]
     }
   ]

@@ -23,7 +23,7 @@ export class ApiSearchListComponent {
   containerHeight = signal(120);
   containerWidth = signal(100);
   gap = signal(8);
-  hasBeenAdded = signal<boolean>(false);
+  hasBeenAdded = signal<number>(-1);
 
   endReached = output<void>();
 

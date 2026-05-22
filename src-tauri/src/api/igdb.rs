@@ -40,19 +40,19 @@ fn choose_backgrop(
 
   if let Some(arts) = artworks {
     for art in arts {
-      let (t, w, h) = (art.artwork_type, art.width, art.height);
+      if let (Some(t), Some(w), Some(h)) = (art.artwork_type, art.width, art.height) {
+        // is artwork
+        if [1, 2, 3].contains(&t) {
+          let current_ratio = w as f32 / h as f32;
+          let diff = (current_ratio - target_ratio).abs();
 
-      // is artwork
-      if [1, 2, 3].contains(&t) {
-        let current_ratio = w as f32 / h as f32;
-        let diff = (current_ratio - target_ratio).abs();
-
-        // keep it if better fitting
-        if best_artwork
-          .as_ref()
-          .map_or(true, |(_, best_diff)| diff < *best_diff)
-        {
-          best_artwork = Some((art.image_id.clone(), diff));
+          // keep it if better fitting
+          if best_artwork
+            .as_ref()
+            .map_or(true, |(_, best_diff)| diff < *best_diff)
+          {
+            best_artwork = Some((art.image_id.clone(), diff));
+          }
         }
       }
     }

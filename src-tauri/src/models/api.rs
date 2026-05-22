@@ -64,9 +64,9 @@ pub struct IgdbImage {
 #[derive(Deserialize)]
 pub struct IgdbArtwork {
   pub image_id: String,
-  pub artwork_type: u32,
-  pub height: u32,
-  pub width: u32,
+  pub artwork_type: Option<u32>,
+  pub height: Option<u32>,
+  pub width: Option<u32>,
 }
 
 #[derive(Deserialize)]

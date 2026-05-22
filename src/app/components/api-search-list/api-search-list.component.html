@@ -8,7 +8,7 @@
     @if (item; as result) {
       @let route = result.isInLibrary && result.id
         ? ['/search/media', result.id]
-        : ['/search/media', result.externalId, result.mediaType, result.source, hasBeenAdded()];
+        : ['/search/media', result.externalId, result.mediaType, result.source, result.externalId===hasBeenAdded()];
       <a [routerLink]="route">
         <app-api-search-row 
           [entity]="result" 
@@ -20,8 +20,8 @@
             menu
             [data]="item"
             (click)="$event.preventDefault(); $event.stopPropagation();"
-            (beforeAdded)="hasBeenAdded.set(true)"
-            (beforeRemove)="hasBeenAdded.set(false)"
+            (beforeAdded)="hasBeenAdded.set(result.externalId)"
+            (beforeRemove)="hasBeenAdded.set(-1)"
           ></app-api-search-action>
         </app-api-search-row>
       </a>

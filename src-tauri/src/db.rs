@@ -64,8 +64,9 @@ pub fn setup_db(app: &AppHandle) -> Result<()> {
 
   // add test data in DB (only in dev mode)
   if cfg!(debug_assertions) {
-    seed_data(&mut connection_wrapper).map_err(|e| e)?;
+    seed_data_dev(&mut connection_wrapper).map_err(|e| e)?;
   }
+  seed_data(&mut connection_wrapper).map_err(|e| e)?;
 
   // give connection to Tauri using Mutex
   app.manage(DbState {
@@ -516,6 +517,60 @@ struct SeedCollectionDynamic {
 
 pub fn seed_data(connection: &mut Connection) -> Result<()> {
   // don't seed if not needed
+  let count: i64 = connection.query_row("SELECT COUNT(*) FROM collection", [], |row| row.get(0))?;
+  if count > 0 {
+    return Ok(());
+  }
+
+  // setup transaction for security and performance
+  let tx = connection.transaction()?;
+
+  // system collection
+  let mut pinned_cpt = 0;
+  let mut system_collection_id = 0;
+  for mut c in seed_system_collection_data() {
+    for media_type_str in std::iter::once(CollectionMediaType::All.to_db_string())
+      .chain(MediaType::iter().map(|m| m.to_string()))
+    {
+      let media_type = match_collection_media_type(&media_type_str);
+      c.media_type = media_type.clone();
+
+      if let CollectionMediaType::Specific(mt) = media_type {
+        let mut current_filter = c
+          .collection_dynamic
+          .as_ref()
+          .and_then(|cd| cd.filter.clone())
+          .unwrap_or_else(|| MediaFilter::default());
+
+        current_filter.media_type = Some(mt);
+
+        c.collection_dynamic = Some(SeedCollectionDynamic {
+          filter: Some(current_filter),
+        });
+      }
+      c.id = system_collection_id;
+
+      seed_collection(&tx, c.clone())?;
+
+      tx.execute(
+        "INSERT INTO pinned_collection (context, position, collection_id)
+          VALUES (?1, ?2, ?3)",
+        params![media_type_str, pinned_cpt, system_collection_id.to_string()],
+      )?;
+
+      system_collection_id += 1;
+    }
+
+    pinned_cpt += 1;
+  }
+
+  // validate all operations
+  tx.commit()?;
+  debug!("Database initialized with success !");
+  Ok(())
+}
+pub fn seed_data_dev(connection: &mut Connection) -> Result<()> {
+  // don't seed if not needed
   let count: i64 = connection.query_row("SELECT COUNT(*) FROM media", [], |row| row.get(0))?;
   if count > 0 {
     return Ok(());
@@ -632,45 +687,6 @@ pub fn seed_data(connection: &mut Connection) -> Result<()> {
     }
 
     seed_collection(&tx, c)?;
-  }
-
-  // system collection
-  let mut pinned_cpt = 0;
-  let mut system_collection_id = 0;
-  for mut c in seed_system_collection_data() {
-    for media_type_str in std::iter::once(CollectionMediaType::All.to_db_string())
-      .chain(MediaType::iter().map(|m| m.to_string()))
-    {
-      let media_type = match_collection_media_type(&media_type_str);
-      c.media_type = media_type.clone();
-
-      if let CollectionMediaType::Specific(mt) = media_type {
-        let mut current_filter = c
-          .collection_dynamic
-          .as_ref()
-          .and_then(|cd| cd.filter.clone())
-          .unwrap_or_else(|| MediaFilter::default());
-
-        current_filter.media_type = Some(mt);
-
-        c.collection_dynamic = Some(SeedCollectionDynamic {
-          filter: Some(current_filter),
-        });
-      }
-      c.id = system_collection_id;
-
-      seed_collection(&tx, c.clone())?;
-
-      tx.execute(
-        "INSERT INTO pinned_collection (context, position, collection_id)
-          VALUES (?1, ?2, ?3)",
-        params![media_type_str, pinned_cpt, system_collection_id.to_string()],
-      )?;
-
-      system_collection_id += 1;
-    }
-
-    pinned_cpt += 1;
   }
 
   // validate all operations
