@@ -15,7 +15,7 @@
             <BuildableReference
                BuildableIdentifier = "primary"
                BlueprintIdentifier = "83E9EC83455A1A2CC06DF63E"
-               BuildableName = "mediatheque.app"
+               BuildableName = "Mediatheque.app"
                BlueprintName = "mediatheque_iOS"
                ReferencedContainer = "container:mediatheque.xcodeproj">
             </BuildableReference>
@@ -31,7 +31,7 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "83E9EC83455A1A2CC06DF63E"
-            BuildableName = "mediatheque.app"
+            BuildableName = "Mediatheque.app"
             BlueprintName = "mediatheque_iOS"
             ReferencedContainer = "container:mediatheque.xcodeproj">
          </BuildableReference>
@@ -66,7 +66,7 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "83E9EC83455A1A2CC06DF63E"
-            BuildableName = "mediatheque.app"
+            BuildableName = "Mediatheque.app"
             BlueprintName = "mediatheque_iOS"
             ReferencedContainer = "container:mediatheque.xcodeproj">
          </BuildableReference>
@@ -95,7 +95,7 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "83E9EC83455A1A2CC06DF63E"
-            BuildableName = "mediatheque.app"
+            BuildableName = "Mediatheque.app"
             BlueprintName = "mediatheque_iOS"
             ReferencedContainer = "container:mediatheque.xcodeproj">
          </BuildableReference>

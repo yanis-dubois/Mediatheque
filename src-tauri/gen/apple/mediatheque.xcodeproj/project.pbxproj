@@ -282,8 +282,8 @@
 					"$(TOOLCHAIN_DIR)/usr/lib/swift/$(PLATFORM_NAME)",
 					"$(TOOLCHAIN_DIR)/usr/lib/swift-5.0/$(PLATFORM_NAME)",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = com.mediatheque.app;
-				PRODUCT_NAME = "mediatheque";
+				PRODUCT_BUNDLE_IDENTIFIER = com.mediatheque.desktop;
+				PRODUCT_NAME = "Mediatheque";
 				SDKROOT = iphoneos;
 				TARGETED_DEVICE_FAMILY = "1,2";
 				VALID_ARCHS = arm64;
@@ -323,8 +323,8 @@
 					"$(TOOLCHAIN_DIR)/usr/lib/swift/$(PLATFORM_NAME)",
 					"$(TOOLCHAIN_DIR)/usr/lib/swift-5.0/$(PLATFORM_NAME)",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = com.mediatheque.app;
-				PRODUCT_NAME = "mediatheque";
+				PRODUCT_BUNDLE_IDENTIFIER = com.mediatheque.desktop;
+				PRODUCT_NAME = "Mediatheque";
 				SDKROOT = iphoneos;
 				TARGETED_DEVICE_FAMILY = "1,2";
 				VALID_ARCHS = arm64;
