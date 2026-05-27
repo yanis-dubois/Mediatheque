@@ -516,10 +516,13 @@ struct SeedCollectionDynamic {
 /* --------------------------- */
 
 pub fn seed_data(connection: &mut Connection) -> Result<()> {
-  // don't seed if not needed
-  let count: i64 = connection.query_row("SELECT COUNT(*) FROM collection", [], |row| row.get(0))?;
-  if count > 0 {
-    return Ok(());
+  // seed system collection only if needed or dev mode
+  if !cfg!(debug_assertions) {
+    let count: i64 =
+      connection.query_row("SELECT COUNT(*) FROM collection", [], |row| row.get(0))?;
+    if count > 0 {
+      return Ok(());
+    }
   }
 
   // setup transaction for security and performance
