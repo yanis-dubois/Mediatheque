@@ -24,7 +24,7 @@ Designed from the ground up to give you absolute control over your digital footp
 ### 🌐 Powered by the Community
 This application relies on free, open, and community-driven databases to fetch media information.
 
-*   **Data fetching:** Data came from HARDCOVER (https://hardcover.app) for books, TMDB (https://www.themoviedb.org) for movies and TV series, IGDB (https://www.igdb.com) for video games and BGG (https://boardgamegeek.com) for tabletop games.
+*   **Providers:** Data came from HARDCOVER (https://hardcover.app) for books, TMDB (https://www.themoviedb.org) for movies and TV series, IGDB (https://www.igdb.com) for video games and BGG (https://boardgamegeek.com) for tabletop games.
 *   **Crowdsourced Data:** If you encounter missing items, incorrect summaries, or incomplete metadata, you are highly encouraged to contribute directly to the respective upstream data providers to help improve the open ecosystem for everyone.
 
 ## 🛠️ Tech Stack
