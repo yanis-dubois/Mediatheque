@@ -42,5 +42,15 @@
     "karma-jasmine": "~5.1.0",
     "karma-jasmine-html-reporter": "~2.1.0",
     "typescript": "~5.4.0"
+  },
+  "pnpm": {
+    "ignoredBuiltDependencies": [
+      "lmdb",
+      "msgpackr-extract",
+      "nice-napi"
+    ],
+    "onlyBuiltDependencies": [
+      "esbuild"
+    ]
   }
 }

@@ -1,7 +1,0 @@
-ignoredBuiltDependencies:
-  - lmdb
-  - msgpackr-extract
-  - nice-napi
-
-onlyBuiltDependencies:
-  - esbuild
