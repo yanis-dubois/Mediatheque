@@ -1,6 +1,19 @@
 {
   "fill" : {
-    "solid" : "extended-gray:1.00000,1.00000"
+    "linear-gradient" : [
+      "display-p3:0.55897,0.43125,0.82929,1.00000",
+      "display-p3:0.34740,0.24549,0.60127,1.00000"
+    ],
+    "orientation" : {
+      "start" : {
+        "x" : 0.5,
+        "y" : 0
+      },
+      "stop" : {
+        "x" : 0.5,
+        "y" : 0.7
+      }
+    }
   },
   "groups" : [
     {
@@ -15,7 +28,7 @@
           "glass" : true,
           "hidden" : false,
           "image-name" : "mediatheque_icon 2.svg",
-          "name" : "mediatheque_icon 2",
+          "name" : "mediatheque_icon",
           "opacity" : 1,
           "position" : {
             "scale" : 1.2,
@@ -33,39 +46,7 @@
       "specular" : true,
       "translucency" : {
         "enabled" : true,
-        "value" : 0.5
-      }
-    },
-    {
-      "hidden" : false,
-      "layers" : [
-        {
-          "hidden" : false,
-          "image-name" : "gradient 3.png",
-          "name" : "gradient 3"
-        }
-      ],
-      "shadow" : {
-        "kind" : "neutral",
-        "opacity" : 0.5
-      },
-      "specular" : false,
-      "translucency" : {
-        "enabled" : false,
-        "value" : 0.5
-      }
-    },
-    {
-      "layers" : [
-
-      ],
-      "shadow" : {
-        "kind" : "neutral",
-        "opacity" : 0.5
-      },
-      "translucency" : {
-        "enabled" : true,
-        "value" : 0.5
+        "value" : 0.66
       }
     }
   ],
