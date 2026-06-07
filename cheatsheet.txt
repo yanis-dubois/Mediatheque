@@ -1,5 +1,9 @@
 - Some important commands -
 
+Update project version :
+git tag -a v0.1.X -m "..." 
+git push origin v0.1.X
+
 Update rust:
 rustup update
 
